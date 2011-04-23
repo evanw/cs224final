@@ -40,11 +40,15 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
     for (int i = 0; i < faces.size(); ++i) {
         CatmullFace &face = faces[i];
         fillNeighbors(face);
+
+        Vertex fp;
         // set face point to average of vertex points
         for (int i = 0; i < face.n; ++i) {
-            face.facePoint.pos += vertices[face.points[1]].pos;
+            fp.pos += vertices[face.points[1]].pos;
         }
-        face.facePoint.pos /= face.n;
+        fp.pos /= face.n;
+        face.facePoint = facePoints.size();
+        facePoints += fp;
     }
 
     // add the edge points: edgePoints[0] on 0-1 edge, edgePoints[1] on 1-2 edge, etc.
@@ -54,7 +58,7 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
         for (int i = 0; i < f.n; ++i) {
             Vertex v;
             v.pos = (vertices[f.points[i]].pos + vertices[f.points[(i + 1) % f.n]].pos +
-                     f.facePoint.pos + f.neighbors[i]->facePoint.pos) / f.n;
+                     facePoints[f.facePoint].pos + facePoints[f.neighbors[i]->facePoint].pos) / f.n;
             f.edgePoints[i] = edgePoints.size();
             edgePoints += v;
         }
@@ -95,7 +99,7 @@ bool CatmullMesh::moveVertices() {
         for (int i = 0; i < face.n; ++i) {
             int prevIndex = (i == 0 ? face.n - 1 : i - 1);
             CatmullVertex &v = vertices[face.points[i]];
-            v.facePoints += face.facePoint.pos;
+            v.facePoints += facePoints[face.facePoint].pos;
             if (!v.edgePoints.contains(edgePoints[face.edgePoints[i]].pos)) {
                 v.edgePoints += edgePoints[face.edgePoints[i]].pos;
             }
@@ -128,7 +132,37 @@ bool CatmullMesh::moveVertices() {
 
 
 bool CatmullMesh::convertToMesh(Mesh &m) {
-    return false;
+    // create the list of vertices
+    foreach (const CatmullVertex &cv, vertices) {
+        Vertex v;
+        v.pos = cv.pos;
+        v.normal = cv.normal;
+        m.vertices += v;
+    }
+
+    int edgeOffset = m.vertices.size();
+    foreach (const Vertex &cv, edgePoints) {
+        m.vertices += cv;
+    }
+
+    int faceOffset = m.vertices.size();
+    foreach (const Vertex &cv, facePoints) {
+        m.vertices += cv;
+    }
+
+    // create the lists of quads and triangles
+    foreach (const CatmullFace &face, faces) {
+        for (int i = 0; i < face.n; ++i) {
+            Quad q;
+            q.a = face.points[i];
+            q.b = edgeOffset + face.edgePoints[i];
+            q.c = faceOffset + face.facePoint;
+            q.d = edgeOffset + face.edgePoints[(i + face.n - 1) % face.n];
+            m.quads += q;
+        }
+    }
+
+    return true;
 }
 
 
@@ -136,5 +170,6 @@ bool CatmullMesh::subdivide(const Mesh &in, Mesh &out) {
     CatmullMesh cm(in);
     if (!cm.moveVertices()) return false;
 
+    out.balls = in.balls;
     return cm.convertToMesh(out);
 }
