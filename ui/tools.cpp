@@ -47,10 +47,18 @@ bool SetSelectionTool::mousePressed(QMouseEvent *event)
     return false;
 }
 
-enum { XNEG, XPOS, YNEG, YPOS, ZNEG, ZPOS };
+Vector3 MoveSelectionTool::getHit(QMouseEvent *event)
+{
+    // set up raytracer
+    view->camera3D();
+    Raytracer tracer;
+    Vector3 origin = tracer.getEye();
+    Vector3 ray = tracer.getRayForPixel(event->x(), event->y());
 
-#include <iostream>
-using namespace std;
+    // raytrace the plane, returning the original hit point if we don't hit the plane
+    float t = (originalHit - origin).dot(planeNormal) / ray.dot(planeNormal);
+    return (t > 0) ? origin + ray * t : originalHit;
+}
 
 bool MoveSelectionTool::mousePressed(QMouseEvent *event)
 {
@@ -84,22 +92,17 @@ void MoveSelectionTool::mouseDragged(QMouseEvent *event)
 {
     if (view->selectedBall != -1)
     {
-        // get selected ball
         Ball &selection = view->doc->mesh.balls[view->selectedBall];
-
-        // set up raytracer
-        view->camera3D();
-        Raytracer tracer;
-        Vector3 origin = tracer.getEye();
-        Vector3 ray = tracer.getRayForPixel(event->x(), event->y());
-
-        // move selected ball
-        float t = (originalHit - origin).dot(planeNormal) / ray.dot(planeNormal);
-        Vector3 hit = origin + ray * t;
-        selection.center = originalCenter + hit - originalHit;
+        selection.center = originalCenter + getHit(event) - originalHit;
     }
 }
 
 void MoveSelectionTool::mouseReleased(QMouseEvent *event)
 {
+    if (view->selectedBall != -1)
+    {
+        Ball &selection = view->doc->mesh.balls[view->selectedBall];
+        selection.center = originalCenter;
+        view->doc->moveBall(view->selectedBall, getHit(event) - originalHit);
+    }
 }

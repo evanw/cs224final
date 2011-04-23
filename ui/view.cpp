@@ -142,6 +142,7 @@ void View::mouseReleaseEvent(QMouseEvent *event)
     if (currentTool)
     {
         currentTool->mouseReleased(event);
+        currentTool = NULL;
         updateGL();
     }
 }

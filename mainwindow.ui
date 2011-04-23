@@ -358,6 +358,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>menuEdit</sender>
+   <signal>aboutToShow()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>editMenuAboutToShow()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>64</x>
+     <y>41</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>menuEdit</sender>
+   <signal>aboutToHide()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>editMenuAboutToHide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>64</x>
+     <y>41</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>updateMode()</slot>
@@ -370,5 +402,7 @@
   <slot>editRedo()</slot>
   <slot>generateMesh()</slot>
   <slot>subdivideMesh()</slot>
+  <slot>editMenuAboutToShow()</slot>
+  <slot>editMenuAboutToHide()</slot>
  </slots>
 </ui>
