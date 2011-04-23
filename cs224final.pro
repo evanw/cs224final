@@ -12,7 +12,8 @@ HEADERS += \
     util/geometry.h \
     ui/tools.h \
     doc/mesh.h \
-    doc/document.h
+    doc/document.h \
+    lib/catmullclark.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -22,4 +23,5 @@ SOURCES += \
     doc/document.cpp \
     util/geometry.cpp \
     ui/tools.cpp \
-    doc/mesh.cpp
+    doc/mesh.cpp \
+    lib/catmullclark.cpp
