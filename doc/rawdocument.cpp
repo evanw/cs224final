@@ -17,6 +17,58 @@ void Ball::draw() const
     glPopMatrix();
 }
 
+void Vertex::draw() const
+{
+    glNormal3fv(normal.xyz);
+    glVertex3fv(pos.xyz);
+}
+
+void RawDocument::updateNormals()
+{
+    for (int i = 0; i < vertices.count(); i++)
+    {
+        Vertex &vertex = vertices[i];
+        vertex.normal = Vector3();
+    }
+
+    for (int i = 0; i < triangles.count(); i++)
+    {
+        Triangle &tri = triangles[i];
+        Vertex &a = vertices[tri.a.index];
+        Vertex &b = vertices[tri.b.index];
+        Vertex &c = vertices[tri.c.index];
+        Vector3 normal = (b.pos - a.pos).cross(c.pos - a.pos).unit();
+        a.normal += normal;
+        b.normal += normal;
+        c.normal += normal;
+    }
+
+    for (int i = 0; i < quads.count(); i++)
+    {
+        Quad &quad = quads[i];
+        Vertex &a = vertices[quad.a.index];
+        Vertex &b = vertices[quad.b.index];
+        Vertex &c = vertices[quad.c.index];
+        Vertex &d = vertices[quad.d.index];
+        Vector3 normal = (
+                (b.pos - a.pos).cross(d.pos - a.pos) +
+                (c.pos - b.pos).cross(a.pos - b.pos) +
+                (d.pos - c.pos).cross(b.pos - c.pos) +
+                (a.pos - d.pos).cross(c.pos - d.pos)
+            ).unit();
+        a.normal += normal;
+        b.normal += normal;
+        c.normal += normal;
+        d.normal += normal;
+    }
+
+    for (int i = 0; i < vertices.count(); i++)
+    {
+        Vertex &vertex = vertices[i];
+        vertex.normal.normalize();
+    }
+}
+
 void RawDocument::drawKeyBalls(int boneType) const
 {
     // draw key balls
@@ -68,4 +120,26 @@ void RawDocument::drawKeyBalls(int boneType) const
         }
         break;
     }
+}
+
+void RawDocument::drawFill() const
+{
+    glColor3f(0.75, 0.75, 0.75);
+    glBegin(GL_TRIANGLES);
+    foreach (const Triangle &tri, triangles)
+    {
+        vertices[tri.a.index].draw();
+        vertices[tri.b.index].draw();
+        vertices[tri.c.index].draw();
+    }
+    glEnd();
+    glBegin(GL_QUADS);
+    foreach (const Quad &quad, quads)
+    {
+        vertices[quad.a.index].draw();
+        vertices[quad.b.index].draw();
+        vertices[quad.c.index].draw();
+        vertices[quad.d.index].draw();
+    }
+    glEnd();
 }
