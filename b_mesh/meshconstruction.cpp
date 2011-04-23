@@ -2,7 +2,7 @@
 
 void MeshConstruction::BMeshInit(Mesh *m){
     //find the root node
-    Ball *root;
+    Ball *root = NULL;
     foreach(Ball b, m->balls){
         if(b.parentIndex == -1){
             root = &b;

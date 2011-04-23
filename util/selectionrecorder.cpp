@@ -34,6 +34,7 @@ void SelectionRecorder::enterSelectionMode(int x, int y)
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     depthTest = glIsEnabled(GL_DEPTH_TEST);
     glEnable(GL_DEPTH_TEST);
+    setObjectIndex(-1);
 }
 
 void SelectionRecorder::setObjectIndex(int index)
@@ -55,6 +56,7 @@ int SelectionRecorder::exitSelectionMode()
     glLoadMatrixd(projectionMatrix);
     glMatrixMode(GL_MODELVIEW);
 
+    // reconstruct the id
     int index = rgb[0] | (rgb[1] << 8) | (rgb[2] << 16);
     return index == 0xFFFFFF ? -1 : index;
 }

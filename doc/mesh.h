@@ -28,6 +28,7 @@ struct Vertex
     Vector3 pos;
     Vector3 normal;
 
+    Vertex() {}
     Vertex(const Vector3 &pos) : pos(pos) {}
 
     void draw() const;
@@ -41,6 +42,7 @@ struct Index
     // texture coordinate
     Vector2 coord;
 
+    Index() {}
     Index(int index) : index(index) {}
 };
 
@@ -48,6 +50,7 @@ struct Triangle
 {
     Index a, b, c;
 
+    Triangle() {}
     Triangle(int a, int b, int c) : a(a), b(b), c(c) {}
 };
 
@@ -55,6 +58,7 @@ struct Quad
 {
     Index a, b, c, d;
 
+    Quad() {}
     Quad(int a, int b, int c, int d) : a(a), b(b), c(c), d(d) {}
 };
 

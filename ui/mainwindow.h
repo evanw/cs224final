@@ -28,6 +28,7 @@ public slots:
     void editRedo();
     void editMenuAboutToShow();
     void editMenuAboutToHide();
+    void generateMesh();
 
 private:
     Ui::MainWindow *ui;

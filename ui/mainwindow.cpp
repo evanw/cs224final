@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "document.h"
 #include "ui_mainwindow.h"
+#include "meshconstruction.h"
 #include <QFileDialog>
 #include <QMessageBox>
 
@@ -139,6 +140,12 @@ void MainWindow::editMenuAboutToHide()
     // we must make sure the keyboard shortcuts work when the menu is hidden
     ui->actionUndo->setEnabled(true);
     ui->actionRedo->setEnabled(true);
+}
+
+void MainWindow::generateMesh()
+{
+    MeshConstruction::BMeshInit(&ui->view->getDocument().mesh);
+    ui->view->updateGL();
 }
 
 void MainWindow::updateTitle()

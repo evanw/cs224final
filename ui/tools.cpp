@@ -26,22 +26,30 @@ void OrbitCameraTool::mouseDragged(QMouseEvent *event)
 
 bool SetSelectionTool::mousePressed(QMouseEvent *event)
 {
-    // select the ball under the mouse, or -1 for no selection
-    SelectionRecorder sel;
-    view->camera3D();
-    sel.enterSelectionMode(event->x(), event->y());
-    for (int i = 0, count = view->doc->mesh.balls.count(); i < count; i++)
+    if (view->mode == MODE_SKELETON)
     {
-        Ball &ball = view->doc->mesh.balls[i];
-        sel.setObjectIndex(i);
-        ball.draw();
+        // select the ball under the mouse, or -1 for no selection
+        SelectionRecorder sel;
+        view->camera3D();
+        sel.enterSelectionMode(event->x(), event->y());
+        view->doc->mesh.drawInBetweenBalls();
+        for (int i = 0, count = view->doc->mesh.balls.count(); i < count; i++)
+        {
+            Ball &ball = view->doc->mesh.balls[i];
+            sel.setObjectIndex(i);
+            ball.draw();
+        }
+        view->selectedBall = sel.exitSelectionMode();
+        return view->selectedBall != -1;
     }
-    view->selectedBall = sel.exitSelectionMode();
-    return view->selectedBall != -1;
+    return false;
 }
 
 bool MoveSelectionTool::mousePressed(QMouseEvent *event)
 {
+    if (view->mode == MODE_SKELETON)
+    {
+    }
     return false;
 }
 
