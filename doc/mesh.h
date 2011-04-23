@@ -13,9 +13,10 @@ struct Ball
 
     // index into Mesh::balls
     int parentIndex;
+    QList<int> childrenIndices;
 
     Ball() : ex(1, 0, 0), ey(0, 1, 0), ez(0, 0, 1), parentIndex(-1) {}
-    Ball(const Vector3 &center, float radius, int parentIndex = -1) : center(center), ex(radius, 0, 0), ey(0, radius, 0), ez(0, 0, radius), parentIndex(parentIndex) {}
+    Ball(const Vector3 &center, float radius, int parentIndex = -1, QList<int> childrenIndices = QList<int>()) : center(center), ex(radius, 0, 0), ey(0, radius, 0), ez(0, 0, radius), parentIndex(parentIndex), childrenIndices(childrenIndices){}
 
     float maxRadius() const { return max(max(ex.length(), ey.length()), ez.length()); }
     void draw() const;
