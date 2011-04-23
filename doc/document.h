@@ -16,6 +16,8 @@ public:
     Mesh mesh;
 
     QUndoStack &getUndoStack() { return undoStack; }
+
+    void moveBall(int ball, const Vector3 &delta);
 };
 
 #endif // DOCUMENT_H

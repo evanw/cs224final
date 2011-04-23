@@ -46,6 +46,8 @@ private:
     Vector3 originalHit;
     Vector3 originalCenter;
 
+    Vector3 getHit(QMouseEvent *event);
+
 public:
     MoveSelectionTool(View *view) : view(view) {}
 

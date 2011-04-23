@@ -100,7 +100,7 @@ void Mesh::drawInBetweenBalls() const
 
         float totalRadius = ball.maxRadius() + parent.maxRadius();
         float edgeLength = (ball.center - parent.center).length();
-        int count = ceilf(edgeLength / totalRadius * 4);
+        const int count = min(100, ceilf(edgeLength / totalRadius * 4));
 
         for (int i = 1; i < count; i++)
         {
