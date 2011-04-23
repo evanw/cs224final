@@ -2,6 +2,7 @@
 #include "document.h"
 #include "ui_mainwindow.h"
 #include "meshconstruction.h"
+#include "catmullclark.h"
 #include <QFileDialog>
 #include <QMessageBox>
 
@@ -47,7 +48,7 @@ void MainWindow::fileOpen()
     if (!checkCanOverwriteUnsavedChanges())
         return;
 
-    QString path = QFileDialog::getOpenFileName(this, "Open", QDir::homePath(), DIALOG_FILE_FILTER);
+    QString path = QFileDialog::getOpenFileName(this, "Open", "/course/cs224/data/meshes", DIALOG_FILE_FILTER);
     if (path.isEmpty())
         return;
 
@@ -150,7 +151,7 @@ void MainWindow::generateMesh()
 
 void MainWindow::subdivideMesh()
 {
-    // TODO: modify ui->view->getDocument().mesh
+    CatmullMesh::subdivide(ui->view->getDocument().mesh, ui->view->getDocument().mesh);
     ui->view->updateGL();
 }
 
