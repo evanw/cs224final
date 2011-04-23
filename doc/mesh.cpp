@@ -1,4 +1,4 @@
-#include "rawdocument.h"
+#include "mesh.h"
 #include "geometry.h"
 #include <qgl.h>
 
@@ -23,7 +23,7 @@ void Vertex::draw() const
     glVertex3fv(pos.xyz);
 }
 
-void RawDocument::updateNormals()
+void Mesh::updateNormals()
 {
     for (int i = 0; i < vertices.count(); i++)
     {
@@ -69,7 +69,7 @@ void RawDocument::updateNormals()
     }
 }
 
-void RawDocument::drawKeyBalls(int boneType) const
+void Mesh::drawKeyBalls(int boneType) const
 {
     // draw key balls
     glColor3f(0, 0.5, 1);
@@ -122,7 +122,7 @@ void RawDocument::drawKeyBalls(int boneType) const
     }
 }
 
-void RawDocument::drawFill() const
+void Mesh::drawFill() const
 {
     glColor3f(0.75, 0.75, 0.75);
     glBegin(GL_TRIANGLES);

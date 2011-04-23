@@ -1,7 +1,7 @@
 #ifndef DOCUMENT_H
 #define DOCUMENT_H
 
-#include "rawdocument.h"
+#include "mesh.h"
 #include <QUndoStack>
 
 /**
@@ -13,7 +13,7 @@ private:
     QUndoStack undoStack;
 
 public:
-    RawDocument raw;
+    Mesh raw;
 
     void undo() { undoStack.undo(); }
     void redo() { undoStack.redo(); }
