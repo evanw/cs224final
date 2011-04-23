@@ -98,7 +98,11 @@ void Mesh::drawInBetweenBalls() const
         if (ball.parentIndex == -1) continue;
         const Ball &parent = balls[ball.parentIndex];
 
-        for (int i = 1, count = 7; i < count; i++)
+        float totalRadius = ball.maxRadius() + parent.maxRadius();
+        float edgeLength = (ball.center - parent.center).length();
+        int count = ceilf(edgeLength / totalRadius * 4);
+
+        for (int i = 1; i < count; i++)
         {
             float percent = (float)i / (float)count;
             Ball tween;

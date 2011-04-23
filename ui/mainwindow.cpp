@@ -148,6 +148,12 @@ void MainWindow::generateMesh()
     ui->view->updateGL();
 }
 
+void MainWindow::subdivideMesh()
+{
+    // TODO: modify ui->view->getDocument().mesh
+    ui->view->updateGL();
+}
+
 void MainWindow::updateTitle()
 {
     if (!filePath.isEmpty())

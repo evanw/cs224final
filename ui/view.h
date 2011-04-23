@@ -35,7 +35,6 @@ private:
     int mode;
 
     OrbitCamera camera;
-float mx, my;
 
     Tool *currentTool;
     QList<Tool *> tools;
