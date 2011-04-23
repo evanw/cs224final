@@ -38,6 +38,9 @@ private:
 
     void updateTitle();
     bool checkCanOverwriteUnsavedChanges();
+
+    void setDirectory(const QString &dir);
+    QString getDirectory();
 };
 
 #endif // MAINWINDOW_H

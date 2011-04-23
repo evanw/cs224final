@@ -25,8 +25,21 @@ void View::setDocument(Document *newDoc)
     delete doc;
     doc = newDoc;
     resetCamera();
-    currentTool = NULL;
-    selectedBall = -1;
+    resetInteraction();
+    updateGL();
+}
+
+void View::undo()
+{
+    resetInteraction();
+    doc->getUndoStack().undo();
+    updateGL();
+}
+
+void View::redo()
+{
+    resetInteraction();
+    doc->getUndoStack().redo();
     updateGL();
 }
 
@@ -149,6 +162,12 @@ void View::resetCamera()
     camera.phi = M_PI * 0.1;
     camera.zoom = 10;
     camera.update();
+}
+
+void View::resetInteraction()
+{
+    currentTool = NULL;
+    selectedBall = -1;
 }
 
 void View::drawMesh() const
