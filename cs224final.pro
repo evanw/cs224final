@@ -13,7 +13,8 @@ HEADERS += \
     ui/tools.h \
     doc/mesh.h \
     doc/document.h \
-    b_mesh/meshconstruction.h
+    b_mesh/meshconstruction.h \
+    util/selectionrecorder.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -24,4 +25,6 @@ SOURCES += \
     util/geometry.cpp \
     ui/tools.cpp \
     doc/mesh.cpp \
-    b_mesh/meshconstruction.cpp
+    b_mesh/meshconstruction.cpp \
+    doc/objfileformat.cpp \
+    util/selectionrecorder.cpp

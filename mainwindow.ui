@@ -22,6 +22,54 @@
      <number>0</number>
     </property>
     <item>
+     <widget class="QWidget" name="widget" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QRadioButton" name="editSkeleton">
+         <property name="text">
+          <string>Edit skeleton</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="showMesh">
+         <property name="text">
+          <string>Show mesh</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="emptySpace" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
      <widget class="View" name="view" native="true"/>
     </item>
    </layout>
@@ -43,6 +91,8 @@
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -102,6 +152,11 @@
     <string>Ctrl+Shift+Z</string>
    </property>
   </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -109,10 +164,6 @@
    <class>View</class>
    <extends>QWidget</extends>
    <header>view.h</header>
-   <slots>
-    <slot>undo()</slot>
-    <slot>redo()</slot>
-   </slots>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -120,8 +171,8 @@
   <connection>
    <sender>actionUndo</sender>
    <signal>triggered()</signal>
-   <receiver>view</receiver>
-   <slot>undo()</slot>
+   <receiver>MainWindow</receiver>
+   <slot>editUndo()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -129,15 +180,15 @@
     </hint>
     <hint type="destinationlabel">
      <x>399</x>
-     <y>310</y>
+     <y>299</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>actionRedo</sender>
    <signal>triggered()</signal>
-   <receiver>view</receiver>
-   <slot>redo()</slot>
+   <receiver>MainWindow</receiver>
+   <slot>editRedo()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -145,9 +196,131 @@
     </hint>
     <hint type="destinationlabel">
      <x>399</x>
-     <y>310</y>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>editSkeleton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateMode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>98</x>
+     <y>41</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>showMesh</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateMode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>98</x>
+     <y>60</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionNew</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>fileNew()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionOpen</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>fileOpen()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSave</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>fileSave()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>98</x>
+     <y>60</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSaveAs</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>fileSaveAs()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionExit</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>fileExit()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
     </hint>
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>updateMode()</slot>
+  <slot>fileNew()</slot>
+  <slot>fileOpen()</slot>
+  <slot>fileSave()</slot>
+  <slot>fileSaveAs()</slot>
+  <slot>fileExit()</slot>
+  <slot>editUndo()</slot>
+  <slot>editRedo()</slot>
+ </slots>
 </ui>

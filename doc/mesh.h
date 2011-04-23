@@ -2,6 +2,7 @@
 #define MESH_H
 
 #include <QList>
+#include <string>
 #include "vector.h"
 
 struct Ball
@@ -27,6 +28,8 @@ struct Vertex
     Vector3 pos;
     Vector3 normal;
 
+    Vertex(const Vector3 &pos) : pos(pos) {}
+
     void draw() const;
 };
 
@@ -37,19 +40,23 @@ struct Index
 
     // texture coordinate
     Vector2 coord;
+
+    Index(int index) : index(index) {}
 };
 
 struct Triangle
 {
     Index a, b, c;
+
+    Triangle(int a, int b, int c) : a(a), b(b), c(c) {}
 };
 
 struct Quad
 {
     Index a, b, c, d;
-};
 
-enum { BONE_TYPE_INTERPOLATE, BONE_TYPE_CYLINDER };
+    Quad(int a, int b, int c, int d) : a(a), b(b), c(c), d(d) {}
+};
 
 class Mesh
 {
@@ -60,8 +67,15 @@ public:
     QList<Quad> quads;
 
     void updateNormals();
-    void drawKeyBalls(int boneType) const;
     void drawFill() const;
+    void drawWireframe() const;
+
+    void drawKeyBalls() const;
+    void drawInBetweenBalls() const;
+    void drawBones() const;
+
+    bool loadFromOBJ(const std::string &file);
+    bool saveToOBJ(const std::string &file);
 };
 
 #endif // MESH_H
