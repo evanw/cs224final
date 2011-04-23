@@ -24,6 +24,9 @@ struct Ball
 struct Vertex
 {
     Vector3 pos;
+    Vector3 normal;
+
+    void draw() const;
 };
 
 struct Index
@@ -55,7 +58,9 @@ public:
     QList<Triangle> triangles;
     QList<Quad> quads;
 
+    void updateNormals();
     void drawKeyBalls(int boneType) const;
+    void drawFill() const;
 };
 
 #endif // MESH_H
