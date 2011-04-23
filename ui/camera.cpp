@@ -8,6 +8,6 @@ void Camera::apply() const
 
 void OrbitCamera::update()
 {
-    dir = -Vector3::fromAngle(theta, phi);
+    dir = -Vector3::fromAngles(theta, phi);
     eye = center - dir * zoom;
 }

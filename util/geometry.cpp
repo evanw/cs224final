@@ -49,6 +49,12 @@ void drawSphere()
     gluSphere(quadric, 1, 64, 32);
 }
 
+void drawCylinder()
+{
+    initQuadric();
+    gluCylinder(quadric, 1, 1, 1, 64, 1);
+}
+
 void drawWireCube()
 {
     glEnableClientState(GL_VERTEX_ARRAY);

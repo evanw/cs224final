@@ -48,12 +48,14 @@ public:
     float dot(const Vector2 &vec) const { return x * vec.x + y * vec.y; }
     Vector2 unit() const { return *this / length(); }
     void normalize() { *this = unit(); }
+    static Vector2 lerp(const Vector2 &a, const Vector2 &b, float percent) { return a + (b - a) * percent; }
 
     float min() const { return ::min(x, y); }
     float max() const { return ::max(x, y); }
     static Vector2 min(const Vector2 &a, const Vector2 &b) { return Vector2(::min(a.x, b.x), ::min(a.y, b.y)); }
     static Vector2 max(const Vector2 &a, const Vector2 &b) { return Vector2(::max(a.x, b.x), ::max(a.y, b.y)); }
 
+    float toAngle() const { return atan2f(y, x); }
     static Vector2 fromAngle(float theta) { return Vector2(cosf(theta), sinf(theta)); }
     static Vector2 uniform() { return fromAngle(frand() * M_2PI); }
 };
@@ -97,14 +99,16 @@ public:
     Vector3 cross(const Vector3 &vec) const { return Vector3(y * vec.z - z * vec.y, z * vec.x - x * vec.z, x * vec.y - y * vec.x); }
     Vector3 unit() const { return *this / length(); }
     void normalize() { *this = unit(); }
+    static Vector3 lerp(const Vector3 &a, const Vector3 &b, float percent) { return a + (b - a) * percent; }
 
     float min() const { return ::min(x, ::min(y, z)); }
     float max() const { return ::max(x, ::max(y, z)); }
     static Vector3 min(const Vector3 &a, const Vector3 &b) { return Vector3(::min(a.x, b.x), ::min(a.y, b.y), ::min(a.z, b.z)); }
     static Vector3 max(const Vector3 &a, const Vector3 &b) { return Vector3(::max(a.x, b.x), ::max(a.y, b.y), ::max(a.z, b.z)); }
 
-    static Vector3 fromAngle(float theta, float phi) { return Vector3(cosf(theta) * cosf(phi), sinf(phi), sinf(theta) * cosf(phi)); }
-    static Vector3 uniform() { return fromAngle(frand() * M_2PI, asinf(frand() * 2 - 1)); }
+    Vector2 toAngles() const { return Vector2(atan2f(z, x), asinf(y / length())); }
+    static Vector3 fromAngles(float theta, float phi) { return Vector3(cosf(theta) * cosf(phi), sinf(phi), sinf(theta) * cosf(phi)); }
+    static Vector3 uniform() { return fromAngles(frand() * M_2PI, asinf(frand() * 2 - 1)); }
 };
 
 inline std::ostream &operator << (std::ostream &out, const Vector2 &v) { return out << "<" << v.x << ", " << v.y << ">"; }

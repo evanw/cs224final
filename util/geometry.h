@@ -3,6 +3,7 @@
 
 void drawCube();
 void drawSphere();
+void drawCylinder();
 void drawWireCube();
 
 #endif // GEOM_H

@@ -25,10 +25,12 @@ protected:
 
 private:
     Document doc;
+    int selectedBall;
+
     OrbitCamera camera;
 
     Tool *currentTool;
-    QVector<Tool *> tools;
+    QList<Tool *> tools;
 
     void drawGrid() const;
     void camera2D() const;

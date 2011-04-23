@@ -1,20 +1,24 @@
 #ifndef RAWDOCUMENT_H
 #define RAWDOCUMENT_H
 
-#include <QVector>
+#include <QList>
 #include "vector.h"
 
-struct Ellipsoid
+struct Ball
 {
     Vector3 center;
 
     // local coordinate frame of ellipsoid (includes scale factors)
     Vector3 ex, ey, ez;
 
-    // index into Mesh::ellipsoids
+    // index into Mesh::balls
     int parentIndex;
 
-    Ellipsoid() : ex(1, 0, 0), ey(0, 1, 0), ez(0, 0, 1), parentIndex(-1) {}
+    Ball() : ex(1, 0, 0), ey(0, 1, 0), ez(0, 0, 1), parentIndex(-1) {}
+    Ball(const Vector3 &center, float radius, int parentIndex = -1) : center(center), ex(radius, 0, 0), ey(0, radius, 0), ez(0, 0, radius), parentIndex(parentIndex) {}
+
+    float maxRadius() const { return max(max(ex.length(), ey.length()), ez.length()); }
+    void draw() const;
 };
 
 struct Vertex
@@ -41,15 +45,17 @@ struct Quad
     Index a, b, c, d;
 };
 
+enum { BONE_TYPE_INTERPOLATE, BONE_TYPE_CYLINDER };
+
 class RawDocument
 {
 public:
-    QVector<Ellipsoid> ellipsoids;
-    QVector<Vertex> vertices;
-    QVector<Triangle> triangles;
-    QVector<Quad> quads;
+    QList<Ball> balls;
+    QList<Vertex> vertices;
+    QList<Triangle> triangles;
+    QList<Quad> quads;
 
-    void drawKeyBalls() const;
+    void drawKeyBalls(int boneType) const;
 };
 
 #endif // RAWDOCUMENT_H
