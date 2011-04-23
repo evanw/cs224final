@@ -10,6 +10,7 @@ View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall
     doc->mesh.balls += Ball(Vector3(-0.5, 0, 0), 0.1, 1);
     doc->mesh.balls += Ball(Vector3(0.5, 0, 0), 0.1, 2);
     doc->mesh.balls[0].ex *= 0.25;
+    doc->mesh.updateChildIndices();
     resetCamera();
 }
 

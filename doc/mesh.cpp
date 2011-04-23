@@ -23,6 +23,22 @@ void Vertex::draw() const
     glVertex3fv(pos.xyz);
 }
 
+void Mesh::updateChildIndices()
+{
+    for (int i = 0; i < balls.count(); i++)
+    {
+        Ball &ball = balls[i];
+        ball.childrenIndices.clear();
+    }
+
+    for (int i = 0; i < balls.count(); i++)
+    {
+        Ball &ball = balls[i];
+        if (ball.parentIndex != -1)
+            balls[ball.parentIndex].childrenIndices += i;
+    }
+}
+
 void Mesh::updateNormals()
 {
     for (int i = 0; i < vertices.count(); i++)

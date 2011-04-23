@@ -70,10 +70,11 @@ public:
     QList<Triangle> triangles;
     QList<Quad> quads;
 
+    void updateChildIndices();
     void updateNormals();
+
     void drawFill() const;
     void drawWireframe() const;
-
     void drawKeyBalls() const;
     void drawInBetweenBalls() const;
     void drawBones() const;
