@@ -2,6 +2,7 @@
 #define VECTOR_H
 
 #include <math.h>
+#include <stdlib.h>
 #include <iostream>
 
 #define M_2PI (2 * M_PI)

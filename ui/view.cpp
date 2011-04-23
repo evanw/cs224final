@@ -79,6 +79,10 @@ void View::paintGL()
         glPushMatrix();
         glTranslatef(ball.center.x, ball.center.y, ball.center.z);
         glScalef(radius, radius, radius);
+        glDisable(GL_DEPTH_TEST);
+        glColor4f(0, 0, 0, 0.25f);
+        drawWireCube();
+        glEnable(GL_DEPTH_TEST);
         glColor3f(0, 0, 0);
         drawWireCube();
         glPopMatrix();
