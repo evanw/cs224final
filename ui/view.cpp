@@ -2,21 +2,20 @@
 #include "geometry.h"
 #include <QWheelEvent>
 
-View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), drawMode(DRAW_MODE_MESH), currentTool(NULL)
+View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), mode(MODE_MESH), currentTool(NULL)
 {
-    selectedBall = 1;
-    doc->raw.balls += Ball(Vector3(0, 1.25, 0), 0.5);
-    doc->raw.balls += Ball(Vector3(-0.75, 0.75, 0.25), 0.25, 0);
-    doc->raw.balls += Ball(Vector3(0.75, 0.75, 0.25), 0.25, 0);
-    doc->raw.balls += Ball(Vector3(-0.5, 0, 0), 0.1, 1);
-    doc->raw.balls += Ball(Vector3(0.5, 0, 0), 0.1, 2);
-    doc->raw.balls[0].ex *= 0.25;
+    doc->mesh.balls += Ball(Vector3(0, 1.25, 0), 0.5);
+    doc->mesh.balls += Ball(Vector3(-0.75, 0.75, 0.25), 0.25, 0);
+    doc->mesh.balls += Ball(Vector3(0.75, 0.75, 0.25), 0.25, 0);
+    doc->mesh.balls += Ball(Vector3(-0.5, 0, 0), 0.1, 1);
+    doc->mesh.balls += Ball(Vector3(0.5, 0, 0), 0.1, 2);
+    doc->mesh.balls[0].ex *= 0.25;
     resetCamera();
 }
 
-void View::setDrawMode(int newDrawMode)
+void View::setMode(int newMode)
 {
-    drawMode = newDrawMode;
+    mode = newMode;
     updateGL();
 }
 
@@ -32,6 +31,8 @@ void View::setDocument(Document *newDoc)
 
 void View::initializeGL()
 {
+    tools += new MoveSelectionTool(this);
+    tools += new SetSelectionTool(this);
     tools += new OrbitCameraTool(camera);
 
     // opengl lighting
@@ -76,13 +77,13 @@ void View::paintGL()
     glLightfv(GL_LIGHT0, GL_POSITION, position0);
     glLightfv(GL_LIGHT1, GL_POSITION, position1);
 
-    if (drawMode == DRAW_MODE_MESH)
+    if (mode == MODE_MESH)
     {
         drawMesh();
         drawGroundPlane();
         drawSkeleton(true);
     }
-    else if (drawMode == DRAW_MODE_SKELETON)
+    else if (mode == MODE_SKELETON)
     {
         drawSkeleton(false);
         drawGroundPlane();
@@ -113,6 +114,10 @@ void View::mousePressEvent(QMouseEvent *event)
 
 void View::mouseMoveEvent(QMouseEvent *event)
 {
+    mx = event->x();
+    my = event->y();
+    updateGL();
+
     if (currentTool)
     {
         currentTool->mouseDragged(event);
@@ -153,7 +158,7 @@ void View::drawMesh() const
     glColor3f(0.75, 0.75, 0.75);
     glEnable(GL_LIGHTING);
     glEnable(GL_POLYGON_OFFSET_FILL);
-    doc->raw.drawFill();
+    doc->mesh.drawFill();
     glDisable(GL_POLYGON_OFFSET_FILL);
     glDisable(GL_LIGHTING);
 
@@ -163,7 +168,7 @@ void View::drawMesh() const
 
     // draw the mesh wireframe
     glColor4f(0, 0, 0, 0.25);
-    doc->raw.drawWireframe();
+    doc->mesh.drawWireframe();
 
     // disable line drawing
     glDisable(GL_BLEND);
@@ -178,8 +183,8 @@ void View::drawSkeleton(bool drawTransparent) const
         // set depth buffer before so we never blend the same pixel twice
         glClear(GL_DEPTH_BUFFER_BIT);
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        doc->raw.drawKeyBalls();
-        doc->raw.drawBones();
+        doc->mesh.drawKeyBalls();
+        doc->mesh.drawBones();
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
         // draw blended key balls and bones
@@ -187,9 +192,9 @@ void View::drawSkeleton(bool drawTransparent) const
         glEnable(GL_BLEND);
         glEnable(GL_LIGHTING);
         glColor4f(0, 0.5, 1, 0.5);
-        doc->raw.drawKeyBalls();
+        doc->mesh.drawKeyBalls();
         glColor4f(0.75, 0.75, 0.75, 0.5);
-        doc->raw.drawBones();
+        doc->mesh.drawBones();
         glDisable(GL_LIGHTING);
         glDisable(GL_BLEND);
         glDepthFunc(GL_LESS);
@@ -199,9 +204,9 @@ void View::drawSkeleton(bool drawTransparent) const
         // draw key balls and in-between balls
         glEnable(GL_LIGHTING);
         glColor3f(0, 0.5, 1);
-        doc->raw.drawKeyBalls();
+        doc->mesh.drawKeyBalls();
         glColor3f(0.75, 0.75, 0.75);
-        doc->raw.drawInBetweenBalls();
+        doc->mesh.drawInBetweenBalls();
         glDisable(GL_LIGHTING);
 
         // draw box around selected ball
@@ -211,7 +216,7 @@ void View::drawSkeleton(bool drawTransparent) const
             glDepthMask(GL_FALSE);
             glEnable(GL_BLEND);
 
-            const Ball &ball = doc->raw.balls[selectedBall];
+            const Ball &ball = doc->mesh.balls[selectedBall];
             float radius = ball.maxRadius();
             glPushMatrix();
             glTranslatef(ball.center.x, ball.center.y, ball.center.z);

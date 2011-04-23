@@ -13,7 +13,7 @@ private:
     QUndoStack undoStack;
 
 public:
-    Mesh raw;
+    Mesh mesh;
 
     QUndoStack &getUndoStack() { return undoStack; }
 };

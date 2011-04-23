@@ -12,7 +12,8 @@ HEADERS += \
     util/geometry.h \
     ui/tools.h \
     doc/mesh.h \
-    doc/document.h
+    doc/document.h \
+    util/selectionrecorder.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -23,4 +24,5 @@ SOURCES += \
     util/geometry.cpp \
     ui/tools.cpp \
     doc/mesh.cpp \
-    doc/objfileformat.cpp
+    doc/objfileformat.cpp \
+    util/selectionrecorder.cpp

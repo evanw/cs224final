@@ -6,7 +6,7 @@
 #include "camera.h"
 #include "document.h"
 
-enum { DRAW_MODE_MESH, DRAW_MODE_SKELETON };
+enum { MODE_MESH, MODE_SKELETON };
 
 class View : public QGLWidget
 {
@@ -15,7 +15,7 @@ class View : public QGLWidget
 public:
     View(QWidget *parent);
 
-    void setDrawMode(int drawMode);
+    void setMode(int mode);
     void setDocument(Document *doc);
     Document &getDocument() { return *doc; }
 
@@ -32,12 +32,15 @@ protected:
 private:
     Document *doc;
     int selectedBall;
-    int drawMode;
+    int mode;
 
     OrbitCamera camera;
+float mx, my;
 
     Tool *currentTool;
     QList<Tool *> tools;
+    friend class SetSelectionTool;
+    friend class MoveSelectionTool;
 
     void resetCamera();
     void drawMesh() const;

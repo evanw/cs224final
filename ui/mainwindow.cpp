@@ -25,9 +25,9 @@ MainWindow::~MainWindow()
 void MainWindow::updateMode()
 {
     if (ui->editSkeleton->isChecked())
-        ui->view->setDrawMode(DRAW_MODE_SKELETON);
+        ui->view->setMode(MODE_SKELETON);
     else if (ui->showMesh->isChecked())
-        ui->view->setDrawMode(DRAW_MODE_MESH);
+        ui->view->setMode(MODE_MESH);
 }
 
 void MainWindow::fileNew()
@@ -51,7 +51,7 @@ void MainWindow::fileOpen()
         return;
 
     Document *doc = new Document;
-    if (doc->raw.loadFromOBJ(path.toStdString()))
+    if (doc->mesh.loadFromOBJ(path.toStdString()))
     {
         ui->view->setDocument(doc);
         filePath = path;
@@ -72,7 +72,7 @@ bool MainWindow::fileSave()
         // ask the user where to save it if they haven't already said
         return fileSaveAs();
     }
-    else if (!ui->view->getDocument().raw.saveToOBJ(filePath.toStdString()))
+    else if (!ui->view->getDocument().mesh.saveToOBJ(filePath.toStdString()))
     {
         QString text = QString("Could not write to \"%1\"").arg(filePath);
         QMessageBox::information(this, WINDOW_TITLE, text, QMessageBox::Ok);
@@ -93,7 +93,7 @@ bool MainWindow::fileSaveAs()
     if (!path.endsWith(FILE_EXTENSION))
         path += FILE_EXTENSION;
 
-    if (!ui->view->getDocument().raw.saveToOBJ(path.toStdString()))
+    if (!ui->view->getDocument().mesh.saveToOBJ(path.toStdString()))
     {
         // don't set filePath if we can't write to it
         QString text = QString("Could not write to \"%1\"").arg(path);

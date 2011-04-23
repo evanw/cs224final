@@ -3,6 +3,7 @@
 
 #include "camera.h"
 
+class View;
 class QMouseEvent;
 
 class Tool
@@ -24,6 +25,30 @@ public:
 
     bool mousePressed(QMouseEvent *event);
     void mouseDragged(QMouseEvent *event);
+};
+
+class SetSelectionTool : public Tool
+{
+private:
+    View *view;
+
+public:
+    SetSelectionTool(View *view) : view(view) {}
+
+    bool mousePressed(QMouseEvent *event);
+};
+
+class MoveSelectionTool : public Tool
+{
+private:
+    View *view;
+
+public:
+    MoveSelectionTool(View *view) : view(view) {}
+
+    bool mousePressed(QMouseEvent *event);
+    void mouseDragged(QMouseEvent *event);
+    void mouseReleased(QMouseEvent *event);
 };
 
 #endif // TOOLS_H
