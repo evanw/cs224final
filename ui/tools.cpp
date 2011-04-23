@@ -1,6 +1,6 @@
 #include "tools.h"
 #include "view.h"
-#include "geometry.h"
+#include "raytracer.h"
 #include "selectionrecorder.h"
 #include <QMouseEvent>
 
@@ -43,33 +43,37 @@ bool SetSelectionTool::mousePressed(QMouseEvent *event)
         view->selectedBall = sel.exitSelectionMode();
         return view->selectedBall != -1;
     }
+
     return false;
 }
+
+enum { XNEG, XPOS, YNEG, YPOS, ZNEG, ZPOS };
+
+#include <iostream>
+using namespace std;
 
 bool MoveSelectionTool::mousePressed(QMouseEvent *event)
 {
     if (view->mode == MODE_SKELETON && view->selectedBall != -1)
     {
-        // select the cube under the mouse, or -1 for no selection
-        SelectionRecorder sel;
+        // get selected ball
+        Ball &selection = view->doc->mesh.balls[view->selectedBall];
+        float radius = selection.maxRadius();
+
+        // set up raytracer
         view->camera3D();
-        sel.enterSelectionMode(event->x(), event->y());
-        view->doc->mesh.drawFill();
-        view->doc->mesh.drawInBetweenBalls();
+        Raytracer tracer;
+        Vector3 origin = tracer.getEye();
+        Vector3 ray = tracer.getRayForPixel(event->x(), event->y());
 
-        // render a cube around the ball
-        Ball &ball = view->doc->mesh.balls[view->selectedBall];
-        float radius = ball.maxRadius();
-        glTranslatef(ball.center.x, ball.center.y, ball.center.z);
-        glScalef(radius, radius, radius);
-        sel.setObjectIndex(0);
-        drawCube();
-
-        sel.exitSelectionMode();
-
-        // hijack the selection recorder to get the depth under the mouse
-//        glReadPixels(0, 0, 1, 1, GL_DEPTH_COMPONENT);
+        // raytrace a cube around the selection
+        HitTest result;
+        if (Raytracer::hitTestCube(selection.center - radius, selection.center + radius, origin, ray, result))
+        {
+            return true;
+        }
     }
+
     return false;
 }
 

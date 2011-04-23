@@ -115,8 +115,6 @@ void View::mousePressEvent(QMouseEvent *event)
 
 void View::mouseMoveEvent(QMouseEvent *event)
 {
-    mx = event->x();
-    my = event->y();
     updateGL();
 
     if (currentTool)

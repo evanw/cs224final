@@ -35,6 +35,11 @@ public:
     Vector2 operator * (float s) const { return Vector2(x * s, y * s); }
     Vector2 operator / (float s) const { return Vector2(x / s, y / s); }
 
+    friend Vector2 operator + (float s, const Vector2 &vec) { return vec + s; }
+    friend Vector2 operator - (float s, const Vector2 &vec) { return vec - s; }
+    friend Vector2 operator * (float s, const Vector2 &vec) { return vec * s; }
+    friend Vector2 operator / (float s, const Vector2 &vec) { return vec / s; }
+
     Vector2 &operator += (const Vector2 &vec) { return *this = *this + vec; }
     Vector2 &operator -= (const Vector2 &vec) { return *this = *this - vec; }
     Vector2 &operator *= (const Vector2 &vec) { return *this = *this * vec; }
@@ -43,6 +48,9 @@ public:
     Vector2 &operator -= (float s) { return *this = *this - s; }
     Vector2 &operator *= (float s) { return *this = *this * s; }
     Vector2 &operator /= (float s) { return *this = *this / s; }
+
+    bool operator == (const Vector2 &vec) { return x == vec.x && y == vec.y; }
+    bool operator != (const Vector2 &vec) { return x != vec.x && y != vec.y; }
 
     float lengthSquared() const { return x * x + y * y; }
     float length() const { return sqrtf(lengthSquared()); }
@@ -85,6 +93,11 @@ public:
     Vector3 operator * (float s) const { return Vector3(x * s, y * s, z * s); }
     Vector3 operator / (float s) const { return Vector3(x / s, y / s, z / s); }
 
+    friend Vector3 operator + (float s, const Vector3 &vec) { return vec + s; }
+    friend Vector3 operator - (float s, const Vector3 &vec) { return vec - s; }
+    friend Vector3 operator * (float s, const Vector3 &vec) { return vec * s; }
+    friend Vector3 operator / (float s, const Vector3 &vec) { return vec / s; }
+
     Vector3 &operator += (const Vector3 &vec) { return *this = *this + vec; }
     Vector3 &operator -= (const Vector3 &vec) { return *this = *this - vec; }
     Vector3 &operator *= (const Vector3 &vec) { return *this = *this * vec; }
@@ -94,7 +107,8 @@ public:
     Vector3 &operator *= (float s) { return *this = *this * s; }
     Vector3 &operator /= (float s) { return *this = *this / s; }
 
-    bool operator == (const Vector3 &vec) {return x==vec.x && y==vec.y && z==vec.z; }
+    bool operator == (const Vector3 &vec) { return x == vec.x && y == vec.y && z == vec.z; }
+    bool operator != (const Vector3 &vec) { return x != vec.x && y != vec.y && z != vec.z; }
 
     float lengthSquared() const { return x * x + y * y + z * z; }
     float length() const { return sqrtf(lengthSquared()); }

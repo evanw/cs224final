@@ -14,7 +14,8 @@ HEADERS += \
     doc/mesh.h \
     doc/document.h \
     b_mesh/meshconstruction.h \
-    util/selectionrecorder.h
+    util/selectionrecorder.h \
+    util/raytracer.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -27,4 +28,5 @@ SOURCES += \
     doc/mesh.cpp \
     b_mesh/meshconstruction.cpp \
     doc/objfileformat.cpp \
-    util/selectionrecorder.cpp
+    util/selectionrecorder.cpp \
+    util/raytracer.cpp
