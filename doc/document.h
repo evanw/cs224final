@@ -15,8 +15,7 @@ private:
 public:
     Mesh raw;
 
-    void undo() { undoStack.undo(); }
-    void redo() { undoStack.redo(); }
+    QUndoStack &getUndoStack() { return undoStack; }
 };
 
 #endif // DOCUMENT_H

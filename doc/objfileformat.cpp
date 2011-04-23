@@ -103,10 +103,10 @@ bool Mesh::saveToOBJ(const string &file)
         f << "v " << vertex.pos.x << " " << vertex.pos.y << " " << vertex.pos.z << endl;
 
     foreach (const Triangle &tri, triangles)
-        f << "f " << tri.a.index << " " << tri.b.index << " " << tri.c.index << endl;
+        f << "f " << (tri.a.index + 1) << " " << (tri.b.index + 1) << " " << (tri.c.index + 1) << endl;
 
     foreach (const Quad &quad, quads)
-        f << "f " << quad.a.index << " " << quad.b.index << " " << quad.c.index << " " << quad.d.index << endl;
+        f << "f " << (quad.a.index + 1) << " " << (quad.b.index + 1) << " " << (quad.c.index + 1) << " " << (quad.d.index + 1) << endl;
 
-    return false;
+    return true;
 }

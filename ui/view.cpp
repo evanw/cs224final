@@ -2,15 +2,16 @@
 #include "geometry.h"
 #include <QWheelEvent>
 
-View::View(QWidget *parent) : QGLWidget(parent), selectedBall(-1), drawMode(DRAW_MODE_MESH), currentTool(NULL)
+View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), drawMode(DRAW_MODE_MESH), currentTool(NULL)
 {
     selectedBall = 1;
-    doc.raw.balls += Ball(Vector3(0, 1.25, 0), 0.5);
-    doc.raw.balls += Ball(Vector3(-0.75, 0.75, 0.25), 0.25, 0);
-    doc.raw.balls += Ball(Vector3(0.75, 0.75, 0.25), 0.25, 0);
-    doc.raw.balls += Ball(Vector3(-0.5, 0, 0), 0.1, 1);
-    doc.raw.balls += Ball(Vector3(0.5, 0, 0), 0.1, 2);
-    doc.raw.balls[0].ex *= 0.25;
+    doc->raw.balls += Ball(Vector3(0, 1.25, 0), 0.5);
+    doc->raw.balls += Ball(Vector3(-0.75, 0.75, 0.25), 0.25, 0);
+    doc->raw.balls += Ball(Vector3(0.75, 0.75, 0.25), 0.25, 0);
+    doc->raw.balls += Ball(Vector3(-0.5, 0, 0), 0.1, 1);
+    doc->raw.balls += Ball(Vector3(0.5, 0, 0), 0.1, 2);
+    doc->raw.balls[0].ex *= 0.25;
+    resetCamera();
 }
 
 void View::setDrawMode(int newDrawMode)
@@ -19,13 +20,18 @@ void View::setDrawMode(int newDrawMode)
     updateGL();
 }
 
+void View::setDocument(Document *newDoc)
+{
+    delete doc;
+    doc = newDoc;
+    resetCamera();
+    currentTool = NULL;
+    selectedBall = -1;
+    updateGL();
+}
+
 void View::initializeGL()
 {
-    camera.theta = M_PI * 0.4;
-    camera.phi = M_PI * 0.1;
-    camera.zoom = 10;
-    camera.update();
-
     tools += new OrbitCameraTool(camera);
 
     // opengl lighting
@@ -73,14 +79,14 @@ void View::paintGL()
     if (drawMode == DRAW_MODE_MESH)
     {
         drawMesh();
+        drawGroundPlane();
         drawSkeleton(true);
     }
     else if (drawMode == DRAW_MODE_SKELETON)
     {
         drawSkeleton(false);
+        drawGroundPlane();
     }
-
-    drawGroundPlane();
 }
 
 void View::mousePressEvent(QMouseEvent *event)
@@ -125,9 +131,20 @@ void View::mouseReleaseEvent(QMouseEvent *event)
 
 void View::wheelEvent(QWheelEvent *event)
 {
-    camera.zoom *= powf(0.999f, event->delta());
+    if (event->orientation() == Qt::Vertical)
+    {
+        camera.zoom *= powf(0.999f, event->delta());
+        camera.update();
+        updateGL();
+    }
+}
+
+void View::resetCamera()
+{
+    camera.theta = M_PI * 0.4;
+    camera.phi = M_PI * 0.1;
+    camera.zoom = 10;
     camera.update();
-    updateGL();
 }
 
 void View::drawMesh() const
@@ -136,7 +153,7 @@ void View::drawMesh() const
     glColor3f(0.75, 0.75, 0.75);
     glEnable(GL_LIGHTING);
     glEnable(GL_POLYGON_OFFSET_FILL);
-    doc.raw.drawFill();
+    doc->raw.drawFill();
     glDisable(GL_POLYGON_OFFSET_FILL);
     glDisable(GL_LIGHTING);
 
@@ -145,8 +162,8 @@ void View::drawMesh() const
     glEnable(GL_BLEND);
 
     // draw the mesh wireframe
-    glColor3f(0, 0, 0);
-    doc.raw.drawWireframe();
+    glColor4f(0, 0, 0, 0.25);
+    doc->raw.drawWireframe();
 
     // disable line drawing
     glDisable(GL_BLEND);
@@ -161,36 +178,30 @@ void View::drawSkeleton(bool drawTransparent) const
         // set depth buffer before so we never blend the same pixel twice
         glClear(GL_DEPTH_BUFFER_BIT);
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        doc.raw.drawKeyBalls();
-        doc.raw.drawBones();
+        doc->raw.drawKeyBalls();
+        doc->raw.drawBones();
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
         // draw blended key balls and bones
         glDepthFunc(GL_EQUAL);
         glEnable(GL_BLEND);
         glEnable(GL_LIGHTING);
-        glColor4f(0, 0.5, 1, 0.25);
-        doc.raw.drawKeyBalls();
-        glColor4f(0.75, 0.75, 0.75, 0.25);
-        doc.raw.drawBones();
+        glColor4f(0, 0.5, 1, 0.5);
+        doc->raw.drawKeyBalls();
+        glColor4f(0.75, 0.75, 0.75, 0.5);
+        doc->raw.drawBones();
         glDisable(GL_LIGHTING);
         glDisable(GL_BLEND);
         glDepthFunc(GL_LESS);
-
-        // set depth buffer back to the model
-        glClear(GL_DEPTH_BUFFER_BIT);
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        doc.raw.drawFill();
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     }
     else
     {
         // draw key balls and in-between balls
         glEnable(GL_LIGHTING);
         glColor3f(0, 0.5, 1);
-        doc.raw.drawKeyBalls();
+        doc->raw.drawKeyBalls();
         glColor3f(0.75, 0.75, 0.75);
-        doc.raw.drawInBetweenBalls();
+        doc->raw.drawInBetweenBalls();
         glDisable(GL_LIGHTING);
 
         // draw box around selected ball
@@ -200,13 +211,13 @@ void View::drawSkeleton(bool drawTransparent) const
             glDepthMask(GL_FALSE);
             glEnable(GL_BLEND);
 
-            const Ball &ball = doc.raw.balls[selectedBall];
+            const Ball &ball = doc->raw.balls[selectedBall];
             float radius = ball.maxRadius();
             glPushMatrix();
             glTranslatef(ball.center.x, ball.center.y, ball.center.z);
             glScalef(radius, radius, radius);
             glDisable(GL_DEPTH_TEST);
-            glColor4f(0, 0, 0, 0.25f);
+            glColor4f(0, 0, 0, 0.25);
             drawWireCube();
             glEnable(GL_DEPTH_TEST);
             glColor3f(0, 0, 0);
@@ -270,16 +281,4 @@ void View::camera3D() const
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     camera.apply();
-}
-
-void View::undo()
-{
-    doc.undo();
-    updateGL();
-}
-
-void View::redo()
-{
-    doc.redo();
-    updateGL();
 }

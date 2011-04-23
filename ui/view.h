@@ -16,6 +16,8 @@ public:
     View(QWidget *parent);
 
     void setDrawMode(int drawMode);
+    void setDocument(Document *doc);
+    Document &getDocument() { return *doc; }
 
 protected:
     void initializeGL();
@@ -28,7 +30,7 @@ protected:
     void wheelEvent(QWheelEvent *event);
 
 private:
-    Document doc;
+    Document *doc;
     int selectedBall;
     int drawMode;
 
@@ -37,15 +39,12 @@ private:
     Tool *currentTool;
     QList<Tool *> tools;
 
+    void resetCamera();
     void drawMesh() const;
     void drawSkeleton(bool drawTransparent) const;
     void drawGroundPlane() const;
     void camera2D() const;
     void camera3D() const;
-
-public slots:
-    void undo();
-    void redo();
 };
 
 #endif // CANVAS_H

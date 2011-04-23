@@ -91,6 +91,8 @@
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -150,6 +152,11 @@
     <string>Ctrl+Shift+Z</string>
    </property>
   </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -157,10 +164,6 @@
    <class>View</class>
    <extends>QWidget</extends>
    <header>view.h</header>
-   <slots>
-    <slot>undo()</slot>
-    <slot>redo()</slot>
-   </slots>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -168,8 +171,8 @@
   <connection>
    <sender>actionUndo</sender>
    <signal>triggered()</signal>
-   <receiver>view</receiver>
-   <slot>undo()</slot>
+   <receiver>MainWindow</receiver>
+   <slot>editUndo()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -177,15 +180,15 @@
     </hint>
     <hint type="destinationlabel">
      <x>399</x>
-     <y>310</y>
+     <y>299</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>actionRedo</sender>
    <signal>triggered()</signal>
-   <receiver>view</receiver>
-   <slot>redo()</slot>
+   <receiver>MainWindow</receiver>
+   <slot>editRedo()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -193,7 +196,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>399</x>
-     <y>310</y>
+     <y>299</y>
     </hint>
    </hints>
   </connection>
@@ -229,8 +232,95 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionNew</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>fileNew()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionOpen</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>fileOpen()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSave</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>fileSave()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>98</x>
+     <y>60</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSaveAs</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>fileSaveAs()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionExit</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>fileExit()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>updateMode()</slot>
+  <slot>fileNew()</slot>
+  <slot>fileOpen()</slot>
+  <slot>fileSave()</slot>
+  <slot>fileSaveAs()</slot>
+  <slot>fileExit()</slot>
+  <slot>editUndo()</slot>
+  <slot>editRedo()</slot>
  </slots>
 </ui>
