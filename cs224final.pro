@@ -22,4 +22,5 @@ SOURCES += \
     doc/document.cpp \
     util/geometry.cpp \
     ui/tools.cpp \
-    doc/mesh.cpp
+    doc/mesh.cpp \
+    doc/objfileformat.cpp

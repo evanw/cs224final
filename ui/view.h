@@ -32,7 +32,9 @@ private:
     Tool *currentTool;
     QList<Tool *> tools;
 
-    void drawGrid() const;
+    void drawMesh() const;
+    void drawSkeleton() const;
+    void drawGroundPlane() const;
     void camera2D() const;
     void camera3D() const;
 

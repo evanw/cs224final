@@ -45,6 +45,7 @@ void View::initializeGL()
     glEnable(GL_COLOR_MATERIAL);
     glClearColor(0.875, 0.875, 0.875, 0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glPolygonOffset(1, 1);
 }
 
 void View::resizeGL(int width, int height)
@@ -57,43 +58,15 @@ void View::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     camera3D();
 
+    // position lights
     float position0[4] = { 0, 1, 0, 0 };
     float position1[4] = { 0, -1, 0, 0 };
     glLightfv(GL_LIGHT0, GL_POSITION, position0);
     glLightfv(GL_LIGHT1, GL_POSITION, position1);
 
-    // draw model
-    glEnable(GL_LIGHTING);
-    doc.raw.drawKeyBalls(BONE_TYPE_INTERPOLATE);
-    glDisable(GL_LIGHTING);
-
-    // enable line drawing
-    glDepthMask(GL_FALSE);
-    glEnable(GL_BLEND);
-
-    // draw box around selected ball
-    if (selectedBall != -1)
-    {
-        Ball &ball = doc.raw.balls[selectedBall];
-        float radius = ball.maxRadius();
-        glPushMatrix();
-        glTranslatef(ball.center.x, ball.center.y, ball.center.z);
-        glScalef(radius, radius, radius);
-        glDisable(GL_DEPTH_TEST);
-        glColor4f(0, 0, 0, 0.25f);
-        drawWireCube();
-        glEnable(GL_DEPTH_TEST);
-        glColor3f(0, 0, 0);
-        drawWireCube();
-        glPopMatrix();
-    }
-
-    // draw the ground plane
-    drawGrid();
-
-    // disable line drawing
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
+    drawMesh();
+    // drawSkeleton();
+    drawGroundPlane();
 }
 
 void View::mousePressEvent(QMouseEvent *event)
@@ -143,8 +116,68 @@ void View::wheelEvent(QWheelEvent *event)
     updateGL();
 }
 
-void View::drawGrid() const
+void View::drawMesh() const
 {
+    // draw the mesh filled
+    glColor3f(0.75, 0.75, 0.75);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    doc.raw.drawFill();
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    glDisable(GL_LIGHTING);
+
+    // enable line drawing
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+
+    // draw the mesh wireframe
+    glColor3f(0, 0, 0);
+    doc.raw.drawWireframe();
+
+    // disable line drawing
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+}
+
+void View::drawSkeleton() const
+{
+    // draw model
+    glEnable(GL_LIGHTING);
+    doc.raw.drawKeyBalls(BONE_TYPE_INTERPOLATE);
+    glDisable(GL_LIGHTING);
+
+    // enable line drawing
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+
+    // draw box around selected ball
+    if (selectedBall != -1)
+    {
+        const Ball &ball = doc.raw.balls[selectedBall];
+        float radius = ball.maxRadius();
+        glPushMatrix();
+        glTranslatef(ball.center.x, ball.center.y, ball.center.z);
+        glScalef(radius, radius, radius);
+        glDisable(GL_DEPTH_TEST);
+        glColor4f(0, 0, 0, 0.25f);
+        drawWireCube();
+        glEnable(GL_DEPTH_TEST);
+        glColor3f(0, 0, 0);
+        drawWireCube();
+        glPopMatrix();
+    }
+
+    // disable line drawing
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+}
+
+void View::drawGroundPlane() const
+{
+    // enable line drawing
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+
     const int size = 10;
     glBegin(GL_LINES);
     for (int x = -size; x <= size; x++)
@@ -166,6 +199,10 @@ void View::drawGrid() const
         }
     }
     glEnd();
+
+    // disable line drawing
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
 }
 
 void View::camera2D() const

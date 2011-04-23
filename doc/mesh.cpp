@@ -124,7 +124,6 @@ void Mesh::drawKeyBalls(int boneType) const
 
 void Mesh::drawFill() const
 {
-    glColor3f(0.75, 0.75, 0.75);
     glBegin(GL_TRIANGLES);
     foreach (const Triangle &tri, triangles)
     {
@@ -142,4 +141,25 @@ void Mesh::drawFill() const
         vertices[quad.d.index].draw();
     }
     glEnd();
+}
+
+void Mesh::drawWireframe() const
+{
+    foreach (const Triangle &tri, triangles)
+    {
+        glBegin(GL_LINE_LOOP);
+        vertices[tri.a.index].draw();
+        vertices[tri.b.index].draw();
+        vertices[tri.c.index].draw();
+        glEnd();
+    }
+    foreach (const Quad &quad, quads)
+    {
+        glBegin(GL_LINE_LOOP);
+        vertices[quad.a.index].draw();
+        vertices[quad.b.index].draw();
+        vertices[quad.c.index].draw();
+        vertices[quad.d.index].draw();
+        glEnd();
+    }
 }
