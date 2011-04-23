@@ -6,12 +6,18 @@
 #include "camera.h"
 #include "document.h"
 
+enum { MODE_MESH, MODE_SKELETON };
+
 class View : public QGLWidget
 {
     Q_OBJECT
 
 public:
     View(QWidget *parent);
+
+    void setMode(int mode);
+    void setDocument(Document *doc);
+    Document &getDocument() { return *doc; }
 
 protected:
     void initializeGL();
@@ -24,21 +30,24 @@ protected:
     void wheelEvent(QWheelEvent *event);
 
 private:
-    Document doc;
+    Document *doc;
     int selectedBall;
+    int mode;
 
     OrbitCamera camera;
+float mx, my;
 
     Tool *currentTool;
     QList<Tool *> tools;
+    friend class SetSelectionTool;
+    friend class MoveSelectionTool;
 
-    void drawGrid() const;
+    void resetCamera();
+    void drawMesh() const;
+    void drawSkeleton(bool drawTransparent) const;
+    void drawGroundPlane() const;
     void camera2D() const;
     void camera3D() const;
-
-public slots:
-    void undo();
-    void redo();
 };
 
 #endif // CANVAS_H

@@ -23,6 +23,22 @@ void Vertex::draw() const
     glVertex3fv(pos.xyz);
 }
 
+void Mesh::updateChildIndices()
+{
+    for (int i = 0; i < balls.count(); i++)
+    {
+        Ball &ball = balls[i];
+        ball.childrenIndices.clear();
+    }
+
+    for (int i = 0; i < balls.count(); i++)
+    {
+        Ball &ball = balls[i];
+        if (ball.parentIndex != -1)
+            balls[ball.parentIndex].childrenIndices += i;
+    }
+}
+
 void Mesh::updateNormals()
 {
     for (int i = 0; i < vertices.count(); i++)
@@ -69,62 +85,54 @@ void Mesh::updateNormals()
     }
 }
 
-void Mesh::drawKeyBalls(int boneType) const
+void Mesh::drawKeyBalls() const
 {
-    // draw key balls
-    glColor3f(0, 0.5, 1);
     foreach (const Ball &ball, balls)
         ball.draw();
+}
 
-    switch (boneType)
+void Mesh::drawInBetweenBalls() const
+{
+    foreach (const Ball &ball, balls)
     {
-    case BONE_TYPE_INTERPOLATE:
-        // draw in between balls
-        glColor3f(0.75, 0.75, 0.75);
-        foreach (const Ball &ball, balls)
+        if (ball.parentIndex == -1) continue;
+        const Ball &parent = balls[ball.parentIndex];
+
+        for (int i = 1, count = 7; i < count; i++)
         {
-            if (ball.parentIndex == -1) continue;
-            const Ball &parent = balls[ball.parentIndex];
-
-            for (int i = 1, count = 7; i < count; i++)
-            {
-                float percent = (float)i / (float)count;
-                Ball tween;
-                tween.center = Vector3::lerp(ball.center, parent.center, percent);
-                tween.ex = Vector3::lerp(ball.ex, parent.ex, percent);
-                tween.ey = Vector3::lerp(ball.ey, parent.ey, percent);
-                tween.ez = Vector3::lerp(ball.ez, parent.ez, percent);
-                tween.draw();
-            }
+            float percent = (float)i / (float)count;
+            Ball tween;
+            tween.center = Vector3::lerp(ball.center, parent.center, percent);
+            tween.ex = Vector3::lerp(ball.ex, parent.ex, percent);
+            tween.ey = Vector3::lerp(ball.ey, parent.ey, percent);
+            tween.ez = Vector3::lerp(ball.ez, parent.ez, percent);
+            tween.draw();
         }
-        break;
+    }
+}
 
-    case BONE_TYPE_CYLINDER:
-        // draw bones
-        glColor3f(0.75, 0.75, 0.75);
-        foreach (const Ball &ball, balls)
-        {
-            if (ball.parentIndex == -1) continue;
-            const Ball &parent = balls[ball.parentIndex];
+void Mesh::drawBones() const
+{
+    foreach (const Ball &ball, balls)
+    {
+        if (ball.parentIndex == -1) continue;
+        const Ball &parent = balls[ball.parentIndex];
 
-            const float radius = 0.05f;
-            Vector3 delta = ball.center - parent.center;
-            Vector2 angles = delta.toAngles();
-            glPushMatrix();
-            glTranslatef(parent.center.x, parent.center.y, parent.center.z);
-            glRotatef(90 - angles.x * 180 / M_PI, 0, 1, 0);
-            glRotatef(-angles.y * 180 / M_PI, 1, 0, 0);
-            glScalef(radius, radius, delta.length());
-            drawCylinder();
-            glPopMatrix();
-        }
-        break;
+        const float radius = 0.05f;
+        Vector3 delta = ball.center - parent.center;
+        Vector2 angles = delta.toAngles();
+        glPushMatrix();
+        glTranslatef(parent.center.x, parent.center.y, parent.center.z);
+        glRotatef(90 - angles.x * 180 / M_PI, 0, 1, 0);
+        glRotatef(-angles.y * 180 / M_PI, 1, 0, 0);
+        glScalef(radius, radius, delta.length());
+        drawCylinder();
+        glPopMatrix();
     }
 }
 
 void Mesh::drawFill() const
 {
-    glColor3f(0.75, 0.75, 0.75);
     glBegin(GL_TRIANGLES);
     foreach (const Triangle &tri, triangles)
     {
@@ -142,4 +150,25 @@ void Mesh::drawFill() const
         vertices[quad.d.index].draw();
     }
     glEnd();
+}
+
+void Mesh::drawWireframe() const
+{
+    foreach (const Triangle &tri, triangles)
+    {
+        glBegin(GL_LINE_LOOP);
+        vertices[tri.a.index].draw();
+        vertices[tri.b.index].draw();
+        vertices[tri.c.index].draw();
+        glEnd();
+    }
+    foreach (const Quad &quad, quads)
+    {
+        glBegin(GL_LINE_LOOP);
+        vertices[quad.a.index].draw();
+        vertices[quad.b.index].draw();
+        vertices[quad.c.index].draw();
+        vertices[quad.d.index].draw();
+        glEnd();
+    }
 }

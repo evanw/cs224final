@@ -1,4 +1,7 @@
 #include "tools.h"
+#include "view.h"
+#include "geometry.h"
+#include "selectionrecorder.h"
 #include <QMouseEvent>
 
 bool OrbitCameraTool::mousePressed(QMouseEvent *event)
@@ -20,4 +23,60 @@ void OrbitCameraTool::mouseDragged(QMouseEvent *event)
     camera.update();
     oldX = event->x();
     oldY = event->y();
+}
+
+bool SetSelectionTool::mousePressed(QMouseEvent *event)
+{
+    if (view->mode == MODE_SKELETON)
+    {
+        // select the ball under the mouse, or -1 for no selection
+        SelectionRecorder sel;
+        view->camera3D();
+        sel.enterSelectionMode(event->x(), event->y());
+        view->doc->mesh.drawInBetweenBalls();
+        for (int i = 0, count = view->doc->mesh.balls.count(); i < count; i++)
+        {
+            Ball &ball = view->doc->mesh.balls[i];
+            sel.setObjectIndex(i);
+            ball.draw();
+        }
+        view->selectedBall = sel.exitSelectionMode();
+        return view->selectedBall != -1;
+    }
+    return false;
+}
+
+bool MoveSelectionTool::mousePressed(QMouseEvent *event)
+{
+    if (view->mode == MODE_SKELETON && view->selectedBall != -1)
+    {
+        // select the cube under the mouse, or -1 for no selection
+        SelectionRecorder sel;
+        view->camera3D();
+        sel.enterSelectionMode(event->x(), event->y());
+        view->doc->mesh.drawFill();
+        view->doc->mesh.drawInBetweenBalls();
+
+        // render a cube around the ball
+        Ball &ball = view->doc->mesh.balls[view->selectedBall];
+        float radius = ball.maxRadius();
+        glTranslatef(ball.center.x, ball.center.y, ball.center.z);
+        glScalef(radius, radius, radius);
+        sel.setObjectIndex(0);
+        drawCube();
+
+        sel.exitSelectionMode();
+
+        // hijack the selection recorder to get the depth under the mouse
+//        glReadPixels(0, 0, 1, 1, GL_DEPTH_COMPONENT);
+    }
+    return false;
+}
+
+void MoveSelectionTool::mouseDragged(QMouseEvent *event)
+{
+}
+
+void MoveSelectionTool::mouseReleased(QMouseEvent *event)
+{
 }

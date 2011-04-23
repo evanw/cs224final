@@ -2,7 +2,7 @@ QT       += core gui opengl
 TARGET = cs224final
 TEMPLATE = app
 FORMS    += mainwindow.ui
-INCLUDEPATH += ui doc util
+INCLUDEPATH += ui doc util b_mesh
 
 HEADERS += \
     util/vector.h \
@@ -13,7 +13,9 @@ HEADERS += \
     ui/tools.h \
     doc/mesh.h \
     doc/document.h \
-    lib/catmullclark.h
+    b_mesh/meshconstruction.h \
+    util/selectionrecorder.h \
+    b_mesh/catmullclark.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -24,4 +26,7 @@ SOURCES += \
     util/geometry.cpp \
     ui/tools.cpp \
     doc/mesh.cpp \
-    lib/catmullclark.cpp
+    b_mesh/meshconstruction.cpp \
+    doc/objfileformat.cpp \
+    util/selectionrecorder.cpp \
+    b_mesh/catmullclark.cpp

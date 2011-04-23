@@ -4,6 +4,11 @@
 #include <QVector>
 #include "mesh.h"
 
+/**
+  A library for Catmull-Clark subdivision.
+  To subdivide a mesh, call CatmullMesh::subdivide(inputMesh, outputMesh);
+  **/
+
 // a face in a CatmullMesh
 struct CatmullFace {
     CatmullFace(int numSides);
