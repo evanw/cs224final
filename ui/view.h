@@ -19,6 +19,9 @@ public:
     void setDocument(Document *doc);
     Document &getDocument() { return *doc; }
 
+    void undo();
+    void redo();
+
 protected:
     void initializeGL();
     void resizeGL(int width, int height);
@@ -42,6 +45,7 @@ private:
     friend class MoveSelectionTool;
 
     void resetCamera();
+    void resetInteraction();
     void drawMesh() const;
     void drawSkeleton(bool drawTransparent) const;
     void drawGroundPlane() const;

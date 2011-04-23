@@ -16,7 +16,8 @@ HEADERS += \
     b_mesh/meshconstruction.h \
     util/selectionrecorder.h \
     util/raytracer.h \
-    b_mesh/catmullclark.h
+    b_mesh/catmullclark.h \
+    doc/commands.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -31,4 +32,5 @@ SOURCES += \
     doc/objfileformat.cpp \
     util/selectionrecorder.cpp \
     util/raytracer.cpp \
-    b_mesh/catmullclark.cpp
+    b_mesh/catmullclark.cpp \
+    doc/commands.cpp

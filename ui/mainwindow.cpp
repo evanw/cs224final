@@ -4,10 +4,13 @@
 #include "meshconstruction.h"
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QSettings>
 
 #define WINDOW_TITLE "cs224final"
 #define DIALOG_FILE_FILTER "*.obj"
 #define FILE_EXTENSION ".obj"
+#define SETTINGS_NAME "cs224final"
+#define SETTING_DIRECTORY "file_dialog_dir"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -47,13 +50,14 @@ void MainWindow::fileOpen()
     if (!checkCanOverwriteUnsavedChanges())
         return;
 
-    QString path = QFileDialog::getOpenFileName(this, "Open", QDir::homePath(), DIALOG_FILE_FILTER);
+    QString path = QFileDialog::getOpenFileName(this, "Open", getDirectory(), DIALOG_FILE_FILTER);
     if (path.isEmpty())
         return;
 
     Document *doc = new Document;
     if (doc->mesh.loadFromOBJ(path.toStdString()))
     {
+        setDirectory(QDir(path).absolutePath());
         ui->view->setDocument(doc);
         filePath = path;
         updateTitle();
@@ -86,7 +90,7 @@ bool MainWindow::fileSave()
 
 bool MainWindow::fileSaveAs()
 {
-    QString path = QFileDialog::getSaveFileName(this, "Save", QDir::homePath(), DIALOG_FILE_FILTER);
+    QString path = QFileDialog::getSaveFileName(this, "Save", getDirectory(), DIALOG_FILE_FILTER);
     if (path.isEmpty())
         return false;
 
@@ -102,6 +106,7 @@ bool MainWindow::fileSaveAs()
         return false;
     }
 
+    setDirectory(QDir(path).absolutePath());
     filePath = path;
     updateTitle();
     return true;
@@ -115,14 +120,12 @@ void MainWindow::fileExit()
 
 void MainWindow::editUndo()
 {
-    ui->view->getDocument().getUndoStack().undo();
-    ui->view->updateGL();
+    ui->view->undo();
 }
 
 void MainWindow::editRedo()
 {
-    ui->view->getDocument().getUndoStack().redo();
-    ui->view->updateGL();
+    ui->view->redo();
 }
 
 void MainWindow::editMenuAboutToShow()
@@ -184,4 +187,16 @@ bool MainWindow::checkCanOverwriteUnsavedChanges()
     }
 
     return false;
+}
+
+void MainWindow::setDirectory(const QString &dir)
+{
+    QSettings settings(SETTINGS_NAME);
+    settings.setValue(SETTING_DIRECTORY, dir);
+}
+
+QString MainWindow::getDirectory()
+{
+    QSettings settings(SETTINGS_NAME);
+    return settings.value(SETTING_DIRECTORY, QDir::homePath()).toString();
 }
