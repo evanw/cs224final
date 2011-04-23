@@ -22,6 +22,54 @@
      <number>0</number>
     </property>
     <item>
+     <widget class="QWidget" name="widget" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QRadioButton" name="editSkeleton">
+         <property name="text">
+          <string>Edit skeleton</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="showMesh">
+         <property name="text">
+          <string>Show mesh</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="emptySpace" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
      <widget class="View" name="view" native="true"/>
     </item>
    </layout>
@@ -149,5 +197,40 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>editSkeleton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateMode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>98</x>
+     <y>41</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>showMesh</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateMode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>98</x>
+     <y>60</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>updateMode()</slot>
+ </slots>
 </ui>

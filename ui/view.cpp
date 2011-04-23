@@ -2,7 +2,7 @@
 #include "geometry.h"
 #include <QWheelEvent>
 
-View::View(QWidget *parent) : QGLWidget(parent), selectedBall(-1), currentTool(NULL)
+View::View(QWidget *parent) : QGLWidget(parent), selectedBall(-1), drawMode(DRAW_MODE_MESH), currentTool(NULL)
 {
     selectedBall = 1;
     doc.raw.balls += Ball(Vector3(0, 1.25, 0), 0.5);
@@ -11,6 +11,12 @@ View::View(QWidget *parent) : QGLWidget(parent), selectedBall(-1), currentTool(N
     doc.raw.balls += Ball(Vector3(-0.5, 0, 0), 0.1, 1);
     doc.raw.balls += Ball(Vector3(0.5, 0, 0), 0.1, 2);
     doc.raw.balls[0].ex *= 0.25;
+}
+
+void View::setDrawMode(int newDrawMode)
+{
+    drawMode = newDrawMode;
+    updateGL();
 }
 
 void View::initializeGL()
@@ -64,8 +70,16 @@ void View::paintGL()
     glLightfv(GL_LIGHT0, GL_POSITION, position0);
     glLightfv(GL_LIGHT1, GL_POSITION, position1);
 
-    drawMesh();
-    // drawSkeleton();
+    if (drawMode == DRAW_MODE_MESH)
+    {
+        drawMesh();
+        drawSkeleton(true);
+    }
+    else if (drawMode == DRAW_MODE_SKELETON)
+    {
+        drawSkeleton(false);
+    }
+
     drawGroundPlane();
 }
 
@@ -139,37 +153,71 @@ void View::drawMesh() const
     glDepthMask(GL_TRUE);
 }
 
-void View::drawSkeleton() const
+void View::drawSkeleton(bool drawTransparent) const
 {
     // draw model
-    glEnable(GL_LIGHTING);
-    doc.raw.drawKeyBalls(BONE_TYPE_INTERPOLATE);
-    glDisable(GL_LIGHTING);
-
-    // enable line drawing
-    glDepthMask(GL_FALSE);
-    glEnable(GL_BLEND);
-
-    // draw box around selected ball
-    if (selectedBall != -1)
+    if (drawTransparent)
     {
-        const Ball &ball = doc.raw.balls[selectedBall];
-        float radius = ball.maxRadius();
-        glPushMatrix();
-        glTranslatef(ball.center.x, ball.center.y, ball.center.z);
-        glScalef(radius, radius, radius);
-        glDisable(GL_DEPTH_TEST);
-        glColor4f(0, 0, 0, 0.25f);
-        drawWireCube();
-        glEnable(GL_DEPTH_TEST);
-        glColor3f(0, 0, 0);
-        drawWireCube();
-        glPopMatrix();
-    }
+        // set depth buffer before so we never blend the same pixel twice
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        doc.raw.drawKeyBalls();
+        doc.raw.drawBones();
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-    // disable line drawing
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
+        // draw blended key balls and bones
+        glDepthFunc(GL_EQUAL);
+        glEnable(GL_BLEND);
+        glEnable(GL_LIGHTING);
+        glColor4f(0, 0.5, 1, 0.25);
+        doc.raw.drawKeyBalls();
+        glColor4f(0.75, 0.75, 0.75, 0.25);
+        doc.raw.drawBones();
+        glDisable(GL_LIGHTING);
+        glDisable(GL_BLEND);
+        glDepthFunc(GL_LESS);
+
+        // set depth buffer back to the model
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        doc.raw.drawFill();
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    }
+    else
+    {
+        // draw key balls and in-between balls
+        glEnable(GL_LIGHTING);
+        glColor3f(0, 0.5, 1);
+        doc.raw.drawKeyBalls();
+        glColor3f(0.75, 0.75, 0.75);
+        doc.raw.drawInBetweenBalls();
+        glDisable(GL_LIGHTING);
+
+        // draw box around selected ball
+        if (selectedBall != -1)
+        {
+            // enable line drawing
+            glDepthMask(GL_FALSE);
+            glEnable(GL_BLEND);
+
+            const Ball &ball = doc.raw.balls[selectedBall];
+            float radius = ball.maxRadius();
+            glPushMatrix();
+            glTranslatef(ball.center.x, ball.center.y, ball.center.z);
+            glScalef(radius, radius, radius);
+            glDisable(GL_DEPTH_TEST);
+            glColor4f(0, 0, 0, 0.25f);
+            drawWireCube();
+            glEnable(GL_DEPTH_TEST);
+            glColor3f(0, 0, 0);
+            drawWireCube();
+            glPopMatrix();
+
+            // disable line drawing
+            glDisable(GL_BLEND);
+            glDepthMask(GL_TRUE);
+        }
+    }
 }
 
 void View::drawGroundPlane() const

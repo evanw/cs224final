@@ -57,8 +57,6 @@ struct Quad
     Quad(int a, int b, int c, int d) : a(a), b(b), c(c), d(d) {}
 };
 
-enum { BONE_TYPE_INTERPOLATE, BONE_TYPE_CYLINDER };
-
 class Mesh
 {
 public:
@@ -68,9 +66,12 @@ public:
     QList<Quad> quads;
 
     void updateNormals();
-    void drawKeyBalls(int boneType) const;
     void drawFill() const;
     void drawWireframe() const;
+
+    void drawKeyBalls() const;
+    void drawInBetweenBalls() const;
+    void drawBones() const;
 
     bool loadFromOBJ(const std::string &file);
     bool saveToOBJ(const std::string &file);
