@@ -1,5 +1,6 @@
 #include "view.h"
 #include "geometry.h"
+#include <QWheelEvent>
 
 View::View(QWidget *parent) : QGLWidget(parent), currentTool(NULL)
 {
@@ -95,6 +96,13 @@ void View::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
+void View::wheelEvent(QWheelEvent *event)
+{
+    camera.zoom *= powf(0.999f, event->delta());
+    camera.update();
+    updateGL();
+}
+
 void View::drawGrid() const
 {
     const int size = 10;
@@ -137,7 +145,7 @@ void View::camera3D() const
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45, (float)width() / (float)height(), 0.01, 100.0);
+    gluPerspective(45, (float)width() / (float)height(), 0.01, 1000.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     camera.apply();

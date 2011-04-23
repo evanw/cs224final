@@ -46,7 +46,7 @@ void drawCube()
 void drawSphere()
 {
     initQuadric();
-    gluSphere(quadric, 1, 32, 16);
+    gluSphere(quadric, 1, 64, 32);
 }
 
 void drawWireCube()
