@@ -1,5 +1,5 @@
-#ifndef RAWDOCUMENT_H
-#define RAWDOCUMENT_H
+#ifndef MESH_H
+#define MESH_H
 
 #include <QList>
 #include "vector.h"
@@ -47,7 +47,7 @@ struct Quad
 
 enum { BONE_TYPE_INTERPOLATE, BONE_TYPE_CYLINDER };
 
-class RawDocument
+class Mesh
 {
 public:
     QList<Ball> balls;
@@ -58,4 +58,4 @@ public:
     void drawKeyBalls(int boneType) const;
 };
 
-#endif // RAWDOCUMENT_H
+#endif // MESH_H

@@ -1,4 +1,4 @@
-#include "rawdocument.h"
+#include "mesh.h"
 #include "geometry.h"
 #include <qgl.h>
 
@@ -17,7 +17,7 @@ void Ball::draw() const
     glPopMatrix();
 }
 
-void RawDocument::drawKeyBalls(int boneType) const
+void Mesh::drawKeyBalls(int boneType) const
 {
     // draw key balls
     glColor3f(0, 0.5, 1);
