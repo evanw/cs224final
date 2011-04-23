@@ -2,6 +2,9 @@
 #define MESHCONSTRUCTION_H
 
 #include "mesh.h"
+#include <iostream>
+
+using namespace std;
 
 class MeshConstruction
 {
