@@ -57,6 +57,14 @@ bool Raytracer::hitTestCube(const Vector3 &cubeMin, const Vector3 &cubeMax, cons
     float tFar = t2.min();
     if (tNear > 0 && tNear < tFar)
     {
+        const float epsilon = 1.0e-6;
+        Vector3 hit = origin + ray * tNear;
+        if (hit.x < cubeMin.x + epsilon) hitTest.normal = Vector3(-1, 0, 0);
+        else if (hit.y < cubeMin.y + epsilon) hitTest.normal = Vector3(0, -1, 0);
+        else if (hit.z < cubeMin.z + epsilon) hitTest.normal = Vector3(0, 0, -1);
+        else if (hit.x > cubeMax.x - epsilon) hitTest.normal = Vector3(1, 0, 0);
+        else if (hit.y > cubeMax.y - epsilon) hitTest.normal = Vector3(0, 1, 0);
+        else hitTest.normal = Vector3(0, 0, 1);
         hitTest.t = tNear;
         return true;
     }

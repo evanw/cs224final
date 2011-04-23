@@ -29,6 +29,7 @@ public slots:
     void editMenuAboutToShow();
     void editMenuAboutToHide();
     void generateMesh();
+    void subdivideMesh();
 
 private:
     Ui::MainWindow *ui;

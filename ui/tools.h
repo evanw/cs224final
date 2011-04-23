@@ -42,7 +42,9 @@ class MoveSelectionTool : public Tool
 {
 private:
     View *view;
-    int face;
+    Vector3 planeNormal;
+    Vector3 originalHit;
+    Vector3 originalCenter;
 
 public:
     MoveSelectionTool(View *view) : view(view) {}

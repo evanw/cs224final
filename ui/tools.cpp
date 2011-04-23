@@ -70,6 +70,9 @@ bool MoveSelectionTool::mousePressed(QMouseEvent *event)
         HitTest result;
         if (Raytracer::hitTestCube(selection.center - radius, selection.center + radius, origin, ray, result))
         {
+            planeNormal = result.normal;
+            originalHit = origin + ray * result.t;
+            originalCenter = selection.center;
             return true;
         }
     }
@@ -79,6 +82,22 @@ bool MoveSelectionTool::mousePressed(QMouseEvent *event)
 
 void MoveSelectionTool::mouseDragged(QMouseEvent *event)
 {
+    if (view->selectedBall != -1)
+    {
+        // get selected ball
+        Ball &selection = view->doc->mesh.balls[view->selectedBall];
+
+        // set up raytracer
+        view->camera3D();
+        Raytracer tracer;
+        Vector3 origin = tracer.getEye();
+        Vector3 ray = tracer.getRayForPixel(event->x(), event->y());
+
+        // move selected ball
+        float t = (originalHit - origin).dot(planeNormal) / ray.dot(planeNormal);
+        Vector3 hit = origin + ray * t;
+        selection.center = originalCenter + hit - originalHit;
+    }
 }
 
 void MoveSelectionTool::mouseReleased(QMouseEvent *event)

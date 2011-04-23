@@ -64,6 +64,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="subdivideMesh">
+         <property name="text">
+          <string>Subdivide Mesh</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QWidget" name="emptySpace" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
@@ -335,6 +342,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>subdivideMesh</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>subdivideMesh()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>99</x>
+     <y>126</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>updateMode()</slot>
@@ -346,5 +369,6 @@
   <slot>editUndo()</slot>
   <slot>editRedo()</slot>
   <slot>generateMesh()</slot>
+  <slot>subdivideMesh()</slot>
  </slots>
 </ui>
