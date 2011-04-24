@@ -25,7 +25,7 @@ void split(const string &str, const string &split, vector<string> &result)
 bool Mesh::loadFromOBJ(const string &file)
 {
     ifstream f(file.c_str());
-    if (f.bad()) return false;
+    if (!f.good()) return false;
 
     balls.clear();
     vertices.clear();
@@ -128,7 +128,7 @@ bool Mesh::loadFromOBJ(const string &file)
 bool Mesh::saveToOBJ(const string &file)
 {
     ofstream f(file.c_str());
-    if (f.bad()) return false;
+    if (!f.good()) return false;
 
     foreach (const Vertex &vertex, vertices)
         f << "v " << vertex.pos.x << " " << vertex.pos.y << " " << vertex.pos.z << endl;
