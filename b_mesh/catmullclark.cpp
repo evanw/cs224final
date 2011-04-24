@@ -1,20 +1,26 @@
 #include "catmullclark.h"
 
 
+
+QPair<int, int> getEdgeIndex(int v1, int v2) {
+    return v1 < v2 ? QPair<int, int>(v1, v2) : QPair<int, int>(v2, v1);
+}
+
+
 CatmullFace::CatmullFace(int numSides) : n(numSides) {
     for (int i = 0; i < numSides; ++i) {
         neighbors += NULL;
         points += -1;
-        edgePoints += QPair<int, int>();
+        edges += QPair<int, int>();
     }
 }
 
 
 CatmullMesh::CatmullMesh(const Mesh &m) {
+    // copy the vertices over
     foreach (const Vertex &v, m.vertices) {
         CatmullVertex cv;
         cv.pos = v.pos;
-        cv.normal = v.normal;
         vertices += cv;
     }
 
@@ -27,6 +33,7 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
         cTri.points[2] = tri.c.index;
         faces += cTri;
     }
+
     foreach (const Quad &quad, m.quads) {
         CatmullFace cQuad(4);
         cQuad.points[0] = quad.a.index;
@@ -36,72 +43,43 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
         faces += cQuad;
     }
 
-    // add the neighbor and face points
+    // add the edges and face points
     for (int i = 0; i < faces.size(); ++i) {
         CatmullFace &face = faces[i];
-        fillNeighbors(face);
 
+        // add edges
+        for (int i = 0; i < face.n; ++i) {
+            const QPair<int, int>& pair = getEdgeIndex(face.points[i], face.points[(i + 1) % face.n]);
+            face.edges[i] = pair;
+            if (!edges.contains(pair)) {
+                edges[pair].faces[0] = &face;
+            } else if (edges[pair].faces[1] == NULL) {
+                edges[pair].faces[1] = &face;
+            } else {
+                std::cerr << "Error, edge connects to more than 2 faces" << std::endl;
+            }
+        }
+
+        // add face point
         Vertex fp;
+        fp.pos = Vector3();
         // set face point to average of vertex points
         for (int i = 0; i < face.n; ++i) {
-            fp.pos += vertices[face.points[1]].pos;
+            fp.pos += vertices[face.points[i]].pos;
         }
         fp.pos /= face.n;
         face.facePoint = facePoints.size();
         facePoints += fp;
     }
 
-    // add the edge points: edgePoints[0] on 0-1 edge, edgePoints[1] on 1-2 edge, etc.
-    for (int i = 0; i < faces.size(); ++i) {
-        CatmullFace &f = faces[i];
-        // edgePt position is the average of the edge's vertices and the face points of the two adjacent faces
-        for (int i = 0; i < f.n; ++i) {
-            int prevIndex = (i + 1) % f.n;
-            QPair<int, int> pair;
-            if (f.points[i] < f.points[prevIndex]) {
-                pair.first = f.points[i];
-                pair.second = f.points[prevIndex];
-            } else {
-                pair.first = f.points[prevIndex];
-                pair.second = f.points[i];
-            }
-
-            if (!edgePoints.contains(pair)) {
-                Vertex v;
-                v.pos = (vertices[f.points[i]].pos + vertices[f.points[(i + 1) % f.n]].pos +
-                         facePoints[f.facePoint].pos + facePoints[f.neighbors[i]->facePoint].pos) / f.n;
-                edgePoints[pair] = v;
-            }
-            f.edgePoints[i] = pair;
-        }
+    // add the edge points
+    QMap<QPair<int, int>, CatmullEdge>::const_iterator it;
+    for (it = edges.begin(); it != edges.end(); ++it) {
+        edges[it.key()].pos = (vertices[it.key().first].pos + vertices[it.key().second].pos +
+                               facePoints[it.value().faces[0]->facePoint].pos + facePoints[it.value().faces[1]->facePoint].pos) / 4;
     }
-}
 
-// find the neighboring face for each edge of 'face'
-void CatmullMesh::fillNeighbors(CatmullFace &face) {
-    for (int i = 0; i < face.n; ++i) {
-        bool neighborFound = false;
-        // for each potential neighbor
-        foreach (const CatmullFace &neighbor, faces) {
-            for (int j = 0; j < neighbor.n; ++j) {
-                // if ordering of vertices is the same
-                if ((face.points[i] < face.points[(i + 1) % face.n]) == (neighbor.points[j] < neighbor.points[(j + 1) % neighbor.n])) {
-                    if (face.points[i] == neighbor.points[j] && face.points[(i + 1) % face.n] == neighbor.points[(j + 1) % neighbor.n]) {
-                        face.neighbors[i] = &neighbor;
-                        neighborFound = true;
-                        break;
-                    }
-                } else if (face.points[i] == neighbor.points[(j + 1) % neighbor.n] && face.points[(i + 1) % face.n] == neighbor.points[j]) {
-                    // same edge, vertices in opposite order
-                    face.neighbors[i] = &neighbor;
-                    neighborFound = true;
-                    break;
-                }
-            }
-
-            if (neighborFound) break;
-        }
-    }
+    valid = true;
 }
 
 // update the mesh vertices (step 3 of Catmull-Clark subdivision)
@@ -112,11 +90,11 @@ bool CatmullMesh::moveVertices() {
             int prevIndex = (i == 0 ? face.n - 1 : i - 1);
             CatmullVertex &v = vertices[face.points[i]];
             v.facePoints += facePoints[face.facePoint].pos;
-            if (!v.edgePoints.contains(edgePoints[face.edgePoints[i]].pos)) {
-                v.edgePoints += edgePoints[face.edgePoints[i]].pos;
+            if (!v.edgePoints.contains(edges[face.edges[i]].pos)) {
+                v.edgePoints += edges[face.edges[i]].pos;
             }
-            if (!v.edgePoints.contains(edgePoints[face.edgePoints[prevIndex]].pos)) {
-                v.edgePoints += edgePoints[face.edgePoints[prevIndex]].pos;
+            if (!v.edgePoints.contains(edges[face.edges[prevIndex]].pos)) {
+                v.edgePoints += edges[face.edges[prevIndex]].pos;
             }
         }
     }
@@ -126,7 +104,7 @@ bool CatmullMesh::moveVertices() {
     for (int i = 0; i < vertices.size(); ++i) {
         CatmullVertex &v = vertices[i];
         if (v.edgePoints.size() != v.facePoints.size()) {
-            std::cerr << "Valence mismatch: " << v.edgePoints.size() << " edges, " << v.facePoints.size() << " faces" << std::endl;
+            std::cerr << "Valence mismatch error: " << v.edgePoints.size() << " edges, " << v.facePoints.size() << " faces" << std::endl;
             return false;
         }
         int numNeighbors = v.edgePoints.size();
@@ -137,6 +115,8 @@ bool CatmullMesh::moveVertices() {
             faceAverage += v.facePoints[i];
             edgeAverage += v.edgePoints[i];
         }
+        faceAverage /= numNeighbors;
+        edgeAverage /= numNeighbors;
 
         // Pnew = ( F + 2R + (n - 3)P ) / n
         v.pos = (faceAverage + edgeAverage * 2 + v.pos * (numNeighbors - 3)) / numNeighbors;
@@ -156,16 +136,14 @@ bool CatmullMesh::convertToMesh(Mesh &m) {
     foreach (const CatmullVertex &cv, vertices) {
         Vertex v;
         v.pos = cv.pos;
-        v.normal = cv.normal;
         m.vertices += v;
     }
 
-    int edgeOffset = m.vertices.size();
     QMap<QPair<int, int>, int> edgeIndices;
-    QMap<QPair<int, int>, Vertex>::const_iterator it;
-    for (it = edgePoints.begin(); it != edgePoints.end(); ++it) {
+    QMap<QPair<int, int>, CatmullEdge>::const_iterator it;
+    for (it = edges.begin(); it != edges.end(); ++it) {
         edgeIndices[it.key()] = m.vertices.size();
-        m.vertices += it.value();
+        m.vertices += it.value().pos;
     }
 
     int faceOffset = m.vertices.size();
@@ -175,12 +153,13 @@ bool CatmullMesh::convertToMesh(Mesh &m) {
 
     // create the lists of quads and triangles
     foreach (const CatmullFace &face, faces) {
+        int faceIndex = faceOffset + face.facePoint;
         for (int i = 0; i < face.n; ++i) {
             Quad q;
             q.a = face.points[i];
-            q.b = edgeOffset + edgeIndices[face.edgePoints[i]];
-            q.c = faceOffset + face.facePoint;
-            q.d = edgeOffset + edgeIndices[face.edgePoints[(i + face.n - 1) % face.n]];
+            q.b = edgeIndices[face.edges[i]];
+            q.c = faceIndex;
+            q.d = edgeIndices[face.edges[(i + face.n - 1) % face.n]];
             m.quads += q;
         }
     }
@@ -190,10 +169,11 @@ bool CatmullMesh::convertToMesh(Mesh &m) {
 
 
 bool CatmullMesh::subdivide(const Mesh &in, Mesh &out) {
-    std::cout << "1" << std::endl;
     CatmullMesh cm(in);
+    if (!cm.valid) return false;
     if (!cm.moveVertices()) return false;
-    std::cout << "2" << std::endl;
     out.balls = in.balls;
-    return cm.convertToMesh(out);
+    if (!cm.convertToMesh(out)) return false;
+    out.updateNormals();
+    return true;
 }

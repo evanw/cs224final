@@ -19,18 +19,25 @@ struct CatmullFace {
     // these are filled to the correct size in the constructor, so they can be treated like arrays after construction
     QVector<const CatmullFace *> neighbors;
     QVector<int> points; // point indices
-    QVector<QPair<int, int> > edgePoints; // edge points
+    QVector<QPair<int, int> > edges; // edge indices
     int facePoint;
 };
-
 
 // a vertex in a CatmullMesh
 struct CatmullVertex {
     Vector3 pos;
-    Vector3 normal;
 
     QVector<Vector3> facePoints; // face points for faces including this vertex
     QVector<Vector3> edgePoints; // edge points for faces including this vertex
+};
+
+// an edge in a CatmullMesh
+struct CatmullEdge {
+    CatmullEdge() { faces[0] = faces[1] = NULL; }
+
+    Vector3 pos; // position of this edge's edgePoint
+
+    CatmullFace *faces[2];
 };
 
 // a mesh holding additional data used for Catmull-Clark subdivision
@@ -44,13 +51,12 @@ public:
 
 private:
     QList<CatmullVertex> vertices;
-    QMap<QPair<int, int>, Vertex> edgePoints;
+    QMap<QPair<int, int>, CatmullEdge> edges;
     QList<Vertex> facePoints;
     QList<CatmullFace> faces;
+    bool valid;
 
-    void fillNeighbors(CatmullFace &face);
     bool moveVertices();
 };
-
 
 #endif // CATMULLCLARK_H
