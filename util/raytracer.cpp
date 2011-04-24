@@ -47,7 +47,7 @@ Vector3 Raytracer::getRayForPixel(int x, int y) const
     return Vector3::lerp(ray0, ray1, fy).unit();
 }
 
-bool Raytracer::hitTestCube(const Vector3 &cubeMin, const Vector3 &cubeMax, const Vector3 &origin, const Vector3 &ray, HitTest &hitTest)
+bool Raytracer::hitTestCube(const Vector3 &cubeMin, const Vector3 &cubeMax, const Vector3 &origin, const Vector3 &ray, HitTest &result)
 {
     Vector3 tMin = (cubeMin - origin) / ray;
     Vector3 tMax = (cubeMax - origin) / ray;
@@ -58,14 +58,14 @@ bool Raytracer::hitTestCube(const Vector3 &cubeMin, const Vector3 &cubeMax, cons
     if (tNear > 0 && tNear < tFar)
     {
         const float epsilon = 1.0e-6;
-        Vector3 hit = origin + ray * tNear;
-        if (hit.x < cubeMin.x + epsilon) hitTest.normal = Vector3(-1, 0, 0);
-        else if (hit.y < cubeMin.y + epsilon) hitTest.normal = Vector3(0, -1, 0);
-        else if (hit.z < cubeMin.z + epsilon) hitTest.normal = Vector3(0, 0, -1);
-        else if (hit.x > cubeMax.x - epsilon) hitTest.normal = Vector3(1, 0, 0);
-        else if (hit.y > cubeMax.y - epsilon) hitTest.normal = Vector3(0, 1, 0);
-        else hitTest.normal = Vector3(0, 0, 1);
-        hitTest.t = tNear;
+        result.hit = origin + ray * tNear;
+        if (result.hit.x < cubeMin.x + epsilon) result.normal = Vector3(-1, 0, 0);
+        else if (result.hit.y < cubeMin.y + epsilon) result.normal = Vector3(0, -1, 0);
+        else if (result.hit.z < cubeMin.z + epsilon) result.normal = Vector3(0, 0, -1);
+        else if (result.hit.x > cubeMax.x - epsilon) result.normal = Vector3(1, 0, 0);
+        else if (result.hit.y > cubeMax.y - epsilon) result.normal = Vector3(0, 1, 0);
+        else result.normal = Vector3(0, 0, 1);
+        result.t = tNear;
         return true;
     }
     return false;

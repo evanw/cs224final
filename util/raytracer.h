@@ -6,6 +6,7 @@
 struct HitTest
 {
     float t;
+    Vector3 hit;
     Vector3 normal;
 };
 
@@ -20,7 +21,7 @@ public:
 
     Vector3 getEye() const { return eye; }
     Vector3 getRayForPixel(int x, int y) const;
-    static bool hitTestCube(const Vector3 &min, const Vector3 &max, const Vector3 &origin, const Vector3 &ray, HitTest &hitTest);
+    static bool hitTestCube(const Vector3 &min, const Vector3 &max, const Vector3 &origin, const Vector3 &ray, HitTest &result);
 };
 
 #endif // RAYTRACER_H

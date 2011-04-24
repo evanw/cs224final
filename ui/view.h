@@ -37,12 +37,17 @@ private:
     int selectedBall;
     int mode;
 
+    bool drawWireframe;
+    bool drawInterpolated;
     OrbitCamera camera;
 
     Tool *currentTool;
     QList<Tool *> tools;
-    friend class SetSelectionTool;
+    friend class Tool;
     friend class MoveSelectionTool;
+    friend class CreateBallTool;
+    friend class SetSelectionTool;
+    friend class OrbitCameraTool;
 
     void resetCamera();
     void resetInteraction();
@@ -51,6 +56,11 @@ private:
     void drawGroundPlane() const;
     void camera2D() const;
     void camera3D() const;
+
+public slots:
+    void setWireframe(bool useWireframe);
+    void setInterpolated(bool useInterpolated);
+    void deleteSelection();
 };
 
 #endif // CANVAS_H

@@ -17,7 +17,9 @@ public:
 
     QUndoStack &getUndoStack() { return undoStack; }
 
+    void addBall(const Ball &ball);
     void moveBall(int ball, const Vector3 &delta);
+    void deleteBall(int ball);
 };
 
 #endif // DOCUMENT_H

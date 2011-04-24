@@ -22,7 +22,7 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QWidget" name="widget" native="true">
+     <widget class="QWidget" name="sidebar" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -53,6 +53,20 @@
         <widget class="QRadioButton" name="showMesh">
          <property name="text">
           <string>Show mesh</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="drawWireframe">
+         <property name="text">
+          <string>Draw Wireframe</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="drawInterpolated">
+         <property name="text">
+          <string>Draw Interpolated Balls</string>
          </property>
         </widget>
        </item>
@@ -114,6 +128,7 @@
     </property>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
+    <addaction name="actionDeleteSelection"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -171,6 +186,14 @@
     <string>Exit</string>
    </property>
   </action>
+  <action name="actionDeleteSelection">
+   <property name="text">
+    <string>Delete Selection</string>
+   </property>
+   <property name="shortcut">
+    <string>Backspace</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -178,6 +201,11 @@
    <class>View</class>
    <extends>QWidget</extends>
    <header>view.h</header>
+   <slots>
+    <slot>setWireframe(bool)</slot>
+    <slot>deleteSelection()</slot>
+    <slot>setInterpolated(bool)</slot>
+   </slots>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -359,34 +387,50 @@
    </hints>
   </connection>
   <connection>
-   <sender>menuEdit</sender>
-   <signal>aboutToShow()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>editMenuAboutToShow()</slot>
+   <sender>drawWireframe</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>view</receiver>
+   <slot>setWireframe(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>64</x>
-     <y>41</y>
+     <x>103</x>
+     <y>81</y>
     </hint>
     <hint type="destinationlabel">
-     <x>399</x>
-     <y>299</y>
+     <x>499</x>
+     <y>310</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>menuEdit</sender>
-   <signal>aboutToHide()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>editMenuAboutToHide()</slot>
+   <sender>actionDeleteSelection</sender>
+   <signal>triggered()</signal>
+   <receiver>view</receiver>
+   <slot>deleteSelection()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>64</x>
-     <y>41</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>399</x>
-     <y>299</y>
+     <x>499</x>
+     <y>310</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>drawInterpolated</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>view</receiver>
+   <slot>setInterpolated(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>103</x>
+     <y>102</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>499</x>
+     <y>310</y>
     </hint>
    </hints>
   </connection>

@@ -18,7 +18,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->showMesh->setChecked(true);
+    ui->drawWireframe->setChecked(true);
+    ui->drawInterpolated->setChecked(true);
     setWindowState(windowState() | Qt::WindowMaximized);
+    fileNew();
 }
 
 MainWindow::~MainWindow()
@@ -38,7 +41,11 @@ void MainWindow::fileNew()
 {
     if (checkCanOverwriteUnsavedChanges())
     {
-        ui->view->setDocument(new Document);
+        Document *doc = new Document;
+        doc->mesh.balls += Ball();
+        ui->view->setDocument(doc);
+        ui->editSkeleton->setChecked(true);
+
         filePath = QString::null;
         fileName = "Untitled";
         updateTitle();
@@ -59,6 +66,7 @@ void MainWindow::fileOpen()
     {
         setDirectory(QDir(path).absolutePath());
         ui->view->setDocument(doc);
+        ui->showMesh->setChecked(true);
         filePath = path;
         updateTitle();
     }
@@ -147,12 +155,14 @@ void MainWindow::editMenuAboutToHide()
 
 void MainWindow::generateMesh()
 {
+    ui->view->getDocument().mesh.updateChildIndices();
     MeshConstruction::BMeshInit(&ui->view->getDocument().mesh);
     ui->view->updateGL();
 }
 
 void MainWindow::subdivideMesh()
 {
+    ui->view->getDocument().mesh.updateChildIndices();
     // TODO: modify ui->view->getDocument().mesh
     ui->view->updateGL();
 }
