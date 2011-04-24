@@ -57,6 +57,8 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
                 edges[pair].faces[1] = &face;
             } else {
                 std::cerr << "Error, edge connects to more than 2 faces" << std::endl;
+                valid = false;
+                return;
             }
         }
 
@@ -75,6 +77,11 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
     // add the edge points
     QMap<QPair<int, int>, CatmullEdge>::const_iterator it;
     for (it = edges.begin(); it != edges.end(); ++it) {
+        if (it.value().faces[1] == NULL) {
+            std::cerr << "Error, edge connects to only one face" << std::endl;
+            valid = false;
+            return;
+        }
         edges[it.key()].pos = (vertices[it.key().first].pos + vertices[it.key().second].pos +
                                facePoints[it.value().faces[0]->facePoint].pos + facePoints[it.value().faces[1]->facePoint].pos) / 4;
     }
