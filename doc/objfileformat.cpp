@@ -70,6 +70,16 @@ bool Mesh::loadFromOBJ(const string &file)
                 }
             }
         }
+        else if (parts[0] == "j" && parts.size() == 14)
+        {
+            Ball ball;
+            ball.center = Vector3(atof(parts[1].c_str()), atof(parts[2].c_str()), atof(parts[3].c_str()));
+            ball.ex = Vector3(atof(parts[4].c_str()), atof(parts[5].c_str()), atof(parts[6].c_str()));
+            ball.ey = Vector3(atof(parts[7].c_str()), atof(parts[8].c_str()), atof(parts[9].c_str()));
+            ball.ez = Vector3(atof(parts[10].c_str()), atof(parts[11].c_str()), atof(parts[12].c_str()));
+            ball.parentIndex = atoi(parts[13].c_str()) - 1;
+            balls += ball;
+        }
     }
 
     // scale the model to fit in a 4x4x4 cube
@@ -87,6 +97,27 @@ bool Mesh::loadFromOBJ(const string &file)
         if (tri.a.index < 0 || tri.b.index < 0 || tri.c.index < 0 ||
                 tri.a.index >= vertices.count() || tri.b.index >= vertices.count() || tri.c.index >= vertices.count())
             triangles.removeAt(i--);
+    }
+
+    // remove bad balls
+    for (int i = 0; i < balls.size(); i++)
+    {
+        Ball &ball = balls[i];
+        if (ball.parentIndex < -1 || ball.parentIndex >= balls.size() || ball.parentIndex == i)
+        {
+            // subtract one from all parent indices > i and unlink all children
+            for (int j = 0; j < balls.size(); j++)
+            {
+                Ball &ball = balls[j];
+                if (ball.parentIndex == i)
+                    ball.parentIndex = -1;
+                else if (ball.parentIndex > i)
+                    ball.parentIndex--;
+            }
+
+            // can now remove this ball
+            balls.removeAt(i--);
+        }
     }
 
     updateNormals();
@@ -107,6 +138,15 @@ bool Mesh::saveToOBJ(const string &file)
 
     foreach (const Quad &quad, quads)
         f << "f " << (quad.a.index + 1) << " " << (quad.b.index + 1) << " " << (quad.c.index + 1) << " " << (quad.d.index + 1) << endl;
+
+    foreach (const Ball &ball, balls)
+    {
+        f << "j " << ball.center.x << " " << ball.center.y << " " << ball.center.z;
+        f << " " << ball.ex.x << " " << ball.ex.y << " " << ball.ex.z;
+        f << " " << ball.ey.x << " " << ball.ey.y << " " << ball.ey.z;
+        f << " " << ball.ez.x << " " << ball.ez.y << " " << ball.ez.z;
+        f << " " << (ball.parentIndex + 1) << endl;
+    }
 
     return true;
 }

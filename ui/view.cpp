@@ -2,15 +2,9 @@
 #include "geometry.h"
 #include <QWheelEvent>
 
-View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), mode(MODE_MESH), currentTool(NULL)
+View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1),
+    mode(MODE_MESH), drawWireframe(true), drawInterpolated(true), currentTool(NULL)
 {
-    doc->mesh.balls += Ball(Vector3(0, 1.25, 0), 0.5);
-    doc->mesh.balls += Ball(Vector3(-0.75, 0.75, 0.25), 0.25, 0);
-    doc->mesh.balls += Ball(Vector3(0.75, 0.75, 0.25), 0.25, 0);
-    doc->mesh.balls += Ball(Vector3(-0.5, 0, 0), 0.1, 1);
-    doc->mesh.balls += Ball(Vector3(0.5, 0, 0), 0.1, 2);
-    doc->mesh.balls[0].ex *= 0.25;
-    doc->mesh.updateChildIndices();
     resetCamera();
 }
 
@@ -45,9 +39,10 @@ void View::redo()
 
 void View::initializeGL()
 {
+    tools += new CreateBallTool(this);
     tools += new MoveSelectionTool(this);
     tools += new SetSelectionTool(this);
-    tools += new OrbitCameraTool(camera);
+    tools += new OrbitCameraTool(this);
 
     // opengl lighting
     float ambient0[4] = { 0.4, 0.4, 0.4, 0 };
@@ -181,17 +176,20 @@ void View::drawMesh() const
     glDisable(GL_POLYGON_OFFSET_FILL);
     glDisable(GL_LIGHTING);
 
-    // enable line drawing
-    glDepthMask(GL_FALSE);
-    glEnable(GL_BLEND);
+    if (drawWireframe)
+    {
+        // enable line drawing
+        glDepthMask(GL_FALSE);
+        glEnable(GL_BLEND);
 
-    // draw the mesh wireframe
-    glColor4f(0, 0, 0, 0.25);
-    doc->mesh.drawWireframe();
+        // draw the mesh wireframe
+        glColor4f(0, 0, 0, 0.25);
+        doc->mesh.drawWireframe();
 
-    // disable line drawing
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
+        // disable line drawing
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
+    }
 }
 
 void View::drawSkeleton(bool drawTransparent) const
@@ -203,17 +201,18 @@ void View::drawSkeleton(bool drawTransparent) const
         glClear(GL_DEPTH_BUFFER_BIT);
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
         doc->mesh.drawKeyBalls();
-        doc->mesh.drawBones();
+        if (drawInterpolated) doc->mesh.drawInBetweenBalls();
+        else doc->mesh.drawBones();
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
         // draw blended key balls and bones
         glDepthFunc(GL_EQUAL);
         glEnable(GL_BLEND);
         glEnable(GL_LIGHTING);
-        glColor4f(0, 0.5, 1, 0.5);
-        doc->mesh.drawKeyBalls();
+        doc->mesh.drawKeyBalls(0.5);
         glColor4f(0.75, 0.75, 0.75, 0.5);
-        doc->mesh.drawBones();
+        if (drawInterpolated) doc->mesh.drawInBetweenBalls();
+        else doc->mesh.drawBones();
         glDisable(GL_LIGHTING);
         glDisable(GL_BLEND);
         glDepthFunc(GL_LESS);
@@ -222,10 +221,10 @@ void View::drawSkeleton(bool drawTransparent) const
     {
         // draw key balls and in-between balls
         glEnable(GL_LIGHTING);
-        glColor3f(0, 0.5, 1);
         doc->mesh.drawKeyBalls();
         glColor3f(0.75, 0.75, 0.75);
-        doc->mesh.drawInBetweenBalls();
+        if (drawInterpolated) doc->mesh.drawInBetweenBalls();
+        else doc->mesh.drawBones();
         glDisable(GL_LIGHTING);
 
         // draw box around selected ball
@@ -305,4 +304,26 @@ void View::camera3D() const
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     camera.apply();
+}
+
+void View::setWireframe(bool useWireframe)
+{
+    drawWireframe = useWireframe;
+    updateGL();
+}
+
+void View::setInterpolated(bool useInterpolated)
+{
+    drawInterpolated = useInterpolated;
+    updateGL();
+}
+
+void View::deleteSelection()
+{
+    if (selectedBall != -1)
+    {
+        doc->deleteBall(selectedBall);
+        selectedBall = -1;
+        updateGL();
+    }
 }

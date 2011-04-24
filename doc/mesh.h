@@ -2,6 +2,7 @@
 #define MESH_H
 
 #include <QList>
+#include <QVector>
 #include <string>
 #include "vector.h"
 
@@ -14,11 +15,14 @@ struct Ball
 
     // index into Mesh::balls
     int parentIndex;
-    QList<int> childrenIndices;
+
+    // temporary values used by b_mesh code, are only set immediately before calling
+    QVector<int> childrenIndices;
 
     Ball() : ex(1, 0, 0), ey(0, 1, 0), ez(0, 0, 1), parentIndex(-1) {}
-    Ball(const Vector3 &center, float radius, int parentIndex = -1, QList<int> childrenIndices = QList<int>()) : center(center), ex(radius, 0, 0), ey(0, radius, 0), ez(0, 0, radius), parentIndex(parentIndex), childrenIndices(childrenIndices){}
+    Ball(const Vector3 &center, float radius, int parentIndex = -1) : center(center), ex(radius, 0, 0), ey(0, radius, 0), ez(0, 0, radius), parentIndex(parentIndex) {}
 
+    float minRadius() const { return min(min(ex.length(), ey.length()), ez.length()); }
     float maxRadius() const { return max(max(ex.length(), ey.length()), ez.length()); }
     void draw() const;
 };
@@ -75,7 +79,7 @@ public:
 
     void drawFill() const;
     void drawWireframe() const;
-    void drawKeyBalls() const;
+    void drawKeyBalls(float alpha = 1) const;
     void drawInBetweenBalls() const;
     void drawBones() const;
 

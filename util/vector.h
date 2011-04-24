@@ -50,7 +50,7 @@ public:
     Vector2 &operator /= (float s) { return *this = *this / s; }
 
     bool operator == (const Vector2 &vec) { return x == vec.x && y == vec.y; }
-    bool operator != (const Vector2 &vec) { return x != vec.x && y != vec.y; }
+    bool operator != (const Vector2 &vec) { return x != vec.x || y != vec.y; }
 
     float lengthSquared() const { return x * x + y * y; }
     float length() const { return sqrtf(lengthSquared()); }
