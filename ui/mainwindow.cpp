@@ -2,6 +2,7 @@
 #include "document.h"
 #include "ui_mainwindow.h"
 #include "meshconstruction.h"
+#include "catmullclark.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
@@ -163,7 +164,7 @@ void MainWindow::generateMesh()
 void MainWindow::subdivideMesh()
 {
     ui->view->getDocument().mesh.updateChildIndices();
-    // TODO: modify ui->view->getDocument().mesh
+    CatmullMesh::subdivide(ui->view->getDocument().mesh, ui->view->getDocument().mesh);
     ui->view->updateGL();
 }
 
