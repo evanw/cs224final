@@ -93,6 +93,7 @@ bool MainWindow::fileSave()
         return false;
     }
 
+    ui->view->getDocument().getUndoStack().setClean();
     updateTitle();
     return true;
 }
@@ -115,6 +116,7 @@ bool MainWindow::fileSaveAs()
         return false;
     }
 
+    ui->view->getDocument().getUndoStack().setClean();
     setDirectory(QDir(path).absolutePath());
     filePath = path;
     updateTitle();
