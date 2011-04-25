@@ -12,6 +12,7 @@
 #define FILE_EXTENSION ".obj"
 #define SETTINGS_NAME "cs224final"
 #define SETTING_DIRECTORY "file_dialog_dir"
+#define UPDATE_UNDO_REDO QEvent::User
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -48,6 +49,8 @@ void MainWindow::fileNew()
     if (checkCanOverwriteUnsavedChanges())
     {
         Document *doc = new Document;
+        connect(doc, SIGNAL(documentChanged()), this, SLOT(documentChanged()));
+        documentChanged();
         doc->mesh.balls += Ball(Vector3(), 0.5);
         ui->view->setDocument(doc);
         updateMode();
@@ -70,6 +73,8 @@ void MainWindow::fileOpen()
     Document *doc = new Document;
     if (doc->mesh.loadFromOBJ(path.toStdString()))
     {
+        connect(doc, SIGNAL(documentChanged()), this, SLOT(documentChanged()));
+        documentChanged();
         setDirectory(QDir(path).absolutePath());
         doc->mesh.uploadToGPU();
         ui->view->setDocument(doc);
@@ -145,40 +150,34 @@ void MainWindow::editRedo()
     ui->view->redo();
 }
 
-void MainWindow::editMenuAboutToShow()
+void MainWindow::documentChanged()
 {
-    // update the text and enabled state of the undo and redo commands
-    QUndoStack &undoStack = ui->view->getDocument().getUndoStack();
-    ui->actionUndo->setText("Undo " + undoStack.undoText());
-    ui->actionRedo->setText("Redo " + undoStack.redoText());
-    ui->actionUndo->setEnabled(undoStack.canUndo());
-    ui->actionRedo->setEnabled(undoStack.canRedo());
-}
-
-void MainWindow::editMenuAboutToHide()
-{
-    // we must make sure the keyboard shortcuts work when the menu is hidden
-    ui->actionUndo->setEnabled(true);
-    ui->actionRedo->setEnabled(true);
+    // This is called in the middle of QUndoStack processing, but we need
+    // to handle changes to undo and redo after QUndoStack has finished.
+    QApplication::postEvent(this, new QEvent(UPDATE_UNDO_REDO));
 }
 
 void MainWindow::generateMesh()
 {
+    Mesh mesh;
     Document &doc = ui->view->getDocument();
-    doc.mesh.updateChildIndices();
-    MeshConstruction::BMeshInit(&doc.mesh);
-    doc.mesh.uploadToGPU();
-    ui->view->updateGL();
+    mesh.balls = doc.mesh.balls;
+    mesh.updateChildIndices();
+    MeshConstruction::BMeshInit(&mesh);
+    doc.getUndoStack().beginMacro("Generate Mesh");
+    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.getUndoStack().endMacro();
     updateMode();
 }
 
 void MainWindow::subdivideMesh()
 {
+    Mesh mesh;
     Document &doc = ui->view->getDocument();
-    doc.mesh.updateChildIndices();
-    CatmullMesh::subdivide(doc.mesh, doc.mesh);
-    doc.mesh.uploadToGPU();
-    ui->view->updateGL();
+    CatmullMesh::subdivide(doc.mesh, mesh);
+    doc.getUndoStack().beginMacro("Subdivide Mesh");
+    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.getUndoStack().endMacro();
     updateMode();
 }
 
@@ -190,15 +189,21 @@ void MainWindow::updateMode()
         ui->actionAddJoints->setEnabled(false);
         ui->actionScaleJoints->setEnabled(false);
         ui->actionEditMesh->setEnabled(true);
+
         ui->actionEditMesh->setChecked(true);
     }
     else
     {
+        // try to keep the currently checked action
+        QAction *checked = ui->actionScaleJoints->isChecked() ? ui->actionScaleJoints : ui->actionAddJoints;
+
         ui->actionAddJoints->setEnabled(true);
         ui->actionScaleJoints->setEnabled(true);
         ui->actionEditMesh->setEnabled(false);
-        ui->actionAddJoints->setChecked(true);
+
+        checked->setChecked(true);
     }
+    ui->view->updateGL();
 }
 
 void MainWindow::updateTitle()
@@ -212,6 +217,18 @@ void MainWindow::updateTitle()
 
     // put an asterisk after the name of unsaved documents
     setWindowTitle(fileName + (ui->view->getDocument().getUndoStack().isClean() ? " - " WINDOW_TITLE : "* - " WINDOW_TITLE));
+}
+
+void MainWindow::updateUndoRedo()
+{
+    // update the text and enabled state of the undo and redo commands
+    QUndoStack &undoStack = ui->view->getDocument().getUndoStack();
+    ui->actionUndo->setText("Undo " + undoStack.undoText());
+    ui->actionRedo->setText("Redo " + undoStack.redoText());
+    ui->actionUndo->setEnabled(undoStack.canUndo());
+    ui->actionRedo->setEnabled(undoStack.canRedo());
+    ui->actionUndoToolbar->setEnabled(undoStack.canUndo());
+    ui->actionRedoToolbar->setEnabled(undoStack.canRedo());
 }
 
 bool MainWindow::checkCanOverwriteUnsavedChanges()
@@ -231,6 +248,18 @@ bool MainWindow::checkCanOverwriteUnsavedChanges()
     }
 
     return false;
+}
+
+bool MainWindow::event(QEvent *event)
+{
+    if (event->type() == UPDATE_UNDO_REDO)
+    {
+        updateUndoRedo();
+        updateMode();
+        return true;
+    }
+
+    return QMainWindow::event(event);
 }
 
 void MainWindow::setDirectory(const QString &dir)

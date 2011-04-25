@@ -8,11 +8,13 @@ AddBallCommand::AddBallCommand(Document *doc, const Ball &ball) : ball(ball), do
 void AddBallCommand::undo()
 {
     doc->mesh.balls.pop_back();
+    doc->emitDocumentChanged();
 }
 
 void AddBallCommand::redo()
 {
     doc->mesh.balls += ball;
+    doc->emitDocumentChanged();
 }
 
 MoveBallCommand::MoveBallCommand(Document *doc, int index, const Vector3 &delta) : index(index), doc(doc)
@@ -24,11 +26,42 @@ MoveBallCommand::MoveBallCommand(Document *doc, int index, const Vector3 &delta)
 void MoveBallCommand::undo()
 {
     doc->mesh.balls[index].center = oldCenter;
+    doc->emitDocumentChanged();
 }
 
 void MoveBallCommand::redo()
 {
     doc->mesh.balls[index].center = newCenter;
+    doc->emitDocumentChanged();
+}
+
+ScaleBallCommand::ScaleBallCommand(Document *doc, int index, const Vector3 &x, const Vector3 &y, const Vector3 &z) : index(index), doc(doc)
+{
+    Ball &ball = doc->mesh.balls[index];
+    oldX = ball.ex;
+    oldY = ball.ey;
+    oldZ = ball.ez;
+    newX = x;
+    newY = y;
+    newZ = z;
+}
+
+void ScaleBallCommand::undo()
+{
+    Ball &ball = doc->mesh.balls[index];
+    ball.ex = oldX;
+    ball.ey = oldY;
+    ball.ez = oldZ;
+    doc->emitDocumentChanged();
+}
+
+void ScaleBallCommand::redo()
+{
+    Ball &ball = doc->mesh.balls[index];
+    ball.ex = newX;
+    ball.ey = newY;
+    ball.ez = newZ;
+    doc->emitDocumentChanged();
 }
 
 DeleteBallCommand::DeleteBallCommand(Document *doc, int index) : index(index), doc(doc), ball(doc->mesh.balls[index])
@@ -49,6 +82,7 @@ void DeleteBallCommand::undo()
 
     // can now modify the list
     doc->mesh.balls.insert(index, ball);
+    doc->emitDocumentChanged();
 }
 
 void DeleteBallCommand::redo()
@@ -68,4 +102,31 @@ void DeleteBallCommand::redo()
 
     // can now modify the list
     doc->mesh.balls.remove(index);
+    doc->emitDocumentChanged();
+}
+
+ChangeMeshCommand::ChangeMeshCommand(Document *doc, const QVector<Vertex> &vertices, const QVector<Triangle> &triangles, const QVector<Quad> &quads)
+    : doc(doc),
+      oldVertices(doc->mesh.vertices), newVertices(vertices),
+      oldTriangles(doc->mesh.triangles), newTriangles(triangles),
+      oldQuads(doc->mesh.quads), newQuads(quads)
+{
+}
+
+void ChangeMeshCommand::undo()
+{
+    doc->mesh.vertices = oldVertices;
+    doc->mesh.triangles = oldTriangles;
+    doc->mesh.quads = oldQuads;
+    doc->mesh.uploadToGPU();
+    doc->emitDocumentChanged();
+}
+
+void ChangeMeshCommand::redo()
+{
+    doc->mesh.vertices = newVertices;
+    doc->mesh.triangles = newTriangles;
+    doc->mesh.quads = newQuads;
+    doc->mesh.uploadToGPU();
+    doc->emitDocumentChanged();
 }

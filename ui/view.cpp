@@ -8,8 +8,33 @@ View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall
     resetCamera();
 }
 
+View::~View()
+{
+    delete doc;
+    resetTools();
+}
+
 void View::setMode(int newMode)
 {
+    resetTools();
+    switch (newMode)
+    {
+    case MODE_ADD_JOINTS:
+        tools += new CreateBallTool(this);
+        tools += new MoveSelectionTool(this);
+        tools += new SetAndMoveSelectionTool(this);
+        break;
+
+    case MODE_SCALE_JOINTS:
+        tools += new ScaleSelectionTool(this);
+        tools += new SetAndScaleSelectionTool(this);
+        break;
+
+    case MODE_EDIT_MESH:
+        break;
+    }
+    tools += new OrbitCameraTool(this);
+
     mode = newMode;
     updateGL();
 }
@@ -39,11 +64,6 @@ void View::redo()
 
 void View::initializeGL()
 {
-    tools += new CreateBallTool(this);
-    tools += new MoveSelectionTool(this);
-    tools += new SetSelectionTool(this);
-    tools += new OrbitCameraTool(this);
-
     // opengl lighting
     float ambient0[4] = { 0.4, 0.4, 0.4, 0 };
     float diffuse0[4] = { 0.6, 0.6, 0.6, 0 };
@@ -152,6 +172,13 @@ void View::wheelEvent(QWheelEvent *event)
     }
 }
 
+void View::resetTools()
+{
+    for (int i = 0; i < tools.count(); i++)
+        delete tools[i];
+    tools.clear();
+}
+
 void View::resetCamera()
 {
     camera.theta = M_PI * 0.4;
@@ -168,6 +195,8 @@ void View::resetInteraction()
 
 void View::drawMesh() const
 {
+    if (doc->mesh.triangles.count() + doc->mesh.quads.count() == 0) return;
+
     // draw the mesh filled
     glColor3f(0.75, 0.75, 0.75);
     glEnable(GL_LIGHTING);
@@ -183,7 +212,7 @@ void View::drawMesh() const
         glEnable(GL_BLEND);
 
         // draw the mesh wireframe
-        glColor4f(0, 0, 0, 0.25);
+        glColor4f(0, 0, 0, 0.5);
         doc->mesh.drawWireframe();
 
         // disable line drawing
@@ -194,6 +223,8 @@ void View::drawMesh() const
 
 void View::drawSkeleton(bool drawTransparent) const
 {
+    if (doc->mesh.balls.isEmpty()) return;
+
     // draw model
     if (drawTransparent)
     {
@@ -209,8 +240,8 @@ void View::drawSkeleton(bool drawTransparent) const
         glDepthFunc(GL_EQUAL);
         glEnable(GL_BLEND);
         glEnable(GL_LIGHTING);
-        doc->mesh.drawKeyBalls(0.5);
-        glColor4f(0.75, 0.75, 0.75, 0.5);
+        doc->mesh.drawKeyBalls(0.25);
+        glColor4f(0.75, 0.75, 0.75, 0.25);
         if (drawInterpolated) doc->mesh.drawInBetweenBalls();
         else doc->mesh.drawBones();
         glDisable(GL_LIGHTING);
@@ -230,22 +261,48 @@ void View::drawSkeleton(bool drawTransparent) const
         // draw box around selected ball
         if (selectedBall != -1)
         {
+            const Ball &selection = doc->mesh.balls[selectedBall];
+            float radius = selection.maxRadius();
+
             // enable line drawing
             glDepthMask(GL_FALSE);
             glEnable(GL_BLEND);
 
-            const Ball &ball = doc->mesh.balls[selectedBall];
-            float radius = ball.maxRadius();
-            glPushMatrix();
-            glTranslatef(ball.center.x, ball.center.y, ball.center.z);
-            glScalef(radius, radius, radius);
-            glDisable(GL_DEPTH_TEST);
-            glColor4f(0, 0, 0, 0.25);
-            drawWireCube();
-            glEnable(GL_DEPTH_TEST);
-            glColor3f(0, 0, 0);
-            drawWireCube();
-            glPopMatrix();
+            if (mode == MODE_ADD_JOINTS)
+            {
+                glPushMatrix();
+                glTranslatef(selection.center.x, selection.center.y, selection.center.z);
+                glScalef(radius, radius, radius);
+                glDisable(GL_DEPTH_TEST);
+                glColor4f(0, 0, 0, 0.25);
+                drawWireCube();
+                glEnable(GL_DEPTH_TEST);
+                glColor3f(0, 0, 0);
+                drawWireCube();
+                glPopMatrix();
+            }
+            else if (mode == MODE_SCALE_JOINTS)
+            {
+                Vector3 delta = camera.eye - selection.center;
+                Vector2 angles = delta.toAngles();
+
+                // adjust the radius to the profile of the ball as seen from the camera
+                radius = radius / sinf(acosf(radius / delta.length()));
+
+                radius *= 1.1;
+                glPushMatrix();
+                glTranslatef(selection.center.x, selection.center.y, selection.center.z);
+                glRotatef(90 - angles.x * 180 / M_PI, 0, 1, 0);
+                glRotatef(-angles.y * 180 / M_PI, 1, 0, 0);
+                glScalef(radius, radius, radius);
+                glDisable(GL_DEPTH_TEST);
+                glColor4f(0, 0, 0, 0.25);
+                drawWireDisk();
+                glEnable(GL_DEPTH_TEST);
+                glColor3f(0, 0, 0);
+                drawWireDisk();
+                glPopMatrix();
+            }
 
             // disable line drawing
             glDisable(GL_BLEND);

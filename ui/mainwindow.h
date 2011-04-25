@@ -26,8 +26,7 @@ public slots:
     void fileExit();
     void editUndo();
     void editRedo();
-    void editMenuAboutToShow();
-    void editMenuAboutToHide();
+    void documentChanged();
     void generateMesh();
     void subdivideMesh();
 
@@ -38,7 +37,9 @@ private:
 
     void updateMode();
     void updateTitle();
+    void updateUndoRedo();
     bool checkCanOverwriteUnsavedChanges();
+    bool event(QEvent *event);
 
     void setDirectory(const QString &dir);
     QString getDirectory();

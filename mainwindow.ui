@@ -143,8 +143,8 @@
    <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
    <addaction name="separator"/>
-   <addaction name="actionUndo"/>
-   <addaction name="actionRedo"/>
+   <addaction name="actionUndoToolbar"/>
+   <addaction name="actionRedoToolbar"/>
    <addaction name="separator"/>
    <addaction name="actionAddJoints"/>
    <addaction name="actionScaleJoints"/>
@@ -280,6 +280,24 @@
    </property>
    <property name="text">
     <string>Edit Mesh</string>
+   </property>
+  </action>
+  <action name="actionUndoToolbar">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/edit-undo.png</normaloff>:/img/edit-undo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Undo</string>
+   </property>
+  </action>
+  <action name="actionRedoToolbar">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/edit-redo.png</normaloff>:/img/edit-redo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Redo</string>
    </property>
   </action>
  </widget>

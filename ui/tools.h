@@ -13,7 +13,7 @@ protected:
     View *view;
 
     int getSelection(int x, int y);
-    bool hitTestSelection(int x, int y, HitTest &result);
+    bool hitTestSelection(int x, int y, HitTest &result, int method);
 
 public:
     Tool(View *view) : view(view) {}
@@ -52,10 +52,37 @@ public:
     void mouseReleased(QMouseEvent *event);
 };
 
-class SetSelectionTool : public MoveSelectionTool
+class ScaleSelectionTool : public Tool
+{
+private:
+    Vector3 planeNormal;
+    Vector3 originalHit;
+    Vector3 originalX;
+    Vector3 originalY;
+    Vector3 originalZ;
+
+    float getScaleFactor(QMouseEvent *event);
+
+public:
+    ScaleSelectionTool(View *view) : Tool(view) {}
+
+    bool mousePressed(QMouseEvent *event);
+    void mouseDragged(QMouseEvent *event);
+    void mouseReleased(QMouseEvent *event);
+};
+
+class SetAndMoveSelectionTool : public MoveSelectionTool
 {
 public:
-    SetSelectionTool(View *view) : MoveSelectionTool(view) {}
+    SetAndMoveSelectionTool(View *view) : MoveSelectionTool(view) {}
+
+    bool mousePressed(QMouseEvent *event);
+};
+
+class SetAndScaleSelectionTool : public ScaleSelectionTool
+{
+public:
+    SetAndScaleSelectionTool(View *view) : ScaleSelectionTool(view) {}
 
     bool mousePressed(QMouseEvent *event);
 };

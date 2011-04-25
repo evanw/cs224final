@@ -1,4 +1,5 @@
 #include "geometry.h"
+#include "vector.h"
 #include <qgl.h>
 
 GLUquadric *quadric = NULL;
@@ -61,4 +62,16 @@ void drawWireCube()
     glVertexPointer(3, GL_FLOAT, 0, cubeVertices);
     glDrawElements(GL_LINES, sizeof(cubeLines) / sizeof(*cubeLines), GL_UNSIGNED_INT, cubeLines);
     glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void drawWireDisk()
+{
+    const int count = 64;
+    glBegin(GL_LINE_LOOP);
+    for (int i = 0; i < count; i++)
+    {
+        float angle = (float)i / (float)count * M_2PI;
+        glVertex2f(cosf(angle), sinf(angle));
+    }
+    glEnd();
 }

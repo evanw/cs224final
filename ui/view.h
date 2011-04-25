@@ -6,8 +6,12 @@
 #include "camera.h"
 #include "document.h"
 
-enum { MODE_ADD_JOINTS, MODE_SCALE_JOINTS, MODE_EDIT_MESH };
-#define IS_SKELETON_MODE(mode) ((mode) == MODE_ADD_JOINTS || (mode) == MODE_SCALE_JOINTS)
+enum
+{
+    MODE_ADD_JOINTS,
+    MODE_SCALE_JOINTS,
+    MODE_EDIT_MESH
+};
 
 class View : public QGLWidget
 {
@@ -15,6 +19,7 @@ class View : public QGLWidget
 
 public:
     View(QWidget *parent);
+    ~View();
 
     void setMode(int mode);
     void setDocument(Document *doc);
@@ -45,11 +50,14 @@ private:
     Tool *currentTool;
     QList<Tool *> tools;
     friend class Tool;
-    friend class MoveSelectionTool;
-    friend class CreateBallTool;
-    friend class SetSelectionTool;
     friend class OrbitCameraTool;
+    friend class MoveSelectionTool;
+    friend class ScaleSelectionTool;
+    friend class SetAndMoveSelectionTool;
+    friend class SetAndScaleSelectionTool;
+    friend class CreateBallTool;
 
+    void resetTools();
     void resetCamera();
     void resetInteraction();
     void drawMesh() const;

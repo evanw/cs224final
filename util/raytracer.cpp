@@ -49,12 +49,14 @@ Vector3 Raytracer::getRayForPixel(int x, int y) const
 
 bool Raytracer::hitTestCube(const Vector3 &cubeMin, const Vector3 &cubeMax, const Vector3 &origin, const Vector3 &ray, HitTest &result)
 {
+    // This uses the slab intersection method
     Vector3 tMin = (cubeMin - origin) / ray;
     Vector3 tMax = (cubeMax - origin) / ray;
     Vector3 t1 = Vector3::min(tMin, tMax);
     Vector3 t2 = Vector3::max(tMin, tMax);
     float tNear = t1.max();
     float tFar = t2.min();
+
     if (tNear > 0 && tNear < tFar)
     {
         const float epsilon = 1.0e-6;
@@ -68,5 +70,25 @@ bool Raytracer::hitTestCube(const Vector3 &cubeMin, const Vector3 &cubeMax, cons
         result.t = tNear;
         return true;
     }
+
+    return false;
+}
+
+bool Raytracer::hitTestSphere(const Vector3 &center, float radius, const Vector3 &origin, const Vector3 &ray, HitTest &result)
+{
+    Vector3 offset = origin - center;
+    float a = ray.lengthSquared();
+    float b = 2 * ray.dot(offset);
+    float c = offset.lengthSquared() - radius * radius;
+    float discriminant = b * b - 4 * a * c;
+
+    if (discriminant > 0)
+    {
+        result.t = (-b - sqrtf(discriminant)) / (2 * a);
+        result.hit = origin + ray * result.t;
+        result.normal = (center - result.hit) / radius;
+        return true;
+    }
+
     return false;
 }

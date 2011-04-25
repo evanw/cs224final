@@ -3,6 +3,8 @@
 #include "selectionrecorder.h"
 #include <QMouseEvent>
 
+enum { METHOD_SPHERE, METHOD_CUBE };
+
 int Tool::getSelection(int x, int y)
 {
     SelectionRecorder sel;
@@ -19,7 +21,7 @@ int Tool::getSelection(int x, int y)
     return sel.exitSelectionMode();
 }
 
-bool Tool::hitTestSelection(int x, int y, HitTest &result)
+bool Tool::hitTestSelection(int x, int y, HitTest &result, int method)
 {
     if (view->selectedBall != -1)
     {
@@ -33,8 +35,14 @@ bool Tool::hitTestSelection(int x, int y, HitTest &result)
         Vector3 origin = tracer.getEye();
         Vector3 ray = tracer.getRayForPixel(x, y);
 
-        // raytrace a cube around the selection
-        return Raytracer::hitTestCube(selection.center - radius, selection.center + radius, origin, ray, result);
+        switch (method)
+        {
+        case METHOD_SPHERE:
+            return Raytracer::hitTestSphere(selection.center, radius, origin, ray, result);
+
+        case METHOD_CUBE:
+            return Raytracer::hitTestCube(selection.center - radius, selection.center + radius, origin, ray, result);
+        }
     }
 
     return false;
@@ -61,21 +69,6 @@ void OrbitCameraTool::mouseDragged(QMouseEvent *event)
     oldY = event->y();
 }
 
-bool SetSelectionTool::mousePressed(QMouseEvent *event)
-{
-    if (IS_SKELETON_MODE(view->mode) && event->button() == Qt::LeftButton)
-    {
-        view->selectedBall = getSelection(event->x(), event->y());
-        if (view->selectedBall != -1)
-        {
-            MoveSelectionTool::mousePressed(event);
-            return true;
-        }
-    }
-
-    return false;
-}
-
 Vector3 MoveSelectionTool::getHit(QMouseEvent *event)
 {
     // set up raytracer
@@ -91,16 +84,13 @@ Vector3 MoveSelectionTool::getHit(QMouseEvent *event)
 
 bool MoveSelectionTool::mousePressed(QMouseEvent *event)
 {
-    if (IS_SKELETON_MODE(view->mode))
+    HitTest result;
+    if (hitTestSelection(event->x(), event->y(), result, METHOD_CUBE))
     {
-        HitTest result;
-        if (hitTestSelection(event->x(), event->y(), result))
-        {
-            planeNormal = result.normal;
-            originalHit = result.hit;
-            originalCenter = view->doc->mesh.balls[view->selectedBall].center;
-            return true;
-        }
+        planeNormal = result.normal;
+        originalHit = result.hit;
+        originalCenter = view->doc->mesh.balls[view->selectedBall].center;
+        return true;
     }
 
     return false;
@@ -119,11 +109,14 @@ void MoveSelectionTool::mouseReleased(QMouseEvent *event)
 {
     if (view->selectedBall != -1)
     {
+        // reset the ball
+        Ball &selection = view->doc->mesh.balls[view->selectedBall];
+        selection.center = originalCenter;
+
+        // perform move if different
         Vector3 delta = getHit(event) - originalHit;
         if (delta.lengthSquared() > 0)
         {
-            Ball &selection = view->doc->mesh.balls[view->selectedBall];
-            selection.center = originalCenter;
             view->doc->getUndoStack().beginMacro("Move Ball");
             view->doc->moveBall(view->selectedBall, delta);
             view->doc->getUndoStack().endMacro();
@@ -131,32 +124,118 @@ void MoveSelectionTool::mouseReleased(QMouseEvent *event)
     }
 }
 
+float ScaleSelectionTool::getScaleFactor(QMouseEvent *event)
+{
+    Raytracer tracer;
+    Vector3 ray = tracer.getRayForPixel(event->x(), event->y());
+    Ball &selection = view->doc->mesh.balls[view->selectedBall];
+    float t = (selection.center - tracer.getEye()).dot(planeNormal) / ray.dot(planeNormal);
+    Vector3 hit = tracer.getEye() + ray * t;
+    return (hit - selection.center).length() / (originalHit - selection.center).length();
+}
+
+bool ScaleSelectionTool::mousePressed(QMouseEvent *event)
+{
+    HitTest result;
+    if (hitTestSelection(event->x(), event->y(), result, METHOD_SPHERE))
+    {
+        Raytracer tracer;
+        Vector3 ray = tracer.getRayForPixel(event->x(), event->y());
+        Ball &selection = view->doc->mesh.balls[view->selectedBall];
+        planeNormal = (tracer.getEye() - selection.center).unit();
+
+        float t = (selection.center - tracer.getEye()).dot(planeNormal) / ray.dot(planeNormal);
+        originalHit = tracer.getEye() + ray * t;
+        originalX = selection.ex;
+        originalY = selection.ey;
+        originalZ = selection.ez;
+    }
+    return false;
+}
+
+void ScaleSelectionTool::mouseDragged(QMouseEvent *event)
+{
+    if (view->selectedBall != -1)
+    {
+        float scale = getScaleFactor(event);
+        Ball &selection = view->doc->mesh.balls[view->selectedBall];
+        selection.ex = originalX * scale;
+        selection.ey = originalY * scale;
+        selection.ez = originalZ * scale;
+    }
+}
+
+void ScaleSelectionTool::mouseReleased(QMouseEvent *event)
+{
+    if (view->selectedBall != -1)
+    {
+        // reset the ball
+        Ball &selection = view->doc->mesh.balls[view->selectedBall];
+        selection.ex = originalX;
+        selection.ey = originalY;
+        selection.ez = originalZ;
+
+        // perform scale if different
+        float scale = getScaleFactor(event);
+        if (fabsf(scale - 1) > 1.0e-6f)
+        {
+            view->doc->getUndoStack().beginMacro("Scale Ball");
+            view->doc->scaleBall(view->selectedBall, originalX * scale, originalY * scale, originalZ * scale);
+            view->doc->getUndoStack().endMacro();
+        }
+    }
+}
+
+bool SetAndMoveSelectionTool::mousePressed(QMouseEvent *event)
+{
+    view->selectedBall = getSelection(event->x(), event->y());
+    if (view->selectedBall != -1)
+    {
+        MoveSelectionTool::mousePressed(event);
+        return true;
+    }
+
+    return false;
+}
+
+bool SetAndScaleSelectionTool::mousePressed(QMouseEvent *event)
+{
+    view->selectedBall = getSelection(event->x(), event->y());
+    if (view->selectedBall != -1)
+    {
+        ScaleSelectionTool::mousePressed(event);
+        return true;
+    }
+
+    return false;
+}
+
 bool CreateBallTool::mousePressed(QMouseEvent *event)
 {
-    if (IS_SKELETON_MODE(view->mode) && event->button() == Qt::RightButton)
+    if (event->button() != Qt::RightButton)
+        return false;
+
+    // change the selection
+    HitTest result;
+    if (view->selectedBall == -1 || !hitTestSelection(event->x(), event->y(), result, METHOD_CUBE))
+        view->selectedBall = getSelection(event->x(), event->y());
+
+    // create the child ball
+    if (view->selectedBall != -1)
     {
-        // change the selection
-        HitTest result;
-        if (view->selectedBall == -1 || !hitTestSelection(event->x(), event->y(), result))
-            view->selectedBall = getSelection(event->x(), event->y());
+        Ball &selection = view->doc->mesh.balls[view->selectedBall];
+        Ball child;
+        child.center = selection.center;
+        child.ex = selection.ex;
+        child.ey = selection.ey;
+        child.ez = selection.ez;
+        child.parentIndex = view->selectedBall;
+        view->selectedBall = view->doc->mesh.balls.count();
 
-        // create the child ball
-        if (view->selectedBall != -1)
-        {
-            Ball &selection = view->doc->mesh.balls[view->selectedBall];
-            Ball child;
-            child.center = selection.center;
-            child.ex = selection.ex;
-            child.ey = selection.ey;
-            child.ez = selection.ez;
-            child.parentIndex = view->selectedBall;
-            view->selectedBall = view->doc->mesh.balls.count();
-
-            view->doc->getUndoStack().beginMacro("Create Ball");
-            view->doc->addBall(child);
-            MoveSelectionTool::mousePressed(event);
-            return true;
-        }
+        view->doc->getUndoStack().beginMacro("Create Ball");
+        view->doc->addBall(child);
+        MoveSelectionTool::mousePressed(event);
+        return true;
     }
 
     return false;

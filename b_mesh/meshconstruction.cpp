@@ -16,6 +16,7 @@ void MeshConstruction::BMeshInit(Mesh *m){
     }
 
     sweep(m, root);
+    m->updateNormals();
 }
 
 void MeshConstruction::sweep(Mesh *m, const Ball *b){

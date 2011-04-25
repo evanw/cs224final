@@ -34,6 +34,22 @@ public:
     void redo();
 };
 
+class ScaleBallCommand : public QUndoCommand
+{
+private:
+    int index;
+    Document *doc;
+    Vector3 oldX, newX;
+    Vector3 oldY, newY;
+    Vector3 oldZ, newZ;
+
+public:
+    ScaleBallCommand(Document *doc, int index, const Vector3 &x, const Vector3 &y, const Vector3 &z);
+
+    void undo();
+    void redo();
+};
+
 class DeleteBallCommand : public QUndoCommand
 {
 private:
@@ -44,6 +60,21 @@ private:
 
 public:
     DeleteBallCommand(Document *doc, int index);
+
+    void undo();
+    void redo();
+};
+
+class ChangeMeshCommand : public QUndoCommand
+{
+private:
+    Document *doc;
+    QVector<Vertex> oldVertices, newVertices;
+    QVector<Triangle> oldTriangles, newTriangles;
+    QVector<Quad> oldQuads, newQuads;
+
+public:
+    ChangeMeshCommand(Document *doc, const QVector<Vertex> &newVertices, const QVector<Triangle> &newTriangles, const QVector<Quad> &newQuads);
 
     void undo();
     void redo();
