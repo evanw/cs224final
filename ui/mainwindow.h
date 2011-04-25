@@ -29,6 +29,7 @@ public slots:
     void documentChanged();
     void generateMesh();
     void subdivideMesh();
+    void convexHull();
 
 private:
     Ui::MainWindow *ui;

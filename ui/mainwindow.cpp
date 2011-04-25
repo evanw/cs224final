@@ -182,6 +182,18 @@ void MainWindow::subdivideMesh()
     updateMode();
 }
 
+void MainWindow::convexHull()
+{
+    Mesh mesh;
+    Document &doc = ui->view->getDocument();
+    mesh.vertices = doc.mesh.vertices;
+    // TODO: ConvexHull::run(mesh);
+    doc.getUndoStack().beginMacro("Convex Hull");
+    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.getUndoStack().endMacro();
+    updateMode();
+}
+
 void MainWindow::updateMode()
 {
     Mesh &mesh = ui->view->getDocument().mesh;

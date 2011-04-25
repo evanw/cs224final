@@ -243,16 +243,18 @@ int Mesh::getDetail() const
 
 int Mesh::getOppositeBall(int index) const
 {
+    const float epsilon = 1.0e-8f;
     const Ball &ball = balls[index];
+    int oppositeIndex = -1;
     for (int i = 0; i < balls.count(); i++)
     {
         const Ball &opposite = balls[i];
-        if (ball.center == opposite.center * symmetryFlip &&
-            ball.minRadius() == opposite.minRadius() &&
-            ball.maxRadius() == opposite.maxRadius())
-            return i;
+        if ((ball.center - opposite.center * symmetryFlip).lengthSquared() < epsilon &&
+                fabsf(ball.minRadius() - opposite.minRadius()) < epsilon &&
+                fabsf(ball.maxRadius() - opposite.maxRadius()) < epsilon)
+            oppositeIndex = i;
     }
-    return -1;
+    return oppositeIndex;
 }
 
 void Mesh::drawFill() const

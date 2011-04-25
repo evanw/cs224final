@@ -5,12 +5,19 @@
 
 enum { METHOD_SPHERE, METHOD_CUBE };
 
-int Tool::getOpposite()
+int Tool::getOpposite(bool ignorePlanarBalls) const
 {
-    return view->mirrorChanges ? view->doc->mesh.getOppositeBall(view->selectedBall) : -1;
+    if (view->mirrorChanges)
+    {
+        const Ball &selection = view->doc->mesh.balls[view->selectedBall];
+        bool isPlanar = (selection.center * Mesh::symmetryFlip - selection.center).lengthSquared() < 1.0e-8f;
+        if (!ignorePlanarBalls && isPlanar) return view->selectedBall;
+        return view->doc->mesh.getOppositeBall(view->selectedBall);
+    }
+    return -1;
 }
 
-int Tool::getSelection(int x, int y)
+int Tool::getSelection(int x, int y) const
 {
     int detail = view->getDocument().mesh.getDetail();
     SelectionRecorder sel;
@@ -27,7 +34,7 @@ int Tool::getSelection(int x, int y)
     return sel.exitSelectionMode();
 }
 
-bool Tool::hitTestSelection(int x, int y, HitTest &result, int method)
+bool Tool::hitTestSelection(int x, int y, HitTest &result, int method) const
 {
     if (view->selectedBall != -1)
     {
@@ -107,7 +114,7 @@ void MoveSelectionTool::mouseDragged(QMouseEvent *event)
     if (view->selectedBall != -1)
     {
         // store the index of the symmetrically opposite ball
-        int other = getOpposite();
+        int other = getOpposite(true);
 
         // move the selection
         Ball &selection = view->doc->mesh.balls[view->selectedBall];
@@ -123,7 +130,7 @@ void MoveSelectionTool::mouseReleased(QMouseEvent *event)
     if (view->selectedBall != -1)
     {
         // store the index of the symmetrically opposite ball
-        int other = getOpposite();
+        int other = getOpposite(true);
 
         // reset the ball and its opposite
         Ball &selection = view->doc->mesh.balls[view->selectedBall];
@@ -241,6 +248,10 @@ bool CreateBallTool::mousePressed(QMouseEvent *event)
     // create the child ball
     if (view->selectedBall != -1)
     {
+        // store the index of the symmetrically opposite ball
+        int other = getOpposite(false);
+
+        // create the new child
         Ball &selection = view->doc->mesh.balls[view->selectedBall];
         Ball child;
         child.center = selection.center;
@@ -248,10 +259,18 @@ bool CreateBallTool::mousePressed(QMouseEvent *event)
         child.ey = selection.ey;
         child.ez = selection.ez;
         child.parentIndex = view->selectedBall;
-        view->selectedBall = view->doc->mesh.balls.count();
 
+        // add the new child and prepare to move it around
+        view->selectedBall = view->doc->mesh.balls.count();
         view->doc->getUndoStack().beginMacro("Create Ball");
         view->doc->addBall(child);
+        if (other != -1)
+        {
+            // also add a symmetrically opposite child
+            child.center *= Mesh::symmetryFlip;
+            child.parentIndex = other;
+            view->doc->addBall(child);
+        }
         MoveSelectionTool::mousePressed(event);
         return true;
     }
