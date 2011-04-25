@@ -96,7 +96,7 @@ bool Mesh::loadFromOBJ(const string &file)
         Triangle &tri = triangles[i];
         if (tri.a.index < 0 || tri.b.index < 0 || tri.c.index < 0 ||
                 tri.a.index >= vertices.count() || tri.b.index >= vertices.count() || tri.c.index >= vertices.count())
-            triangles.removeAt(i--);
+            triangles.remove(i--);
     }
 
     // remove bad balls
@@ -116,7 +116,7 @@ bool Mesh::loadFromOBJ(const string &file)
             }
 
             // can now remove this ball
-            balls.removeAt(i--);
+            balls.remove(i--);
         }
     }
 

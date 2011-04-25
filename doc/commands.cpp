@@ -67,5 +67,5 @@ void DeleteBallCommand::redo()
     }
 
     // can now modify the list
-    doc->mesh.balls.removeAt(index);
+    doc->mesh.balls.remove(index);
 }

@@ -43,7 +43,7 @@ void MainWindow::fileNew()
     if (checkCanOverwriteUnsavedChanges())
     {
         Document *doc = new Document;
-        doc->mesh.balls += Ball();
+        doc->mesh.balls += Ball(Vector3(), 0.5);
         ui->view->setDocument(doc);
         ui->editSkeleton->setChecked(true);
 
@@ -66,6 +66,7 @@ void MainWindow::fileOpen()
     if (doc->mesh.loadFromOBJ(path.toStdString()))
     {
         setDirectory(QDir(path).absolutePath());
+        doc->mesh.uploadToGPU();
         ui->view->setDocument(doc);
         ui->showMesh->setChecked(true);
         filePath = path;
@@ -158,15 +159,19 @@ void MainWindow::editMenuAboutToHide()
 
 void MainWindow::generateMesh()
 {
-    ui->view->getDocument().mesh.updateChildIndices();
-    MeshConstruction::BMeshInit(&ui->view->getDocument().mesh);
+    Document &doc = ui->view->getDocument();
+    doc.mesh.updateChildIndices();
+    MeshConstruction::BMeshInit(&doc.mesh);
+    doc.mesh.uploadToGPU();
     ui->view->updateGL();
 }
 
 void MainWindow::subdivideMesh()
 {
-    ui->view->getDocument().mesh.updateChildIndices();
-    CatmullMesh::subdivide(ui->view->getDocument().mesh, ui->view->getDocument().mesh);
+    Document &doc = ui->view->getDocument();
+    doc.mesh.updateChildIndices();
+    CatmullMesh::subdivide(doc.mesh, doc.mesh);
+    doc.mesh.uploadToGPU();
     ui->view->updateGL();
 }
 

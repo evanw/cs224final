@@ -1,7 +1,6 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include <QList>
 #include <QVector>
 #include <string>
 #include "vector.h"
@@ -68,14 +67,26 @@ struct Quad
 
 class Mesh
 {
+private:
+    unsigned int vertexBuffer;
+    unsigned int triangleIndexBuffer;
+    unsigned int lineIndexBuffer;
+    QVector<Vertex> cachedVertices;
+    QVector<int> triangleIndices;
+    QVector<int> lineIndices;
+
 public:
-    QList<Ball> balls;
-    QList<Vertex> vertices;
-    QList<Triangle> triangles;
-    QList<Quad> quads;
+    QVector<Ball> balls;
+    QVector<Vertex> vertices;
+    QVector<Triangle> triangles;
+    QVector<Quad> quads;
+
+    Mesh() : vertexBuffer(0), triangleIndexBuffer(0), lineIndexBuffer(0) {}
+    ~Mesh();
 
     void updateChildIndices();
     void updateNormals();
+    void uploadToGPU();
 
     void drawFill() const;
     void drawWireframe() const;

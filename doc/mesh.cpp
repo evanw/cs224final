@@ -1,7 +1,18 @@
 #include "mesh.h"
 #include "geometry.h"
+#include <QSet>
 #include <qgl.h>
 #include <float.h>
+
+#define COMPILE_TIME_ASSERT(pred) switch(0){case 0:case pred:;}
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+
+typedef QPair<int, int> Edge;
+
+inline void addEdge(QSet<Edge> &edges, int a, int b)
+{
+    edges += Edge(min(a, b), max(a, b));
+}
 
 void Ball::draw() const
 {
@@ -22,6 +33,13 @@ void Vertex::draw() const
 {
     glNormal3fv(normal.xyz);
     glVertex3fv(pos.xyz);
+}
+
+Mesh::~Mesh()
+{
+    glDeleteBuffersARB(1, &vertexBuffer);
+    glDeleteBuffersARB(1, &triangleIndexBuffer);
+    glDeleteBuffersARB(1, &lineIndexBuffer);
 }
 
 void Mesh::updateChildIndices()
@@ -83,6 +101,68 @@ void Mesh::updateNormals()
     {
         Vertex &vertex = vertices[i];
         vertex.normal.normalize();
+    }
+}
+
+void Mesh::uploadToGPU()
+{
+    if (triangles.count() + quads.count() > 0)
+    {
+        QSet<Edge> edges;
+
+        COMPILE_TIME_ASSERT(sizeof(Vertex) == sizeof(float) * 6);
+
+        cachedVertices = vertices;
+        triangleIndices.clear();
+        lineIndices.clear();
+
+        foreach (const Triangle &tri, triangles)
+        {
+            triangleIndices += tri.a.index;
+            triangleIndices += tri.b.index;
+            triangleIndices += tri.c.index;
+
+            addEdge(edges, tri.a.index, tri.b.index);
+            addEdge(edges, tri.b.index, tri.c.index);
+            addEdge(edges, tri.c.index, tri.a.index);
+        }
+
+        foreach (const Quad &quad, quads)
+        {
+            triangleIndices += quad.a.index;
+            triangleIndices += quad.b.index;
+            triangleIndices += quad.c.index;
+
+            triangleIndices += quad.a.index;
+            triangleIndices += quad.c.index;
+            triangleIndices += quad.d.index;
+
+            addEdge(edges, quad.a.index, quad.b.index);
+            addEdge(edges, quad.b.index, quad.c.index);
+            addEdge(edges, quad.c.index, quad.d.index);
+            addEdge(edges, quad.d.index, quad.a.index);
+        }
+
+        foreach (const Edge &edge, edges)
+        {
+            lineIndices += edge.first;
+            lineIndices += edge.second;
+        }
+
+        if (!vertexBuffer) glGenBuffersARB(1, &vertexBuffer);
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertexBuffer);
+        glBufferDataARB(GL_ARRAY_BUFFER_ARB, cachedVertices.count() * sizeof(Vertex), &cachedVertices[0], GL_STATIC_DRAW_ARB);
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+
+        if (!triangleIndexBuffer) glGenBuffersARB(1, &triangleIndexBuffer);
+        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, triangleIndexBuffer);
+        glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, triangleIndices.count() * sizeof(int), &triangleIndices[0], GL_STATIC_DRAW_ARB);
+        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+
+        if (!lineIndexBuffer) glGenBuffersARB(1, &lineIndexBuffer);
+        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, lineIndexBuffer);
+        glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, lineIndices.count() * sizeof(int), &lineIndices[0], GL_STATIC_DRAW_ARB);
+        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
     }
 }
 
@@ -149,42 +229,76 @@ void Mesh::drawBones() const
 
 void Mesh::drawFill() const
 {
-    glBegin(GL_TRIANGLES);
-    foreach (const Triangle &tri, triangles)
+    if (vertexBuffer && triangleIndexBuffer)
     {
-        vertices[tri.a.index].draw();
-        vertices[tri.b.index].draw();
-        vertices[tri.c.index].draw();
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertexBuffer);
+        glVertexPointer(3, GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(0));
+        glNormalPointer(GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(sizeof(Vector3)));
+        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, triangleIndexBuffer);
+        glDrawElements(GL_TRIANGLES, triangleIndices.count(), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_NORMAL_ARRAY);
     }
-    glEnd();
-    glBegin(GL_QUADS);
-    foreach (const Quad &quad, quads)
+    else
     {
-        vertices[quad.a.index].draw();
-        vertices[quad.b.index].draw();
-        vertices[quad.c.index].draw();
-        vertices[quad.d.index].draw();
+        glBegin(GL_TRIANGLES);
+        foreach (const Triangle &tri, triangles)
+        {
+            vertices[tri.a.index].draw();
+            vertices[tri.b.index].draw();
+            vertices[tri.c.index].draw();
+        }
+        glEnd();
+        glBegin(GL_QUADS);
+        foreach (const Quad &quad, quads)
+        {
+            vertices[quad.a.index].draw();
+            vertices[quad.b.index].draw();
+            vertices[quad.c.index].draw();
+            vertices[quad.d.index].draw();
+        }
+        glEnd();
     }
-    glEnd();
 }
 
 void Mesh::drawWireframe() const
 {
-    foreach (const Triangle &tri, triangles)
+    if (vertexBuffer && lineIndexBuffer)
     {
-        glBegin(GL_LINE_LOOP);
-        vertices[tri.a.index].draw();
-        vertices[tri.b.index].draw();
-        vertices[tri.c.index].draw();
-        glEnd();
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertexBuffer);
+        glVertexPointer(3, GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(0));
+        glNormalPointer(GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(sizeof(Vector3)));
+        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, lineIndexBuffer);
+        glDrawElements(GL_LINES, lineIndices.count(), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_NORMAL_ARRAY);
     }
-    foreach (const Quad &quad, quads)
+    else
     {
-        glBegin(GL_LINE_LOOP);
-        vertices[quad.a.index].draw();
-        vertices[quad.b.index].draw();
-        vertices[quad.c.index].draw();
-        vertices[quad.d.index].draw();
-        glEnd();
+        foreach (const Triangle &tri, triangles)
+        {
+            glBegin(GL_LINE_LOOP);
+            vertices[tri.a.index].draw();
+            vertices[tri.b.index].draw();
+            vertices[tri.c.index].draw();
+            glEnd();
+        }
+        foreach (const Quad &quad, quads)
+        {
+            glBegin(GL_LINE_LOOP);
+            vertices[quad.a.index].draw();
+            vertices[quad.b.index].draw();
+            vertices[quad.c.index].draw();
+            vertices[quad.d.index].draw();
+            glEnd();
+        }
     }
 }
