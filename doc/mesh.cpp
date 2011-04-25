@@ -1,6 +1,7 @@
 #include "mesh.h"
 #include "geometry.h"
 #include <QSet>
+#define GL_GLEXT_PROTOTYPES
 #include <qgl.h>
 #include <float.h>
 
