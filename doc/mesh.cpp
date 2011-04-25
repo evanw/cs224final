@@ -10,6 +10,8 @@
 
 typedef QPair<int, int> Edge;
 
+const Vector3 Mesh::symmetryFlip(-1, 1, 1);
+
 inline void addEdge(QSet<Edge> &edges, int a, int b)
 {
     edges += Edge(min(a, b), max(a, b));
@@ -237,6 +239,20 @@ void Mesh::drawBones() const
 int Mesh::getDetail() const
 {
     return ceilf(10 + 64 / (1 + balls.count() / 10));
+}
+
+int Mesh::getOppositeBall(int index) const
+{
+    const Ball &ball = balls[index];
+    for (int i = 0; i < balls.count(); i++)
+    {
+        const Ball &opposite = balls[i];
+        if (ball.center == opposite.center * symmetryFlip &&
+            ball.minRadius() == opposite.minRadius() &&
+            ball.maxRadius() == opposite.maxRadius())
+            return i;
+    }
+    return -1;
 }
 
 void Mesh::drawFill() const

@@ -43,6 +43,7 @@ private:
     int selectedBall;
     int mode;
 
+    bool mirrorChanges;
     bool drawWireframe;
     bool drawInterpolated;
     OrbitCamera camera;
@@ -67,6 +68,7 @@ private:
     void camera3D() const;
 
 public slots:
+    void setMirrorChanges(bool useMirrorChanges);
     void setWireframe(bool useWireframe);
     void setInterpolated(bool useInterpolated);
     void deleteSelection();

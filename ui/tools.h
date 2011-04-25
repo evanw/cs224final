@@ -12,6 +12,7 @@ class Tool
 protected:
     View *view;
 
+    int getOpposite();
     int getSelection(int x, int y);
     bool hitTestSelection(int x, int y, HitTest &result, int method);
 

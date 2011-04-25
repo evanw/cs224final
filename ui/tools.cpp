@@ -5,6 +5,11 @@
 
 enum { METHOD_SPHERE, METHOD_CUBE };
 
+int Tool::getOpposite()
+{
+    return view->mirrorChanges ? view->doc->mesh.getOppositeBall(view->selectedBall) : -1;
+}
+
 int Tool::getSelection(int x, int y)
 {
     int detail = view->getDocument().mesh.getDetail();
@@ -101,8 +106,15 @@ void MoveSelectionTool::mouseDragged(QMouseEvent *event)
 {
     if (view->selectedBall != -1)
     {
+        // store the index of the symmetrically opposite ball
+        int other = getOpposite();
+
+        // move the selection
         Ball &selection = view->doc->mesh.balls[view->selectedBall];
         selection.center = originalCenter + getHit(event) - originalHit;
+
+        // move the symmetrically opposite ball too
+        if (other != -1) view->doc->mesh.balls[other].center = selection.center * Mesh::symmetryFlip;
     }
 }
 
@@ -110,9 +122,13 @@ void MoveSelectionTool::mouseReleased(QMouseEvent *event)
 {
     if (view->selectedBall != -1)
     {
-        // reset the ball
+        // store the index of the symmetrically opposite ball
+        int other = getOpposite();
+
+        // reset the ball and its opposite
         Ball &selection = view->doc->mesh.balls[view->selectedBall];
         selection.center = originalCenter;
+        if (other != -1) view->doc->mesh.balls[other].center = selection.center * Mesh::symmetryFlip;
 
         // perform move if different
         Vector3 delta = getHit(event) - originalHit;
@@ -120,6 +136,7 @@ void MoveSelectionTool::mouseReleased(QMouseEvent *event)
         {
             view->doc->getUndoStack().beginMacro("Move Ball");
             view->doc->moveBall(view->selectedBall, delta);
+            if (other != -1) view->doc->moveBall(other, delta * Mesh::symmetryFlip);
             view->doc->getUndoStack().endMacro();
         }
     }

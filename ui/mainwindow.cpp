@@ -25,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     group->addAction(ui->actionScaleJoints);
     group->addAction(ui->actionEditMesh);
 
+    ui->mirrorChanges->setChecked(true);
     ui->drawWireframe->setChecked(true);
     ui->drawInterpolated->setChecked(true);
 

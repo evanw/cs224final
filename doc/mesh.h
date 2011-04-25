@@ -89,6 +89,7 @@ public:
     void uploadToGPU();
 
     int getDetail() const;
+    int getOppositeBall(int index) const;
     void drawFill() const;
     void drawWireframe() const;
     void drawKeyBalls(float alpha = 1) const;
@@ -97,6 +98,8 @@ public:
 
     bool loadFromOBJ(const std::string &file);
     bool saveToOBJ(const std::string &file);
+
+    static const Vector3 symmetryFlip;
 };
 
 #endif // MESH_H
