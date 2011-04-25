@@ -6,7 +6,8 @@
 #include "camera.h"
 #include "document.h"
 
-enum { MODE_MESH, MODE_SKELETON };
+enum { MODE_ADD_JOINTS, MODE_SCALE_JOINTS, MODE_EDIT_MESH };
+#define IS_SKELETON_MODE(mode) ((mode) == MODE_ADD_JOINTS || (mode) == MODE_SCALE_JOINTS)
 
 class View : public QGLWidget
 {

@@ -43,20 +43,6 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QRadioButton" name="editSkeleton">
-         <property name="text">
-          <string>Edit skeleton</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="showMesh">
-         <property name="text">
-          <string>Show mesh</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QCheckBox" name="drawWireframe">
          <property name="text">
           <string>Draw Wireframe</string>
@@ -129,11 +115,46 @@
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="actionDeleteSelection"/>
+    <addaction name="separator"/>
+    <addaction name="actionAddJoints"/>
+    <addaction name="actionScaleJoints"/>
+    <addaction name="actionEditMesh"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
   </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <property name="iconSize">
+    <size>
+     <width>22</width>
+     <height>22</height>
+    </size>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextUnderIcon</enum>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionNew"/>
+   <addaction name="actionOpen"/>
+   <addaction name="actionSave"/>
+   <addaction name="separator"/>
+   <addaction name="actionUndo"/>
+   <addaction name="actionRedo"/>
+   <addaction name="separator"/>
+   <addaction name="actionAddJoints"/>
+   <addaction name="actionScaleJoints"/>
+   <addaction name="actionEditMesh"/>
+  </widget>
   <action name="actionNew">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/document-new.png</normaloff>:/img/document-new.png</iconset>
+   </property>
    <property name="text">
     <string>New</string>
    </property>
@@ -142,6 +163,10 @@
    </property>
   </action>
   <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/document-open.png</normaloff>:/img/document-open.png</iconset>
+   </property>
    <property name="text">
     <string>Open</string>
    </property>
@@ -150,6 +175,10 @@
    </property>
   </action>
   <action name="actionSave">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/document-save.png</normaloff>:/img/document-save.png</iconset>
+   </property>
    <property name="text">
     <string>Save</string>
    </property>
@@ -158,6 +187,10 @@
    </property>
   </action>
   <action name="actionSaveAs">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/document-save-as.png</normaloff>:/img/document-save-as.png</iconset>
+   </property>
    <property name="text">
     <string>Save As</string>
    </property>
@@ -166,6 +199,10 @@
    </property>
   </action>
   <action name="actionUndo">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/edit-undo.png</normaloff>:/img/edit-undo.png</iconset>
+   </property>
    <property name="text">
     <string>Undo</string>
    </property>
@@ -174,6 +211,10 @@
    </property>
   </action>
   <action name="actionRedo">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/edit-redo.png</normaloff>:/img/edit-redo.png</iconset>
+   </property>
    <property name="text">
     <string>Redo</string>
    </property>
@@ -182,16 +223,63 @@
    </property>
   </action>
   <action name="actionExit">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/process-stop.png</normaloff>:/img/process-stop.png</iconset>
+   </property>
    <property name="text">
     <string>Exit</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
   </action>
   <action name="actionDeleteSelection">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/edit-delete.png</normaloff>:/img/edit-delete.png</iconset>
+   </property>
    <property name="text">
     <string>Delete Selection</string>
    </property>
    <property name="shortcut">
     <string>Backspace</string>
+   </property>
+  </action>
+  <action name="actionAddJoints">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
+   </property>
+   <property name="text">
+    <string>Add Joints</string>
+   </property>
+  </action>
+  <action name="actionScaleJoints">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
+   </property>
+   <property name="text">
+    <string>Scale Joints</string>
+   </property>
+  </action>
+  <action name="actionEditMesh">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
+   </property>
+   <property name="text">
+    <string>Edit Mesh</string>
    </property>
   </action>
  </widget>
@@ -208,7 +296,9 @@
    </slots>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>actionUndo</sender>
@@ -235,38 +325,6 @@
     <hint type="sourcelabel">
      <x>-1</x>
      <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>399</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>editSkeleton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateMode()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>98</x>
-     <y>41</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>399</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>showMesh</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateMode()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>98</x>
-     <y>60</y>
     </hint>
     <hint type="destinationlabel">
      <x>399</x>
@@ -434,9 +492,57 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionAddJoints</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>modeChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionScaleJoints</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>modeChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionEditMesh</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>modeChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
-  <slot>updateMode()</slot>
+  <slot>modeChanged()</slot>
   <slot>fileNew()</slot>
   <slot>fileOpen()</slot>
   <slot>fileSave()</slot>

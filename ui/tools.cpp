@@ -63,7 +63,7 @@ void OrbitCameraTool::mouseDragged(QMouseEvent *event)
 
 bool SetSelectionTool::mousePressed(QMouseEvent *event)
 {
-    if (view->mode == MODE_SKELETON && event->button() == Qt::LeftButton)
+    if (IS_SKELETON_MODE(view->mode) && event->button() == Qt::LeftButton)
     {
         view->selectedBall = getSelection(event->x(), event->y());
         if (view->selectedBall != -1)
@@ -91,7 +91,7 @@ Vector3 MoveSelectionTool::getHit(QMouseEvent *event)
 
 bool MoveSelectionTool::mousePressed(QMouseEvent *event)
 {
-    if (view->mode == MODE_SKELETON)
+    if (IS_SKELETON_MODE(view->mode))
     {
         HitTest result;
         if (hitTestSelection(event->x(), event->y(), result))
@@ -133,7 +133,7 @@ void MoveSelectionTool::mouseReleased(QMouseEvent *event)
 
 bool CreateBallTool::mousePressed(QMouseEvent *event)
 {
-    if (view->mode == MODE_SKELETON && event->button() == Qt::RightButton)
+    if (IS_SKELETON_MODE(view->mode) && event->button() == Qt::RightButton)
     {
         // change the selection
         HitTest result;

@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>img/document-new.png</file>
+        <file>img/document-open.png</file>
+        <file>img/document-save.png</file>
+        <file>img/edit-redo.png</file>
+        <file>img/edit-undo.png</file>
+        <file>img/document-save-as.png</file>
+        <file>img/edit-delete.png</file>
+        <file>img/image-missing.png</file>
+        <file>img/process-stop.png</file>
+    </qresource>
+</RCC>

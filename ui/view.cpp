@@ -3,7 +3,7 @@
 #include <QWheelEvent>
 
 View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1),
-    mode(MODE_MESH), drawWireframe(true), drawInterpolated(true), currentTool(NULL)
+    mode(MODE_EDIT_MESH), drawWireframe(true), drawInterpolated(true), currentTool(NULL)
 {
     resetCamera();
 }
@@ -86,13 +86,13 @@ void View::paintGL()
     glLightfv(GL_LIGHT0, GL_POSITION, position0);
     glLightfv(GL_LIGHT1, GL_POSITION, position1);
 
-    if (mode == MODE_MESH)
+    if (mode == MODE_EDIT_MESH)
     {
         drawMesh();
         drawGroundPlane();
         drawSkeleton(true);
     }
-    else if (mode == MODE_SKELETON)
+    else
     {
         drawSkeleton(false);
         drawGroundPlane();

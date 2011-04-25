@@ -18,7 +18,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void updateMode();
+    void modeChanged();
     void fileNew();
     void fileOpen();
     bool fileSave();
@@ -36,6 +36,7 @@ private:
     QString filePath;
     QString fileName;
 
+    void updateMode();
     void updateTitle();
     bool checkCanOverwriteUnsavedChanges();
 

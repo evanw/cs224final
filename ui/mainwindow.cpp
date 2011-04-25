@@ -18,9 +18,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->showMesh->setChecked(true);
+
+    QActionGroup *group = new QActionGroup(this);
+    group->addAction(ui->actionAddJoints);
+    group->addAction(ui->actionScaleJoints);
+    group->addAction(ui->actionEditMesh);
+
     ui->drawWireframe->setChecked(true);
     ui->drawInterpolated->setChecked(true);
+
     setWindowState(windowState() | Qt::WindowMaximized);
     fileNew();
 }
@@ -30,12 +36,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::updateMode()
+void MainWindow::modeChanged()
 {
-    if (ui->editSkeleton->isChecked())
-        ui->view->setMode(MODE_SKELETON);
-    else if (ui->showMesh->isChecked())
-        ui->view->setMode(MODE_MESH);
+    if (ui->actionAddJoints->isChecked()) ui->view->setMode(MODE_ADD_JOINTS);
+    else if (ui->actionScaleJoints->isChecked()) ui->view->setMode(MODE_SCALE_JOINTS);
+    else if (ui->actionEditMesh->isChecked()) ui->view->setMode(MODE_EDIT_MESH);
 }
 
 void MainWindow::fileNew()
@@ -45,7 +50,7 @@ void MainWindow::fileNew()
         Document *doc = new Document;
         doc->mesh.balls += Ball(Vector3(), 0.5);
         ui->view->setDocument(doc);
-        ui->editSkeleton->setChecked(true);
+        updateMode();
 
         filePath = QString::null;
         fileName = "Untitled";
@@ -68,7 +73,7 @@ void MainWindow::fileOpen()
         setDirectory(QDir(path).absolutePath());
         doc->mesh.uploadToGPU();
         ui->view->setDocument(doc);
-        ui->showMesh->setChecked(true);
+        updateMode();
         filePath = path;
         updateTitle();
     }
@@ -164,6 +169,7 @@ void MainWindow::generateMesh()
     MeshConstruction::BMeshInit(&doc.mesh);
     doc.mesh.uploadToGPU();
     ui->view->updateGL();
+    updateMode();
 }
 
 void MainWindow::subdivideMesh()
@@ -173,6 +179,26 @@ void MainWindow::subdivideMesh()
     CatmullMesh::subdivide(doc.mesh, doc.mesh);
     doc.mesh.uploadToGPU();
     ui->view->updateGL();
+    updateMode();
+}
+
+void MainWindow::updateMode()
+{
+    Mesh &mesh = ui->view->getDocument().mesh;
+    if (mesh.balls.isEmpty() || mesh.triangles.count() + mesh.quads.count() > 0)
+    {
+        ui->actionAddJoints->setEnabled(false);
+        ui->actionScaleJoints->setEnabled(false);
+        ui->actionEditMesh->setEnabled(true);
+        ui->actionEditMesh->setChecked(true);
+    }
+    else
+    {
+        ui->actionAddJoints->setEnabled(true);
+        ui->actionScaleJoints->setEnabled(true);
+        ui->actionEditMesh->setEnabled(false);
+        ui->actionAddJoints->setChecked(true);
+    }
 }
 
 void MainWindow::updateTitle()

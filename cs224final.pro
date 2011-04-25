@@ -34,3 +34,6 @@ SOURCES += \
     util/raytracer.cpp \
     b_mesh/catmullclark.cpp \
     doc/commands.cpp
+
+RESOURCES += \
+    resources.qrc
