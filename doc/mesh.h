@@ -23,7 +23,7 @@ struct Ball
 
     float minRadius() const { return min(min(ex.length(), ey.length()), ez.length()); }
     float maxRadius() const { return max(max(ex.length(), ey.length()), ez.length()); }
-    void draw() const;
+    void draw(int detail) const;
 };
 
 struct Vertex
@@ -88,6 +88,7 @@ public:
     void updateNormals();
     void uploadToGPU();
 
+    int getDetail() const;
     void drawFill() const;
     void drawWireframe() const;
     void drawKeyBalls(float alpha = 1) const;

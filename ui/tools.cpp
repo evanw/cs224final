@@ -7,6 +7,7 @@ enum { METHOD_SPHERE, METHOD_CUBE };
 
 int Tool::getSelection(int x, int y)
 {
+    int detail = view->getDocument().mesh.getDetail();
     SelectionRecorder sel;
     view->camera3D();
     sel.enterSelectionMode(x, y);
@@ -16,7 +17,7 @@ int Tool::getSelection(int x, int y)
     {
         Ball &ball = view->doc->mesh.balls[i];
         sel.setObjectIndex(i);
-        ball.draw();
+        ball.draw(detail);
     }
     return sel.exitSelectionMode();
 }

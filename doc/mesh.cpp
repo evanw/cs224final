@@ -15,7 +15,7 @@ inline void addEdge(QSet<Edge> &edges, int a, int b)
     edges += Edge(min(a, b), max(a, b));
 }
 
-void Ball::draw() const
+void Ball::draw(int detail) const
 {
     float matrix[16] = {
         ex.x, ex.y, ex.z, 0,
@@ -26,7 +26,7 @@ void Ball::draw() const
     glPushMatrix();
     glTranslatef(center.x, center.y, center.z);
     glMultMatrixf(matrix);
-    drawSphere();
+    drawSphere(detail);
     glPopMatrix();
 }
 
@@ -169,18 +169,22 @@ void Mesh::uploadToGPU()
 
 void Mesh::drawKeyBalls(float alpha) const
 {
+    int detail = getDetail();
+
     foreach (const Ball &ball, balls)
     {
         if (ball.parentIndex == -1)
             glColor4f(0.75, 0, 0, alpha);
         else
             glColor4f(0, 0.5, 1, alpha);
-        ball.draw();
+        ball.draw(detail);
     }
 }
 
 void Mesh::drawInBetweenBalls() const
 {
+    int detail = getDetail();
+
     foreach (const Ball &ball, balls)
     {
         if (ball.parentIndex == -1) continue;
@@ -198,13 +202,15 @@ void Mesh::drawInBetweenBalls() const
             tween.ex = Vector3::lerp(ball.ex, parent.ex, percent);
             tween.ey = Vector3::lerp(ball.ey, parent.ey, percent);
             tween.ez = Vector3::lerp(ball.ez, parent.ez, percent);
-            tween.draw();
+            tween.draw(detail);
         }
     }
 }
 
 void Mesh::drawBones() const
 {
+    int detail = getDetail();
+
     // calculate an appropriate radius based on the minimum ball size
     float radius = FLT_MAX;
     foreach (const Ball &ball, balls)
@@ -223,9 +229,14 @@ void Mesh::drawBones() const
         glRotatef(90 - angles.x * 180 / M_PI, 0, 1, 0);
         glRotatef(-angles.y * 180 / M_PI, 1, 0, 0);
         glScalef(radius, radius, delta.length());
-        drawCylinder();
+        drawCylinder(detail);
         glPopMatrix();
     }
+}
+
+int Mesh::getDetail() const
+{
+    return ceilf(10 + 64 / (1 + balls.count() / 10));
 }
 
 void Mesh::drawFill() const
