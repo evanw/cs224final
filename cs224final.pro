@@ -3,6 +3,16 @@ TARGET = cs224final
 TEMPLATE = app
 FORMS    += mainwindow.ui
 INCLUDEPATH += ui doc util b_mesh
+LIBS += ../cs224final/lib/libCGAL.so
+
+# needed for linking with CGAL
+QMAKE_CXXFLAGS += -frounding-math
+
+# set rpath to avoid dealing with LD_LIBRARY_PATH
+unix:{
+  QMAKE_LFLAGS += -Wl,--rpath=\\\$\$ORIGIN/lib
+  QMAKE_RPATH=
+}
 
 HEADERS += \
     util/vector.h \
@@ -18,7 +28,8 @@ HEADERS += \
     util/raytracer.h \
     b_mesh/catmullclark.h \
     doc/commands.h \
-    b_mesh/meshevolution.h
+    b_mesh/meshevolution.h \
+    util/convexhullsolver.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -35,7 +46,8 @@ SOURCES += \
     util/raytracer.cpp \
     b_mesh/catmullclark.cpp \
     doc/commands.cpp \
-    b_mesh/meshevolution.cpp
+    b_mesh/meshevolution.cpp \
+    util/convexhullsolver.cpp
 
 RESOURCES += \
     resources.qrc

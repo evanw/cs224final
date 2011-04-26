@@ -4,6 +4,7 @@
 #include "meshconstruction.h"
 #include "catmullclark.h"
 #include "meshevolution.h"
+#include "convexhullsolver.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
@@ -188,7 +189,7 @@ void MainWindow::convexHull()
     Mesh mesh;
     Document &doc = ui->view->getDocument();
     mesh.vertices = doc.mesh.vertices;
-    // TODO: ConvexHull::run(mesh);
+    ConvexHullSolver::run(mesh);
     doc.getUndoStack().beginMacro("Convex Hull");
     doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
