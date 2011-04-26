@@ -38,11 +38,20 @@ void Vertex::draw() const
     glVertex3fv(pos.xyz);
 }
 
+Mesh::Mesh()
+#if ENABLE_GPU_UPLOAD
+    : vertexBuffer(0), triangleIndexBuffer(0), lineIndexBuffer(0)
+#endif
+{
+}
+
 Mesh::~Mesh()
 {
+#if ENABLE_GPU_UPLOAD
     glDeleteBuffersARB(1, &vertexBuffer);
     glDeleteBuffersARB(1, &triangleIndexBuffer);
     glDeleteBuffersARB(1, &lineIndexBuffer);
+#endif
 }
 
 void Mesh::updateChildIndices()
@@ -109,6 +118,7 @@ void Mesh::updateNormals()
 
 void Mesh::uploadToGPU()
 {
+#if ENABLE_GPU_UPLOAD
     if (triangles.count() + quads.count() > 0)
     {
         QSet<Edge> edges;
@@ -167,6 +177,7 @@ void Mesh::uploadToGPU()
         glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, lineIndices.count() * sizeof(int), &lineIndices[0], GL_STATIC_DRAW_ARB);
         glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
     }
+#endif
 }
 
 void Mesh::drawKeyBalls(float alpha) const
@@ -262,6 +273,7 @@ int Mesh::getOppositeBall(int index) const
 
 void Mesh::drawFill() const
 {
+#if ENABLE_GPU_UPLOAD
     if (vertexBuffer && triangleIndexBuffer)
     {
         glEnableClientState(GL_VERTEX_ARRAY);
@@ -277,6 +289,7 @@ void Mesh::drawFill() const
         glDisableClientState(GL_NORMAL_ARRAY);
     }
     else
+#endif
     {
         glBegin(GL_TRIANGLES);
         foreach (const Triangle &tri, triangles)
@@ -300,6 +313,7 @@ void Mesh::drawFill() const
 
 void Mesh::drawWireframe() const
 {
+#if ENABLE_GPU_UPLOAD
     if (vertexBuffer && lineIndexBuffer)
     {
         glEnableClientState(GL_VERTEX_ARRAY);
@@ -315,6 +329,7 @@ void Mesh::drawWireframe() const
         glDisableClientState(GL_NORMAL_ARRAY);
     }
     else
+#endif
     {
         foreach (const Triangle &tri, triangles)
         {

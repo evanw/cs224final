@@ -201,8 +201,8 @@ void MainWindow::evolveMesh()
 {
     Document &doc = ui->view->getDocument();
     Mesh mesh = doc.mesh;
-    MeshEvolution(mesh).iterate();
-    doc.getUndoStack().beginMacro("Convex Hull");
+    MeshEvolution::run(mesh);
+    doc.getUndoStack().beginMacro("Evolve Mesh");
     doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
     updateMode();

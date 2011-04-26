@@ -5,6 +5,10 @@
 #include <string>
 #include "vector.h"
 
+// true = use vertex buffers, will be faster because data stays on the GPU between frames
+// false = use glBegin() and glEnd() blocks, use for older platforms or if vertex buffers don't work
+#define ENABLE_GPU_UPLOAD false
+
 struct Ball
 {
     Vector3 center;
@@ -68,9 +72,11 @@ struct Quad
 class Mesh
 {
 private:
+#if ENABLE_GPU_UPLOAD
     unsigned int vertexBuffer;
     unsigned int triangleIndexBuffer;
     unsigned int lineIndexBuffer;
+#endif
     QVector<Vertex> cachedVertices;
     QVector<int> triangleIndices;
     QVector<int> lineIndices;
@@ -81,7 +87,7 @@ public:
     QVector<Triangle> triangles;
     QVector<Quad> quads;
 
-    Mesh() : vertexBuffer(0), triangleIndexBuffer(0), lineIndexBuffer(0) {}
+    Mesh();
     ~Mesh();
 
     void updateChildIndices();
