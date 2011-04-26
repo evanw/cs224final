@@ -68,9 +68,11 @@ void MeshEvolution::evolve(float time) const
     mesh.updateNormals();
 }
 
-void MeshEvolution::iterate() const
+void MeshEvolution::run(Mesh &mesh)
 {
+    MeshEvolution evolution(mesh);
+
     // TODO: adaptive step size
     for (int i = 0; i < 100; i++)
-        evolve(0.01);
+        evolution.evolve(0.01);
 }

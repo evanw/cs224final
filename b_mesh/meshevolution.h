@@ -9,12 +9,13 @@ private:
     Mesh &mesh;
     QVector<Ball> balls;
 
-public:
     MeshEvolution(Mesh &mesh);
 
     float scalarField(const Vector3 &pos) const;
     void evolve(float time) const;
-    void iterate() const;
+
+public:
+    static void run(Mesh &mesh);
 };
 
 #endif // MESHEVOLUTION_H
