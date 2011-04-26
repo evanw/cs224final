@@ -37,3 +37,6 @@ SOURCES += \
 
 RESOURCES += \
     resources.qrc
+
+OTHER_FILES += \
+    README
