@@ -269,7 +269,7 @@
      <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
    </property>
    <property name="text">
-    <string>Add Joints</string>
+    <string>Move/Add Joints</string>
    </property>
   </action>
   <action name="actionScaleJoints">

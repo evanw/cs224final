@@ -182,11 +182,24 @@ void ScaleSelectionTool::mouseDragged(QMouseEvent *event)
 {
     if (view->selectedBall != -1)
     {
+        // store the index of the symmetrically opposite ball
+        int other = getOpposite(false);
+
+        // scale the selection
         float scale = getScaleFactor(event);
         Ball &selection = view->doc->mesh.balls[view->selectedBall];
         selection.ex = originalX * scale;
         selection.ey = originalY * scale;
         selection.ez = originalZ * scale;
+
+        // scale the symmetrically opposite ball too
+        if (other != -1)
+        {
+            Ball &opposite = view->doc->mesh.balls[other];
+            opposite.ex = originalX * scale;
+            opposite.ey = originalY * scale;
+            opposite.ez = originalZ * scale;
+        }
     }
 }
 
@@ -194,11 +207,21 @@ void ScaleSelectionTool::mouseReleased(QMouseEvent *event)
 {
     if (view->selectedBall != -1)
     {
+        // store the index of the symmetrically opposite ball
+        int other = getOpposite(false);
+
         // reset the ball
         Ball &selection = view->doc->mesh.balls[view->selectedBall];
         selection.ex = originalX;
         selection.ey = originalY;
         selection.ez = originalZ;
+        if (other != -1)
+        {
+            Ball &opposite = view->doc->mesh.balls[other];
+            opposite.ex = originalX;
+            opposite.ey = originalY;
+            opposite.ez = originalZ;
+        }
 
         // perform scale if different
         float scale = getScaleFactor(event);
@@ -206,6 +229,7 @@ void ScaleSelectionTool::mouseReleased(QMouseEvent *event)
         {
             view->doc->getUndoStack().beginMacro("Scale Ball");
             view->doc->scaleBall(view->selectedBall, originalX * scale, originalY * scale, originalZ * scale);
+            if (other != -1) view->doc->scaleBall(other, originalX * scale, originalY * scale, originalZ * scale);
             view->doc->getUndoStack().endMacro();
         }
     }
