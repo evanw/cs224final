@@ -99,6 +99,15 @@ bool Mesh::loadFromOBJ(const string &file)
             triangles.remove(i--);
     }
 
+    // remove bad quads
+    for (int i = 0; i < quads.size(); i++)
+    {
+        Quad &quad = quads[i];
+        if (quad.a.index < 0 || quad.b.index < 0 || quad.c.index < 0 || quad.d.index < 0 ||
+                quad.a.index >= vertices.count() || quad.b.index >= vertices.count() || quad.c.index >= vertices.count() || quad.d.index >= vertices.count())
+            quads.remove(i--);
+    }
+
     // remove bad balls
     for (int i = 0; i < balls.size(); i++)
     {

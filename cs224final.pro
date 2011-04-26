@@ -19,7 +19,9 @@ HEADERS += \
     b_mesh/catmullclark.h \
     doc/commands.h \
     b_mesh/meshevolution.h \
-    b_mesh/edgefairing.h
+    b_mesh/edgefairing.h \
+    util/chull.h \
+    util/convexhull3d.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -37,7 +39,9 @@ SOURCES += \
     b_mesh/catmullclark.cpp \
     doc/commands.cpp \
     b_mesh/meshevolution.cpp \
-    b_mesh/edgefairing.cpp
+    b_mesh/edgefairing.cpp \
+    util/chull.cpp \
+    util/convexhull3d.cpp
 
 RESOURCES += \
     resources.qrc
