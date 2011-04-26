@@ -5,6 +5,7 @@
 #include "catmullclark.h"
 #include "meshevolution.h"
 #include "convexhullsolver.h"
+#include "edgefairing.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
@@ -200,10 +201,19 @@ void MainWindow::evolveMesh()
 {
     Document &doc = ui->view->getDocument();
     Mesh mesh = doc.mesh;
-    MeshEvolution evolution(mesh);
-    for (int i = 0; i < 100; i++)
-        evolution.evolve(0.01);
+    MeshEvolution(mesh).iterate();
     doc.getUndoStack().beginMacro("Convex Hull");
+    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.getUndoStack().endMacro();
+    updateMode();
+}
+
+void MainWindow::edgeFairing()
+{
+    Document &doc = ui->view->getDocument();
+    Mesh mesh = doc.mesh;
+    EdgeFairing::run(mesh);
+    doc.getUndoStack().beginMacro("Edge Fairing");
     doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
     updateMode();

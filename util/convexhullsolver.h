@@ -7,7 +7,7 @@
 
 namespace ConvexHullSolver
 {
-    bool run(const Mesh &mesh);
+    bool run(Mesh &mesh);
     //         QList<Vector3>& hullPoints);
 }
 
