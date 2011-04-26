@@ -44,16 +44,16 @@ void drawCube()
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void drawSphere()
+void drawSphere(int detail)
 {
     initQuadric();
-    gluSphere(quadric, 1, 64, 32);
+    gluSphere(quadric, 1, detail, detail / 2);
 }
 
-void drawCylinder()
+void drawCylinder(int detail)
 {
     initQuadric();
-    gluCylinder(quadric, 1, 1, 1, 64, 1);
+    gluCylinder(quadric, 1, 1, 1, detail, 1);
 }
 
 void drawWireCube()

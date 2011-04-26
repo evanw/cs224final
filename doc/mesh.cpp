@@ -10,12 +10,14 @@
 
 typedef QPair<int, int> Edge;
 
+const Vector3 Mesh::symmetryFlip(-1, 1, 1);
+
 inline void addEdge(QSet<Edge> &edges, int a, int b)
 {
     edges += Edge(min(a, b), max(a, b));
 }
 
-void Ball::draw() const
+void Ball::draw(int detail) const
 {
     float matrix[16] = {
         ex.x, ex.y, ex.z, 0,
@@ -26,7 +28,7 @@ void Ball::draw() const
     glPushMatrix();
     glTranslatef(center.x, center.y, center.z);
     glMultMatrixf(matrix);
-    drawSphere();
+    drawSphere(detail);
     glPopMatrix();
 }
 
@@ -169,27 +171,34 @@ void Mesh::uploadToGPU()
 
 void Mesh::drawKeyBalls(float alpha) const
 {
+    int detail = getDetail();
+
     foreach (const Ball &ball, balls)
     {
         if (ball.parentIndex == -1)
             glColor4f(0.75, 0, 0, alpha);
         else
             glColor4f(0, 0.5, 1, alpha);
-        ball.draw();
+        ball.draw(detail);
     }
 }
 
 void Mesh::drawInBetweenBalls() const
 {
+    int detail = getDetail();
+
     foreach (const Ball &ball, balls)
     {
+        // get the parent ball
         if (ball.parentIndex == -1) continue;
         const Ball &parent = balls[ball.parentIndex];
 
+        // decide how many in-between balls to generate
         float totalRadius = ball.maxRadius() + parent.maxRadius();
         float edgeLength = (ball.center - parent.center).length();
         const int count = min(100, ceilf(edgeLength / totalRadius * 4));
 
+        // generate in-between balls
         for (int i = 1; i < count; i++)
         {
             float percent = (float)i / (float)count;
@@ -198,13 +207,15 @@ void Mesh::drawInBetweenBalls() const
             tween.ex = Vector3::lerp(ball.ex, parent.ex, percent);
             tween.ey = Vector3::lerp(ball.ey, parent.ey, percent);
             tween.ez = Vector3::lerp(ball.ez, parent.ez, percent);
-            tween.draw();
+            tween.draw(detail);
         }
     }
 }
 
 void Mesh::drawBones() const
 {
+    int detail = getDetail();
+
     // calculate an appropriate radius based on the minimum ball size
     float radius = FLT_MAX;
     foreach (const Ball &ball, balls)
@@ -223,9 +234,30 @@ void Mesh::drawBones() const
         glRotatef(90 - angles.x * 180 / M_PI, 0, 1, 0);
         glRotatef(-angles.y * 180 / M_PI, 1, 0, 0);
         glScalef(radius, radius, delta.length());
-        drawCylinder();
+        drawCylinder(detail);
         glPopMatrix();
     }
+}
+
+int Mesh::getDetail() const
+{
+    return ceilf(10 + 64 / (1 + balls.count() / 10));
+}
+
+int Mesh::getOppositeBall(int index) const
+{
+    const float epsilon = 1.0e-8f;
+    const Ball &ball = balls[index];
+    int oppositeIndex = -1;
+    for (int i = 0; i < balls.count(); i++)
+    {
+        const Ball &opposite = balls[i];
+        if ((ball.center - opposite.center * symmetryFlip).lengthSquared() < epsilon &&
+                fabsf(ball.minRadius() - opposite.minRadius()) < epsilon &&
+                fabsf(ball.maxRadius() - opposite.maxRadius()) < epsilon)
+            oppositeIndex = i;
+    }
+    return oppositeIndex;
 }
 
 void Mesh::drawFill() const

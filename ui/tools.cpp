@@ -5,8 +5,21 @@
 
 enum { METHOD_SPHERE, METHOD_CUBE };
 
-int Tool::getSelection(int x, int y)
+int Tool::getOpposite(bool ignorePlanarBalls) const
 {
+    if (view->mirrorChanges)
+    {
+        const Ball &selection = view->doc->mesh.balls[view->selectedBall];
+        bool isPlanar = (selection.center * Mesh::symmetryFlip - selection.center).lengthSquared() < 1.0e-8f;
+        if (!ignorePlanarBalls && isPlanar) return view->selectedBall;
+        return view->doc->mesh.getOppositeBall(view->selectedBall);
+    }
+    return -1;
+}
+
+int Tool::getSelection(int x, int y) const
+{
+    int detail = view->getDocument().mesh.getDetail();
     SelectionRecorder sel;
     view->camera3D();
     sel.enterSelectionMode(x, y);
@@ -16,12 +29,12 @@ int Tool::getSelection(int x, int y)
     {
         Ball &ball = view->doc->mesh.balls[i];
         sel.setObjectIndex(i);
-        ball.draw();
+        ball.draw(detail);
     }
     return sel.exitSelectionMode();
 }
 
-bool Tool::hitTestSelection(int x, int y, HitTest &result, int method)
+bool Tool::hitTestSelection(int x, int y, HitTest &result, int method) const
 {
     if (view->selectedBall != -1)
     {
@@ -100,8 +113,15 @@ void MoveSelectionTool::mouseDragged(QMouseEvent *event)
 {
     if (view->selectedBall != -1)
     {
+        // store the index of the symmetrically opposite ball
+        int other = getOpposite(true);
+
+        // move the selection
         Ball &selection = view->doc->mesh.balls[view->selectedBall];
         selection.center = originalCenter + getHit(event) - originalHit;
+
+        // move the symmetrically opposite ball too
+        if (other != -1) view->doc->mesh.balls[other].center = selection.center * Mesh::symmetryFlip;
     }
 }
 
@@ -109,9 +129,13 @@ void MoveSelectionTool::mouseReleased(QMouseEvent *event)
 {
     if (view->selectedBall != -1)
     {
-        // reset the ball
+        // store the index of the symmetrically opposite ball
+        int other = getOpposite(true);
+
+        // reset the ball and its opposite
         Ball &selection = view->doc->mesh.balls[view->selectedBall];
         selection.center = originalCenter;
+        if (other != -1) view->doc->mesh.balls[other].center = selection.center * Mesh::symmetryFlip;
 
         // perform move if different
         Vector3 delta = getHit(event) - originalHit;
@@ -119,6 +143,7 @@ void MoveSelectionTool::mouseReleased(QMouseEvent *event)
         {
             view->doc->getUndoStack().beginMacro("Move Ball");
             view->doc->moveBall(view->selectedBall, delta);
+            if (other != -1) view->doc->moveBall(other, delta * Mesh::symmetryFlip);
             view->doc->getUndoStack().endMacro();
         }
     }
@@ -157,11 +182,24 @@ void ScaleSelectionTool::mouseDragged(QMouseEvent *event)
 {
     if (view->selectedBall != -1)
     {
+        // store the index of the symmetrically opposite ball
+        int other = getOpposite(true);
+
+        // scale the selection
         float scale = getScaleFactor(event);
         Ball &selection = view->doc->mesh.balls[view->selectedBall];
         selection.ex = originalX * scale;
         selection.ey = originalY * scale;
         selection.ez = originalZ * scale;
+
+        // scale the symmetrically opposite ball too
+        if (other != -1)
+        {
+            Ball &opposite = view->doc->mesh.balls[other];
+            opposite.ex = originalX * scale;
+            opposite.ey = originalY * scale;
+            opposite.ez = originalZ * scale;
+        }
     }
 }
 
@@ -169,11 +207,21 @@ void ScaleSelectionTool::mouseReleased(QMouseEvent *event)
 {
     if (view->selectedBall != -1)
     {
+        // store the index of the symmetrically opposite ball
+        int other = getOpposite(true);
+
         // reset the ball
         Ball &selection = view->doc->mesh.balls[view->selectedBall];
         selection.ex = originalX;
         selection.ey = originalY;
         selection.ez = originalZ;
+        if (other != -1)
+        {
+            Ball &opposite = view->doc->mesh.balls[other];
+            opposite.ex = originalX;
+            opposite.ey = originalY;
+            opposite.ez = originalZ;
+        }
 
         // perform scale if different
         float scale = getScaleFactor(event);
@@ -181,6 +229,7 @@ void ScaleSelectionTool::mouseReleased(QMouseEvent *event)
         {
             view->doc->getUndoStack().beginMacro("Scale Ball");
             view->doc->scaleBall(view->selectedBall, originalX * scale, originalY * scale, originalZ * scale);
+            if (other != -1) view->doc->scaleBall(other, originalX * scale, originalY * scale, originalZ * scale);
             view->doc->getUndoStack().endMacro();
         }
     }
@@ -223,6 +272,10 @@ bool CreateBallTool::mousePressed(QMouseEvent *event)
     // create the child ball
     if (view->selectedBall != -1)
     {
+        // store the index of the symmetrically opposite ball
+        int other = getOpposite(false);
+
+        // create the new child
         Ball &selection = view->doc->mesh.balls[view->selectedBall];
         Ball child;
         child.center = selection.center;
@@ -230,10 +283,18 @@ bool CreateBallTool::mousePressed(QMouseEvent *event)
         child.ey = selection.ey;
         child.ez = selection.ez;
         child.parentIndex = view->selectedBall;
-        view->selectedBall = view->doc->mesh.balls.count();
 
+        // add the new child and prepare to move it around
+        view->selectedBall = view->doc->mesh.balls.count();
         view->doc->getUndoStack().beginMacro("Create Ball");
         view->doc->addBall(child);
+        if (other != -1)
+        {
+            // also add a symmetrically opposite child
+            child.center *= Mesh::symmetryFlip;
+            child.parentIndex = other;
+            view->doc->addBall(child);
+        }
         MoveSelectionTool::mousePressed(event);
         return true;
     }

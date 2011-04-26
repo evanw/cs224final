@@ -43,6 +43,13 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
+        <widget class="QCheckBox" name="mirrorChanges">
+         <property name="text">
+          <string>Mirror Changes</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="drawWireframe">
          <property name="text">
           <string>Draw Wireframe</string>
@@ -67,6 +74,27 @@
         <widget class="QPushButton" name="subdivideMesh">
          <property name="text">
           <string>Subdivide Mesh</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="convexHull">
+         <property name="text">
+          <string>Convex Hull</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="evolveMesh">
+         <property name="text">
+          <string>Evolve Mesh</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="edgeFairing">
+         <property name="text">
+          <string>Edge Fairing</string>
          </property>
         </widget>
        </item>
@@ -255,7 +283,7 @@
      <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
    </property>
    <property name="text">
-    <string>Add Joints</string>
+    <string>Move/Add Joints</string>
    </property>
   </action>
   <action name="actionScaleJoints">
@@ -311,6 +339,7 @@
     <slot>setWireframe(bool)</slot>
     <slot>deleteSelection()</slot>
     <slot>setInterpolated(bool)</slot>
+    <slot>setMirrorChanges(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -558,6 +587,102 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>mirrorChanges</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>view</receiver>
+   <slot>setMirrorChanges(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>99</x>
+     <y>99</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>499</x>
+     <y>339</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>convexHull</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>convexHull()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>99</x>
+     <y>252</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionUndoToolbar</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>editUndo()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionRedoToolbar</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>editRedo()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>evolveMesh</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>evolveMesh()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>99</x>
+     <y>270</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>edgeFairing</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>edgeFairing()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>99</x>
+     <y>303</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>modeChanged()</slot>
@@ -572,5 +697,8 @@
   <slot>subdivideMesh()</slot>
   <slot>editMenuAboutToShow()</slot>
   <slot>editMenuAboutToHide()</slot>
+  <slot>convexHull()</slot>
+  <slot>evolveMesh()</slot>
+  <slot>edgeFairing()</slot>
  </slots>
 </ui>

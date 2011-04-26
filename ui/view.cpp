@@ -3,7 +3,7 @@
 #include <QWheelEvent>
 
 View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1),
-    mode(MODE_EDIT_MESH), drawWireframe(true), drawInterpolated(true), currentTool(NULL)
+    mode(MODE_EDIT_MESH), mirrorChanges(false), drawWireframe(true), drawInterpolated(true), currentTool(NULL)
 {
     resetCamera();
 }
@@ -361,6 +361,12 @@ void View::camera3D() const
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     camera.apply();
+}
+
+void View::setMirrorChanges(bool useMirrorChanges)
+{
+    mirrorChanges = useMirrorChanges;
+    updateGL();
 }
 
 void View::setWireframe(bool useWireframe)

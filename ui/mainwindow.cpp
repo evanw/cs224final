@@ -3,6 +3,8 @@
 #include "ui_mainwindow.h"
 #include "meshconstruction.h"
 #include "catmullclark.h"
+#include "meshevolution.h"
+#include "edgefairing.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
@@ -25,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
     group->addAction(ui->actionScaleJoints);
     group->addAction(ui->actionEditMesh);
 
+    ui->mirrorChanges->setChecked(true);
     ui->drawWireframe->setChecked(true);
     ui->drawInterpolated->setChecked(true);
 
@@ -176,6 +179,40 @@ void MainWindow::subdivideMesh()
     Document &doc = ui->view->getDocument();
     CatmullMesh::subdivide(doc.mesh, mesh);
     doc.getUndoStack().beginMacro("Subdivide Mesh");
+    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.getUndoStack().endMacro();
+    updateMode();
+}
+
+void MainWindow::convexHull()
+{
+    Mesh mesh;
+    Document &doc = ui->view->getDocument();
+    mesh.vertices = doc.mesh.vertices;
+    // TODO: ConvexHull::run(mesh);
+    doc.getUndoStack().beginMacro("Convex Hull");
+    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.getUndoStack().endMacro();
+    updateMode();
+}
+
+void MainWindow::evolveMesh()
+{
+    Document &doc = ui->view->getDocument();
+    Mesh mesh = doc.mesh;
+    MeshEvolution(mesh).iterate();
+    doc.getUndoStack().beginMacro("Convex Hull");
+    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.getUndoStack().endMacro();
+    updateMode();
+}
+
+void MainWindow::edgeFairing()
+{
+    Document &doc = ui->view->getDocument();
+    Mesh mesh = doc.mesh;
+    EdgeFairing::run(mesh);
+    doc.getUndoStack().beginMacro("Edge Fairing");
     doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
     updateMode();

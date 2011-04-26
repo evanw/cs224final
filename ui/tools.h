@@ -12,8 +12,9 @@ class Tool
 protected:
     View *view;
 
-    int getSelection(int x, int y);
-    bool hitTestSelection(int x, int y, HitTest &result, int method);
+    int getOpposite(bool ignorePlanarBalls) const;
+    int getSelection(int x, int y) const;
+    bool hitTestSelection(int x, int y, HitTest &result, int method) const;
 
 public:
     Tool(View *view) : view(view) {}
