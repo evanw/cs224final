@@ -30,6 +30,7 @@ public slots:
     void generateMesh();
     void subdivideMesh();
     void convexHull();
+    void evolveMesh();
 
 private:
     Ui::MainWindow *ui;

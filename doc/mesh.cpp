@@ -189,13 +189,16 @@ void Mesh::drawInBetweenBalls() const
 
     foreach (const Ball &ball, balls)
     {
+        // get the parent ball
         if (ball.parentIndex == -1) continue;
         const Ball &parent = balls[ball.parentIndex];
 
+        // decide how many in-between balls to generate
         float totalRadius = ball.maxRadius() + parent.maxRadius();
         float edgeLength = (ball.center - parent.center).length();
         const int count = min(100, ceilf(edgeLength / totalRadius * 4));
 
+        // generate in-between balls
         for (int i = 1; i < count; i++)
         {
             float percent = (float)i / (float)count;

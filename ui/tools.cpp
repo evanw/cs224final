@@ -183,7 +183,7 @@ void ScaleSelectionTool::mouseDragged(QMouseEvent *event)
     if (view->selectedBall != -1)
     {
         // store the index of the symmetrically opposite ball
-        int other = getOpposite(false);
+        int other = getOpposite(true);
 
         // scale the selection
         float scale = getScaleFactor(event);
@@ -208,7 +208,7 @@ void ScaleSelectionTool::mouseReleased(QMouseEvent *event)
     if (view->selectedBall != -1)
     {
         // store the index of the symmetrically opposite ball
-        int other = getOpposite(false);
+        int other = getOpposite(true);
 
         // reset the ball
         Ball &selection = view->doc->mesh.balls[view->selectedBall];

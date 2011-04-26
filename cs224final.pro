@@ -17,7 +17,8 @@ HEADERS += \
     util/selectionrecorder.h \
     util/raytracer.h \
     b_mesh/catmullclark.h \
-    doc/commands.h
+    doc/commands.h \
+    b_mesh/meshevolution.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -33,7 +34,8 @@ SOURCES += \
     util/selectionrecorder.cpp \
     util/raytracer.cpp \
     b_mesh/catmullclark.cpp \
-    doc/commands.cpp
+    doc/commands.cpp \
+    b_mesh/meshevolution.cpp
 
 RESOURCES += \
     resources.qrc
