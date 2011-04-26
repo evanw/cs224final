@@ -18,7 +18,8 @@ HEADERS += \
     util/raytracer.h \
     b_mesh/catmullclark.h \
     doc/commands.h \
-    b_mesh/meshevolution.h
+    b_mesh/meshevolution.h \
+    b_mesh/edgefairing.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -35,7 +36,8 @@ SOURCES += \
     util/raytracer.cpp \
     b_mesh/catmullclark.cpp \
     doc/commands.cpp \
-    b_mesh/meshevolution.cpp
+    b_mesh/meshevolution.cpp \
+    b_mesh/edgefairing.cpp
 
 RESOURCES += \
     resources.qrc

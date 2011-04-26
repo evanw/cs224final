@@ -92,6 +92,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="edgeFairing">
+         <property name="text">
+          <string>Edge Fairing</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QWidget" name="emptySpace" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
@@ -660,6 +667,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>edgeFairing</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>edgeFairing()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>99</x>
+     <y>303</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>modeChanged()</slot>
@@ -676,5 +699,6 @@
   <slot>editMenuAboutToHide()</slot>
   <slot>convexHull()</slot>
   <slot>evolveMesh()</slot>
+  <slot>edgeFairing()</slot>
  </slots>
 </ui>

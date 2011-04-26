@@ -14,6 +14,7 @@ public:
 
     float scalarField(const Vector3 &pos) const;
     void evolve(float time) const;
+    void iterate() const;
 };
 
 #endif // MESHEVOLUTION_H
