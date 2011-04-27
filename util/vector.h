@@ -6,6 +6,7 @@
 #include <iostream>
 
 #define M_2PI (2 * M_PI)
+#define EPSILON (1*10^-6)
 
 inline float frand() { return (float)rand() / (float)RAND_MAX; }
 inline float min(float a, float b) { return a < b ? a : b; }
@@ -51,6 +52,7 @@ public:
 
     bool operator == (const Vector2 &vec) const { return x == vec.x && y == vec.y; }
     bool operator != (const Vector2 &vec) const { return x != vec.x || y != vec.y; }
+    bool apequal(const Vector2 &vec) const {return abs(x-vec.x)<EPSILON && abs(y-vec.y)<EPSILON;}
 
     float lengthSquared() const { return x * x + y * y; }
     float length() const { return sqrtf(lengthSquared()); }
@@ -109,6 +111,7 @@ public:
 
     bool operator == (const Vector3 &vec) const { return x == vec.x && y == vec.y && z == vec.z; }
     bool operator != (const Vector3 &vec) const { return x != vec.x || y != vec.y || z != vec.z; }
+    bool apequal(const Vector3 &vec) const {return abs(x-vec.x)<EPSILON && abs(y-vec.y)<EPSILON && abs(z-vec.z)<EPSILON;}
 
     float lengthSquared() const { return x * x + y * y + z * z; }
     float length() const { return sqrtf(lengthSquared()); }
