@@ -27,6 +27,7 @@ struct Ball
 
     float minRadius() const { return min(min(ex.length(), ey.length()), ez.length()); }
     float maxRadius() const { return max(max(ex.length(), ey.length()), ez.length()); }
+    bool isOppositeOf(const Ball &other) const;
     void draw(int detail) const;
 };
 

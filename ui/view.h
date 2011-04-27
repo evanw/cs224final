@@ -41,6 +41,7 @@ protected:
 private:
     Document *doc;
     int selectedBall;
+    int oppositeSelectedBall; // used by tools
     int mode;
 
     bool mirrorChanges;
