@@ -48,6 +48,7 @@ MeshEvolution::MeshEvolution(Mesh &mesh) : mesh(mesh)
 
 float MeshEvolution::scalarField(const Vector3 &pos) const
 {
+    // TODO: threshold parameter
     const float threshold = 0;
     float total = 0;
     foreach (const Ball &ball, balls)
@@ -61,7 +62,7 @@ void MeshEvolution::evolve(float time) const
     for (int i = 0; i < mesh.vertices.count(); i++)
     {
         Vertex &vertex = mesh.vertices[i];
-        float k1 = 0, k2 = 0; // principal curvatures
+        float k1 = 0, k2 = 0; // TODO: principal curvatures
         float speed = (scalarField(vertex.pos) - target) / (1 + fabsf(k1) + fabsf(k2));
         vertex.pos += vertex.normal * (speed * time);
     }
