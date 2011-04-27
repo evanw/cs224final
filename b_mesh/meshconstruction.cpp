@@ -20,8 +20,8 @@ void MeshConstruction::BMeshInit(Mesh *m){
 Quad MeshConstruction::sweep(Mesh *m, const Ball *b){
     //world vectors
     Vector3 X = Vector3(1,0,0);
-    Vector3 Y = Vector3(0,1,0);
     Vector3 Z = Vector3(0,0,1);
+    Vector3 Y = Vector3(0,1,0);
 
     if(b->childrenIndices.size()>1){
         for(int i=0; i<b->childrenIndices.size(); i++){
@@ -31,12 +31,12 @@ Quad MeshConstruction::sweep(Mesh *m, const Ball *b){
             //find local axes
             Vector3 x,y,z;
             x = childDirection.unit();
-            if(x.apequal(Z) || x.apequal(-Z)){
+            if(x.apequal(Y) || x.apequal(-Y)){
                 y = X;
-                z = Y;
+                z = Z;
             } else{
-                y = Z.cross(x);
-                z = x.cross(y);
+                y = Y.cross(x).unit();
+                z = x.cross(y).unit();
             }
 
             //sweep the old vertices down the bone, and find their midpoint
@@ -119,19 +119,19 @@ Quad MeshConstruction::sweep(Mesh *m, const Ball *b){
         Vector3 childDirection = m->balls.at(b->childrenIndices.at(0)).center - b->center;
         Vector3 parentDirection = m->balls.at(b->parentIndex).center - b->center;
         Vector3 rotationAxis = childDirection.cross(parentDirection).unit();
-        float rotationAngle = -acos(childDirection.dot(parentDirection) / childDirection.length() / parentDirection.length()) / 2.0;
+        float rotationAngle = -acos(-childDirection.dot(parentDirection) / childDirection.length() / parentDirection.length()) / 2.0;
 
         cout<<rotationAxis<<rotationAngle<<endl;
 
         //find local axes
         Vector3 x,y,z;
         x = childDirection.unit();
-        if(x.apequal(Z) || x.apequal(-Z)){
+        if(x.apequal(Y) || x.apequal(-Y)){
             y = X;
-            z = Y;
+            z = Z;
         } else{
-            y = Z.cross(x);
-            z = x.cross(y);
+            y = Y.cross(x).unit();
+            z = x.cross(y).unit();
         }
 
         //sweep the old vertices down the bone, and find their midpoint
@@ -214,12 +214,12 @@ Quad MeshConstruction::sweep(Mesh *m, const Ball *b){
         Vector3 boneDirection = parent.center - b->center;
         Vector3 x,y,z;
         x = -boneDirection.unit();
-        if(x.apequal(Z) || x.apequal(-Z)){
+        if(x.apequal(Y) || x.apequal(-Y)){
             y = X;
-            z = Y;
+            z = Z;
         }else {
-            y = Z.cross(x);
-            z = x.cross(y);
+            y = Y.cross(x).unit();
+            z = x.cross(y).unit();
         }
 
         float r = b->maxRadius();
@@ -321,13 +321,16 @@ Vector3 MeshConstruction::rotate(const Vector3 &p, const Vector3 &v, const Vecto
     Vector3 temp = Vector3(p);
     temp -= c;
 
-    float dot = temp.dot(v);
+    Vector3 axisX = Vector3(1, 1, 1).cross(v).unit();
+    Vector3 axisY = v.cross(axisX);
+
+    float x = temp.dot(axisX);
+    float y = temp.dot(axisY);
+    float z = temp.dot(v);
     float sinA = sin(radians);
     float cosA = cos(radians);
+    Vector3 toReturn = axisX * (x * cosA - y * sinA) + axisY * (y * cosA + x * sinA) + v * z;
 
-    Vector3 toReturn = Vector3(v.x*dot + (temp.x*(v.y*v.y+v.z*v.z)-v.x*(v.y*temp.y+v.z*temp.z))*cosA + (-v.z*temp.y+v.y*temp.z)*sinA,
-                               v.y*dot + (temp.y*(v.x*v.x+v.z*v.z)-v.y*(v.x*temp.x+v.z*temp.z))*cosA + (v.x*temp.x-v.x*temp.z) *sinA,
-                               v.z*dot + (temp.z*(v.x*v.x+v.y*v.y)-v.z*(v.x*temp.x+v.y*temp.y))*cosA + (-v.y*temp.x+v.x*temp.y)*sinA);
     return toReturn + c;
 
 }
