@@ -2,10 +2,14 @@
 #include "geometry.h"
 #include <QWheelEvent>
 
-View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), oppositeSelectedBall(-1),
+#define PLANE_SIZE 10
+#define CURSOR_SIZE 20
+
+View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), oppositeSelectedBall(-1), mouseX(0), mouseY(0),
     mode(MODE_EDIT_MESH), mirrorChanges(false), drawWireframe(true), drawInterpolated(true), currentTool(NULL)
 {
     resetCamera();
+    setMouseTracking(true);
 }
 
 View::~View()
@@ -121,6 +125,9 @@ void View::paintGL()
 
 void View::mousePressEvent(QMouseEvent *event)
 {
+    mouseX = event->x();
+    mouseY = event->y();
+
     // old mouse up
     if (currentTool)
     {
@@ -143,21 +150,27 @@ void View::mousePressEvent(QMouseEvent *event)
 
 void View::mouseMoveEvent(QMouseEvent *event)
 {
+    mouseX = event->x();
+    mouseY = event->y();
+
     if (currentTool)
-    {
         currentTool->mouseDragged(event);
-        updateGL();
-    }
+
+    updateGL();
 }
 
 void View::mouseReleaseEvent(QMouseEvent *event)
 {
+    mouseX = event->x();
+    mouseY = event->y();
+
     if (currentTool)
     {
         currentTool->mouseReleased(event);
         currentTool = NULL;
-        updateGL();
     }
+
+    updateGL();
 }
 
 void View::wheelEvent(QWheelEvent *event)
@@ -278,15 +291,52 @@ void View::drawSkeleton(bool drawTransparent) const
                 glColor3f(0, 0, 0);
                 drawWireCube();
                 glPopMatrix();
+
+                // find the currently selected cube face and display the cursor
+                Raytracer tracer;
+                Vector3 ray = tracer.getRayForPixel(mouseX, mouseY);
+                HitTest result;
+                if (Raytracer::hitTestCube(selection.center - radius, selection.center + radius, camera.eye, ray, result))
+                {
+                    float size = (result.hit - camera.eye).length() * CURSOR_SIZE / height();
+                    Vector2 angles = result.normal.toAngles();
+                    glColor3f(0, 0, 0);
+                    glDisable(GL_DEPTH_TEST);
+                    glPushMatrix();
+                    glTranslatef(result.hit.x, result.hit.y, result.hit.z);
+                    glRotatef(90 - angles.x * 180 / M_PI, 0, 1, 0);
+                    glRotatef(-angles.y * 180 / M_PI, 1, 0, 0);
+                    glScalef(size, size, size);
+                    drawMoveCursor();
+                    glPopMatrix();
+                    glEnable(GL_DEPTH_TEST);
+                }
             }
             else if (mode == MODE_SCALE_JOINTS)
             {
+                // display the cursor
+                Raytracer tracer;
+                Vector3 ray = tracer.getRayForPixel(mouseX, mouseY);
+                HitTest result;
+                if (Raytracer::hitTestSphere(selection.center, radius, camera.eye, ray, result))
+                {
+                    camera2D();
+                    glColor3f(0, 0, 0);
+                    glDisable(GL_DEPTH_TEST);
+                    glTranslatef(mouseX, mouseY, 0);
+                    glScalef(CURSOR_SIZE, CURSOR_SIZE, 0);
+                    drawScaleCursor();
+                    glEnable(GL_DEPTH_TEST);
+                    camera3D();
+                }
+
                 Vector3 delta = camera.eye - selection.center;
                 Vector2 angles = delta.toAngles();
 
                 // adjust the radius to the profile of the ball as seen from the camera
                 radius = radius / sinf(acosf(radius / delta.length()));
 
+                // draw a circle around the selected ball
                 radius *= 1.1;
                 glPushMatrix();
                 glTranslatef(selection.center.x, selection.center.y, selection.center.z);
@@ -315,25 +365,34 @@ void View::drawGroundPlane() const
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
 
-    const int size = 10;
     glBegin(GL_LINES);
-    for (int x = -size; x <= size; x++)
+    glColor3f(0, 0, 0);
+    glVertex3i(0, 0, PLANE_SIZE);
+    glVertex3i(-PLANE_SIZE, 0, 0);
+    glVertex3i(0, 0, PLANE_SIZE);
+    glVertex3i(PLANE_SIZE, 0, 0);
+    glVertex3i(-PLANE_SIZE / 2, 0, -PLANE_SIZE);
+    glVertex3i(-PLANE_SIZE / 2, 0, 0);
+    glVertex3i(PLANE_SIZE / 2, 0, -PLANE_SIZE);
+    glVertex3i(PLANE_SIZE / 2, 0, 0);
+    glVertex3i(-PLANE_SIZE / 2, 0, -PLANE_SIZE);
+    glVertex3i(PLANE_SIZE / 2, 0, -PLANE_SIZE);
+    for (int z = 1 - PLANE_SIZE; z < PLANE_SIZE; z++)
     {
-        for (int z = -size; z <= size; z++)
-        {
-            if (x != size)
-            {
-                glColor4f(0, 0, 0, z == 0 ? 1 : 0.25);
-                glVertex3i(x, 0, z);
-                glVertex3i(x + 1, 0, z);
-            }
-            if (z != size)
-            {
-                glColor4f(0, 0, 0, x == 0 ? 1 : 0.25);
-                glVertex3i(x, 0, z);
-                glVertex3i(x, 0, z + 1);
-            }
-        }
+        int size = (z >= 0) ? z : PLANE_SIZE / 2;
+        int xmin = -PLANE_SIZE + size;
+        int xmax = PLANE_SIZE - size;
+        glColor4f(0, 0, 0, z == 0 ? 1 : 0.25);
+        glVertex3i(xmin, 0, z);
+        glVertex3i(xmax, 0, z);
+    }
+    for (int x = 1 - PLANE_SIZE; x < PLANE_SIZE; x++)
+    {
+        int zmin = (abs(x) < PLANE_SIZE / 2) ? -PLANE_SIZE : 0;
+        int zmax = PLANE_SIZE - abs(x);
+        glColor4f(0, 0, 0, x == 0 ? 1 : 0.25);
+        glVertex3i(x, 0, zmin);
+        glVertex3i(x, 0, zmax);
     }
     glEnd();
 
@@ -383,6 +442,14 @@ void View::deleteSelection()
 {
     if (selectedBall != -1)
     {
+        // finish the interaction before deletion
+        if (currentTool)
+        {
+            QMouseEvent event(QEvent::MouseButtonRelease, QPoint(mouseX, mouseY), Qt::LeftButton, 0, 0);
+            currentTool->mouseReleased(&event);
+            currentTool = NULL;
+        }
+
         doc->deleteBall(selectedBall);
         selectedBall = -1;
         updateGL();

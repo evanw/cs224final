@@ -42,6 +42,7 @@ private:
     Document *doc;
     int selectedBall;
     int oppositeSelectedBall; // used by tools
+    int mouseX, mouseY; // for highlighting the face of the selection cube
     int mode;
 
     bool mirrorChanges;

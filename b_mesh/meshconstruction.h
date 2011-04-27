@@ -8,13 +8,15 @@ using namespace std;
 
 class MeshConstruction
 {
+
 public:
     static void BMeshInit(Mesh *m);
 
 private:
-    static void sweep(Mesh *m, const Ball *b);
+    static Quad sweep(Mesh *m, const Ball *b);
     static void stitch(Mesh *m);
-    static Vector3 rotate(const Vector3 &p, const Vector3 &v, float radians);
+    //rotate point p around axis v centered at c by radians
+    static Vector3 rotate(const Vector3 &p, const Vector3 &v, const Vector3 &c, float radians);
 
 
 };
