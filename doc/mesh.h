@@ -7,7 +7,7 @@
 
 // true = use vertex buffers, will be faster because data stays on the GPU between frames
 // false = use glBegin() and glEnd() blocks, use for older platforms or if vertex buffers don't work
-#define ENABLE_GPU_UPLOAD false
+#define ENABLE_GPU_UPLOAD 0
 
 struct Ball
 {
@@ -50,7 +50,7 @@ struct Index
     // texture coordinate
     Vector2 coord;
 
-    Index() {}
+    Index() : index(0) {}
     Index(int index) : index(index) {}
 };
 

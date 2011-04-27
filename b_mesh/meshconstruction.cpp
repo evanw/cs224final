@@ -20,8 +20,8 @@ void MeshConstruction::BMeshInit(Mesh *m){
 Quad MeshConstruction::sweep(Mesh *m, const Ball *b){
     //world vectors
     Vector3 X = Vector3(1,0,0);
-    Vector3 Z = Vector3(0,0,1);
     Vector3 Y = Vector3(0,1,0);
+    Vector3 Z = Vector3(0,0,1);
 
     if(b->childrenIndices.size()>1){
         for(int i=0; i<b->childrenIndices.size(); i++){
