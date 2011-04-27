@@ -265,7 +265,6 @@ int Mesh::getDetail() const
 
 int Mesh::getOppositeBall(int index) const
 {
-    const float epsilon = 1.0e-8f;
     const Ball &ball = balls[index];
     int oppositeIndex = -1;
     for (int i = 0; i < balls.count(); i++)
