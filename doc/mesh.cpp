@@ -17,6 +17,14 @@ inline void addEdge(QSet<Edge> &edges, int a, int b)
     edges += Edge(min(a, b), max(a, b));
 }
 
+bool Ball::isOppositeOf(const Ball &other) const
+{
+    const float epsilon = 1.0e-8f;
+    return (center - other.center * Mesh::symmetryFlip).lengthSquared() < epsilon &&
+            fabsf(minRadius() - other.minRadius()) < epsilon &&
+            fabsf(maxRadius() - other.maxRadius()) < epsilon;
+}
+
 void Ball::draw(int detail) const
 {
     float matrix[16] = {
@@ -263,9 +271,7 @@ int Mesh::getOppositeBall(int index) const
     for (int i = 0; i < balls.count(); i++)
     {
         const Ball &opposite = balls[i];
-        if ((ball.center - opposite.center * symmetryFlip).lengthSquared() < epsilon &&
-                fabsf(ball.minRadius() - opposite.minRadius()) < epsilon &&
-                fabsf(ball.maxRadius() - opposite.maxRadius()) < epsilon)
+        if (i != index && ball.isOppositeOf(opposite))
             oppositeIndex = i;
     }
     return oppositeIndex;

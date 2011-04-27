@@ -2,7 +2,7 @@
 #include "geometry.h"
 #include <QWheelEvent>
 
-View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1),
+View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), oppositeSelectedBall(-1),
     mode(MODE_EDIT_MESH), mirrorChanges(false), drawWireframe(true), drawInterpolated(true), currentTool(NULL)
 {
     resetCamera();
@@ -143,8 +143,6 @@ void View::mousePressEvent(QMouseEvent *event)
 
 void View::mouseMoveEvent(QMouseEvent *event)
 {
-    updateGL();
-
     if (currentTool)
     {
         currentTool->mouseDragged(event);
@@ -190,7 +188,7 @@ void View::resetCamera()
 void View::resetInteraction()
 {
     currentTool = NULL;
-    selectedBall = -1;
+    selectedBall = oppositeSelectedBall = -1;
 }
 
 void View::drawMesh() const
