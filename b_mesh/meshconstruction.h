@@ -14,6 +14,7 @@ public:
 private:
     static void sweep(Mesh *m, const Ball *b);
     static void stitch(Mesh *m);
+    static Vector3 rotate(const Vector3 &p, const Vector3 &v, float radians);
 
 
 };
