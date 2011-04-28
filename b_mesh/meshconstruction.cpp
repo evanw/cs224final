@@ -170,7 +170,7 @@ static void addSegmentedSweep(Mesh &mesh,
     Vector3 start = (mesh.vertices[startQuad.i0].pos + mesh.vertices[startQuad.i1].pos + mesh.vertices[startQuad.i2].pos + mesh.vertices[startQuad.i3].pos) / 4;
     Vector3 end = (end0 + end1 + end2 + end3) / 4;
     float startToEnd = (end - start).length();
-    const int divisions = 0;//max(0, (startToEnd - startRadius - endRadius) / (startRadius + endRadius));
+    const int divisions = max(0, (startToEnd - startRadius - endRadius) / (startRadius + endRadius));
     int i0 = startQuad.i0;
     int i1 = startQuad.i1;
     int i2 = startQuad.i2;
@@ -224,7 +224,23 @@ static void makeElbow(Mesh &mesh, const Ball &ball, ResultQuad &result)
 
     if (ball.parentIndex == -1)
     {
-        // TODO: handle this case
+        // we are the root node and we have one child, so cap off other end
+        float scale = ball.maxRadius() / child.maxRadius();
+        Vector3 v[4];
+        for (int j = 0; j < 4; j++) {
+            v[j] = ball.center + (last.v[j] - child.center) * scale;
+        }
+        addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], child.maxRadius(), ball.maxRadius());
+        int i = mesh.vertices.count() - 4;
+        Vector3 offset = ball.center + (ball.center - child.center).unit() * ball.maxRadius();
+        for (int j = 0; j < 4; j++) {
+            mesh.vertices += offset + (last.v[j] - child.center) * scale;
+        }
+        mesh.quads += Quad(i, i + 4, i + 5, i + 1);
+        mesh.quads += Quad(i + 1, i + 5, i + 6, i + 2);
+        mesh.quads += Quad(i + 2, i + 6, i + 7, i + 3);
+        mesh.quads += Quad(i + 3, i + 7, i + 4, i);
+        mesh.quads += Quad(i + 4, i + 7, i + 6, i + 5);
         return;
     }
 
@@ -365,10 +381,10 @@ void sweep(Mesh &mesh, const Ball &ball, ResultQuad &result)
 {
     if (ball.childrenIndices.isEmpty())
         makeCap(mesh, ball, result);
-    else if (ball.parentIndex == -1 || ball.childrenIndices.count() > 1)
-        makeJoint(mesh, ball, result);
-    else
+    else if (ball.childrenIndices.count() == 1)
         makeElbow(mesh, ball, result);
+    else
+        makeJoint(mesh, ball, result);
 }
 
 void MeshConstruction::BMeshInit(Mesh &m) {
