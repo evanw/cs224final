@@ -83,11 +83,15 @@ bool Mesh::loadFromOBJ(const string &file)
     }
 
     // scale the model to fit in a 4x4x4 cube
-    float scale = 4 / max(-minVertex.min(), maxVertex.max());
-    for (int i = 0; i < vertices.count(); i++)
+    // don't do this if there are any balls, because otherwise the skeleton would be misaligned
+    if (balls.isEmpty())
     {
-        Vertex &vertex = vertices[i];
-        vertex.pos *= scale;
+        float scale = 4 / max(-minVertex.min(), maxVertex.max());
+        for (int i = 0; i < vertices.count(); i++)
+        {
+            Vertex &vertex = vertices[i];
+            vertex.pos *= scale;
+        }
     }
 
     // remove bad triangles
