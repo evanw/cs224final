@@ -167,7 +167,7 @@ void MainWindow::generateMesh()
     Document &doc = ui->view->getDocument();
     mesh.balls = doc.mesh.balls;
     mesh.updateChildIndices();
-    MeshConstruction::BMeshInit(&mesh);
+    MeshConstruction::BMeshInit(mesh);
     doc.getUndoStack().beginMacro("Generate Mesh");
     doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();

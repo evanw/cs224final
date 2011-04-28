@@ -1,325 +1,28 @@
 #include "meshconstruction.h"
 
-void MeshConstruction::BMeshInit(Mesh *m){
+struct ResultQuad
+{
+    Vector3 v[4];
+    int i0, i1, i2, i3;
 
-    //empty the mesh
-    m->vertices.clear();
-    m->quads.clear();
-    m->triangles.clear();
+    // TODO: remove this when stitching is implemented
+    bool invalid;
+    ResultQuad() : invalid(false) {}
 
-    //call sweep at each root node
-    foreach(Ball b, m->balls){
-        if(b.parentIndex == -1){
-            sweep(m, &b);
-        }
-    }
+    void setVertices(const Vector3 &a, const Vector3 &b, const Vector3 &c, const Vector3 &d) { v[0] = a; v[1] = b; v[2] = c; v[3] = d; }
+    void setIndices(int a, int b, int c, int d) { i0 = a; i1 = b; i2 = c; i3 = d; }
+};
 
-    m->updateNormals();
-}
+// world vectors
+Vector3 X(1,0,0);
+Vector3 Y(0,1,0);
+Vector3 Z(0,0,1);
 
-Quad MeshConstruction::sweep(Mesh *m, const Ball *b){
-    //world vectors
-    Vector3 X = Vector3(1,0,0);
-    Vector3 Y = Vector3(0,1,0);
-    Vector3 Z = Vector3(0,0,1);
+void sweep(Mesh &m, const Ball &b, ResultQuad &result);
 
-    if(b->childrenIndices.size()>1){
-        for(int i=0; i<b->childrenIndices.size(); i++){
-            Quad lastQuad = sweep(m, &m->balls.at(b->childrenIndices.at(i)));
-            Vector3 childDirection = m->balls.at(b->childrenIndices.at(i)).center - b->center;
-
-            //find local axes
-            Vector3 x,y,z;
-            x = childDirection.unit();
-            if(x.apequal(Y) || x.apequal(-Y)){
-                y = X;
-                z = Z;
-            } else{
-                y = Y.cross(x).unit();
-                z = x.cross(y).unit();
-            }
-
-            //sweep the old vertices down the bone, and find their midpoint
-            Vertex v0, v1, v2, v3;
-            v0.pos = (m->vertices.at(lastQuad.a.index).pos +
-                      m->vertices.at(lastQuad.b.index).pos +
-                      m->vertices.at(lastQuad.c.index).pos +
-                      m->vertices.at(lastQuad.d.index).pos)/4.0 - childDirection;
-            v1.pos = v0.pos;
-            v2.pos = v0.pos;
-            v3.pos = v0.pos;
-
-            //now push them back out to the radius of the sphere
-            float r = b->maxRadius();
-            x*=r;
-            y*=r;
-            z*=r;
-            v0.pos += y;
-            v0.pos += z;
-            v1.pos -= y;
-            v1.pos += z;
-            v2.pos -= y;
-            v2.pos -= z;
-            v3.pos += y;
-            v3.pos -= z;
-
-            //push them to the tangent plane to the sphere
-            v0.pos += x;
-            v1.pos += x;
-            v2.pos += x;
-            v3.pos += x;
-
-            //add these vertices
-            int startIndex = m->vertices.size();
-            m->vertices.push_back(v0);
-            m->vertices.push_back(v1);
-            m->vertices.push_back(v2);
-            m->vertices.push_back(v3);
-
-            //make indices for all these vertices
-            Index i0, i1, i2, i3;
-            i0.index = startIndex;
-            i1.index = startIndex +1;
-            i2.index = startIndex +2;
-            i3.index = startIndex +3;
-
-            //now sweep
-            Quad q0, q1, q2, q3, toReturn;
-            q0.d = lastQuad.a.index;
-            q0.c = lastQuad.b.index;
-            q0.b = i1;
-            q0.a = i0;
-            q1.d = lastQuad.b.index;
-            q1.c = lastQuad.c.index;
-            q1.b = i2;
-            q1.a = i1;
-            q2.d = lastQuad.c.index;
-            q2.c = lastQuad.d.index;
-            q2.b = i3;
-            q2.a = i2;
-            q3.d = lastQuad.d.index;
-            q3.c = lastQuad.a.index;
-            q3.b = i0;
-            q3.a = i3;
-            toReturn.a = i0;
-            toReturn.b = i1;
-            toReturn.c = i2;
-            toReturn.d = i3;
-
-            m->quads.push_back(q0);
-            m->quads.push_back(q1);
-            m->quads.push_back(q2);
-            m->quads.push_back(q3);
-        }
-        Quad toReturn;
-        return toReturn;
-    }else if(b->childrenIndices.size() == 1){
-        //sweep the child
-        Quad lastQuad = sweep(m, &m->balls.at(b->childrenIndices.at(0)));
-        Vector3 childDirection = m->balls.at(b->childrenIndices.at(0)).center - b->center;
-        Vector3 parentDirection = m->balls.at(b->parentIndex).center - b->center;
-        Vector3 rotationAxis = childDirection.cross(parentDirection).unit();
-        float rotationAngle = -acos(-childDirection.dot(parentDirection) / childDirection.length() / parentDirection.length()) / 2.0;
-
-        cout<<rotationAxis<<rotationAngle<<endl;
-
-        //find local axes
-        Vector3 x,y,z;
-        x = childDirection.unit();
-        if(x.apequal(Y) || x.apequal(-Y)){
-            y = X;
-            z = Z;
-        } else{
-            y = Y.cross(x).unit();
-            z = x.cross(y).unit();
-        }
-
-        //sweep the old vertices down the bone, and find their midpoint
-        Vertex v0, v1, v2, v3;
-        v0.pos = (m->vertices.at(lastQuad.a.index).pos +
-                  m->vertices.at(lastQuad.b.index).pos +
-                  m->vertices.at(lastQuad.c.index).pos +
-                  m->vertices.at(lastQuad.d.index).pos)/4.0 - childDirection;
-        v1.pos = v0.pos;
-        v2.pos = v0.pos;
-        v3.pos = v0.pos;
-
-        //now push them back out to the radius of the sphere
-        float r = b->maxRadius();
-        x*=r;
-        y*=r;
-        z*=r;
-        v0.pos += y;
-        v0.pos += z;
-        v1.pos -= y;
-        v1.pos += z;
-        v2.pos -= y;
-        v2.pos -= z;
-        v3.pos += y;
-        v3.pos -= z;
-
-        //rotate them around the connection node
-        v0.pos = rotate(v0.pos, rotationAxis, b->center, rotationAngle);
-        v1.pos = rotate(v1.pos, rotationAxis, b->center, rotationAngle);
-        v2.pos = rotate(v2.pos, rotationAxis, b->center, rotationAngle);
-        v3.pos = rotate(v3.pos, rotationAxis, b->center, rotationAngle);
-
-        //add these vertices
-        int startIndex = m->vertices.size();
-        m->vertices.push_back(v0);
-        m->vertices.push_back(v1);
-        m->vertices.push_back(v2);
-        m->vertices.push_back(v3);
-
-        //make indices for all these vertices
-        Index i0, i1, i2, i3;
-        i0.index = startIndex;
-        i1.index = startIndex +1;
-        i2.index = startIndex +2;
-        i3.index = startIndex +3;
-
-        //now add the sweep to the center of the sphere
-        Quad q0, q1, q2, q3, toReturn;
-        q0.d = lastQuad.a.index;
-        q0.c = lastQuad.b.index;
-        q0.b = i1;
-        q0.a = i0;
-        q1.d = lastQuad.b.index;
-        q1.c = lastQuad.c.index;
-        q1.b = i2;
-        q1.a = i1;
-        q2.d = lastQuad.c.index;
-        q2.c = lastQuad.d.index;
-        q2.b = i3;
-        q2.a = i2;
-        q3.d = lastQuad.d.index;
-        q3.c = lastQuad.a.index;
-        q3.b = i0;
-        q3.a = i3;
-        toReturn.a = i0;
-        toReturn.b = i1;
-        toReturn.c = i2;
-        toReturn.d = i3;
-
-        m->quads.push_back(q0);
-        m->quads.push_back(q1);
-        m->quads.push_back(q2);
-        m->quads.push_back(q3);
-
-        return toReturn;
-
-    } else if(b->childrenIndices.size() == 0){
-        //this is an end node. find the local vectors
-        Ball parent = m->balls.at(b->parentIndex);
-        Vector3 boneDirection = parent.center - b->center;
-        Vector3 x,y,z;
-        x = -boneDirection.unit();
-        if(x.apequal(Y) || x.apequal(-Y)){
-            y = X;
-            z = Z;
-        }else {
-            y = Y.cross(x).unit();
-            z = x.cross(y).unit();
-        }
-
-        float r = b->maxRadius();
-        x*=r;
-        y*=r;
-        z*=r;
-
-        //make the quad cap
-        Vertex v0, v1, v2, v3, v4, v5, v6, v7;
-        v4.pos = b->center;
-        v5.pos = b->center;
-        v6.pos = b->center;
-        v7.pos = b->center;
-
-        //these verts are the center of the sphere
-        v4.pos += y;
-        v4.pos += z;
-        v5.pos -= y;
-        v5.pos += z;
-        v6.pos -= y;
-        v6.pos -= z;
-        v7.pos += y;
-        v7.pos -= z;
-        //these are the edge of the sphere
-        v0.pos = v4.pos + x;
-        v1.pos = v5.pos + x;
-        v2.pos = v6.pos + x;
-        v3.pos = v7.pos + x;
-
-        //add the cap vertices to the mesh, keep track of the start index
-        int startIndex = m->vertices.size();
-        m->vertices.push_back(v0);
-        m->vertices.push_back(v1);
-        m->vertices.push_back(v2);
-        m->vertices.push_back(v3);
-        m->vertices.push_back(v4);
-        m->vertices.push_back(v5);
-        m->vertices.push_back(v6);
-        m->vertices.push_back(v7);
-
-        //make indices for all these vertices
-        Index i0, i1, i2, i3, i4, i5, i6, i7;
-        i0.index = startIndex;
-        i1.index = startIndex +1;
-        i2.index = startIndex +2;
-        i3.index = startIndex +3;
-        i4.index = startIndex +4;
-        i5.index = startIndex +5;
-        i6.index = startIndex +6;
-        i7.index = startIndex +7;
-
-        //add the quad to the cap
-        Quad cap;
-        cap.a = i0;
-        cap.b = i1;
-        cap.c = i2;
-        cap.d = i3;
-        m->quads.push_back(cap);
-
-        //now add the sweep to the center of the sphere
-        Quad q0, q1, q2, q3, toReturn;
-        q0.a = i4;
-        q0.b = i5;
-        q0.c = i1;
-        q0.d = i0;
-        q1.a = i5;
-        q1.b = i6;
-        q1.c = i2;
-        q1.d = i1;
-        q2.a = i6;
-        q2.b = i7;
-        q2.c = i3;
-        q2.d = i2;
-        q3.a = i7;
-        q3.b = i4;
-        q3.c = i0;
-        q3.d = i3;
-        toReturn.a = i4;
-        toReturn.b = i5;
-        toReturn.c = i6;
-        toReturn.d = i7;
-
-        m->quads.push_back(q0);
-        m->quads.push_back(q1);
-        m->quads.push_back(q2);
-        m->quads.push_back(q3);
-
-        return toReturn;
-    }
-}
-
-void MeshConstruction::stitch(Mesh *m){
-
-}
-
-
-Vector3 MeshConstruction::rotate(const Vector3 &p, const Vector3 &v, const Vector3 &c, float radians){
-
+static Vector3 rotate(const Vector3 &p, const Vector3 &v, float radians)
+{
     Vector3 temp = Vector3(p);
-    temp -= c;
 
     Vector3 axisX = Vector3(1, 1, 1).cross(v).unit();
     Vector3 axisY = v.cross(axisX);
@@ -329,8 +32,238 @@ Vector3 MeshConstruction::rotate(const Vector3 &p, const Vector3 &v, const Vecto
     float z = temp.dot(v);
     float sinA = sin(radians);
     float cosA = cos(radians);
-    Vector3 toReturn = axisX * (x * cosA - y * sinA) + axisY * (y * cosA + x * sinA) + v * z;
 
-    return toReturn + c;
+    return axisX * (x * cosA - y * sinA) + axisY * (y * cosA + x * sinA) + v * z;
+}
 
+static void makeCap(Mesh &mesh, const Ball &ball, ResultQuad &result)
+{
+    if (ball.parentIndex == -1)
+    {
+        // TODO: handle this case
+        return;
+    }
+
+    //this is an end node. find the local vectors
+    Ball parent = mesh.balls.at(ball.parentIndex);
+    Vector3 boneDirection = parent.center - ball.center;
+    Vector3 x,y,z;
+    x = -boneDirection.unit();
+    if(x.apequal(Y) || x.apequal(-Y)){
+        y = X;
+        z = Z;
+    }else {
+        y = Y.cross(x).unit();
+        z = x.cross(y).unit();
+    }
+
+    float r = ball.maxRadius();
+    x*=r;
+    y*=r;
+    z*=r;
+
+    //make the quad cap
+    Vector3 v0, v1, v2, v3, v4, v5, v6, v7;
+    v4 = ball.center;
+    v5 = ball.center;
+    v6 = ball.center;
+    v7 = ball.center;
+
+    //these verts are the center of the sphere
+    v4 += y;
+    v4 += z;
+    v5 -= y;
+    v5 += z;
+    v6 -= y;
+    v6 -= z;
+    v7 += y;
+    v7 -= z;
+
+    //these are the edge of the sphere
+    v0 = v4 + x;
+    v1 = v5 + x;
+    v2 = v6 + x;
+    v3 = v7 + x;
+
+    //add the cap vertices to the mesh, keep track of the start index
+    int i = mesh.vertices.count();
+    mesh.vertices += Vertex(v0);
+    mesh.vertices += Vertex(v1);
+    mesh.vertices += Vertex(v2);
+    mesh.vertices += Vertex(v3);
+    mesh.vertices += Vertex(v4);
+    mesh.vertices += Vertex(v5);
+    mesh.vertices += Vertex(v6);
+    mesh.vertices += Vertex(v7);
+
+    //add the quad to the cap
+    mesh.quads += Quad(i, i + 1, i + 2, i + 3);
+
+    //now add the sweep to the center of the sphere
+    mesh.quads += Quad(i + 4, i + 5, i + 1, i);
+    mesh.quads += Quad(i + 5, i + 6, i + 2, i + 1);
+    mesh.quads += Quad(i + 6, i + 7, i + 3, i + 2);
+    mesh.quads += Quad(i + 7, i + 4, i, i + 3);
+
+    result.setVertices(v4, v5, v6, v7);
+    result.setIndices(i + 4, i + 5, i + 6, i + 7);
+}
+
+static void addSweep(Mesh &mesh, int i0, int i1, int i2, int i3, const Vector3 &v0, const Vector3 &v1, const Vector3 &v2, const Vector3 &v3)
+{
+    int i = mesh.vertices.count();
+
+    mesh.vertices += v0;
+    mesh.vertices += v1;
+    mesh.vertices += v2;
+    mesh.vertices += v3;
+
+    mesh.quads += Quad(i, i + 1, i1, i0);
+    mesh.quads += Quad(i + 1, i + 2, i2, i1);
+    mesh.quads += Quad(i + 2, i + 3, i3, i2);
+    mesh.quads += Quad(i + 3, i, i0, i3);
+}
+
+static void addSegmentedSweep(Mesh &mesh,
+                              ResultQuad &startQuad,
+                              const Vector3 &end0, const Vector3 &end1, const Vector3 &end2, const Vector3 &end3,
+                              float startRadius, float endRadius)
+{
+    Vector3 start = (mesh.vertices[startQuad.i0].pos + mesh.vertices[startQuad.i1].pos + mesh.vertices[startQuad.i2].pos + mesh.vertices[startQuad.i3].pos) / 4;
+    Vector3 end = (end0 + end1 + end2 + end3) / 4;
+    float startToEnd = (end - start).length();
+    const int divisions = max(0, (startToEnd - startRadius - endRadius) / (startRadius + endRadius));
+    int i0 = startQuad.i0;
+    int i1 = startQuad.i1;
+    int i2 = startQuad.i2;
+    int i3 = startQuad.i3;
+
+    for (int i = 0; i <= divisions; i++)
+    {
+        if (i == divisions)
+        {
+            // special-case the end, which is at a different angle
+            mesh.vertices += end0;
+            mesh.vertices += end1;
+            mesh.vertices += end2;
+            mesh.vertices += end3;
+        }
+        else
+        {
+            // calculate how far along the bone we are, starting from after startRadius and ending before endRadius
+            // this will go negative if the spheres are intersecting, but in that case divisions == 0 so it doesn't matter
+            float percent = (divisions > 1) ? (float)i / (float)(divisions - 1) : 0;
+            float scale = (startRadius + (startToEnd - startRadius - endRadius) * percent) / startToEnd;
+            Vector3 offset = start + (end - start) * scale;
+
+            // interpolate the position along the bone, growing or shrinking based on startRadius, endRadius, and how far along the bone we are
+            scale = (startRadius + (endRadius - startRadius) * scale) / startRadius;
+            mesh.vertices += offset + (startQuad.v[0] - start) * scale;
+            mesh.vertices += offset + (startQuad.v[1] - start) * scale;
+            mesh.vertices += offset + (startQuad.v[2] - start) * scale;
+            mesh.vertices += offset + (startQuad.v[3] - start) * scale;
+        }
+
+        // generate the quads
+        int i = mesh.vertices.count() - 4;
+        mesh.quads += Quad(i, i + 1, i1, i0);
+        mesh.quads += Quad(i + 1, i + 2, i2, i1);
+        mesh.quads += Quad(i + 2, i + 3, i3, i2);
+        mesh.quads += Quad(i + 3, i, i0, i3);
+
+        i0 = i;
+        i1 = i + 1;
+        i2 = i + 2;
+        i3 = i + 3;
+    }
+}
+
+static void makeElbow(Mesh &mesh, const Ball &ball, ResultQuad &result)
+{
+    Ball &child = mesh.balls[ball.childrenIndices[0]];
+    ResultQuad last;
+    sweep(mesh, child, last);
+
+    if (ball.parentIndex == -1 || last.invalid)
+    {
+        // TODO: handle this case
+        result.invalid = true;
+        return;
+    }
+
+    Ball &parent = mesh.balls[ball.parentIndex];
+
+    // calculate rotation
+    Vector3 childDirection = child.center - ball.center;
+    Vector3 parentDirection = parent.center - ball.center;
+    Vector3 rotationAxis = childDirection.cross(parentDirection).unit();
+    float rotationAngle = -acos(-childDirection.dot(parentDirection) / childDirection.length() / parentDirection.length());
+
+    // rotate 50% for elbow
+    float scale = ball.maxRadius() / child.maxRadius();
+    Vector3 v[4];
+    for (int j = 0; j < 4; j++) {
+        v[j] = ball.center + rotate(last.v[j] - child.center, rotationAxis, rotationAngle / 2) * scale;
+    }
+    addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], child.maxRadius(), ball.maxRadius());
+
+    // rotate 100% for the next step
+    for (int j = 0; j < 4; j++) {
+        v[j] = ball.center + rotate(last.v[j] - child.center, rotationAxis, rotationAngle) * scale;
+    }
+    int i = mesh.vertices.count() - 4;
+    result.setIndices(i, i + 1, i + 2, i + 3);
+    result.setVertices(v[0], v[1], v[2], v[3]);
+}
+
+static void makeJoint(Mesh &mesh, const Ball &ball, ResultQuad &result)
+{
+    for (int k = 0; k < ball.childrenIndices.count(); k++) {
+        Ball &child = mesh.balls[ball.childrenIndices[k]];
+
+        ResultQuad last;
+        sweep(mesh, child, last);
+
+        // TODO: remove this when stitching is implemented
+        if (last.invalid) continue;
+
+        // move the quad center from child to ball
+        float scale = ball.maxRadius() / child.maxRadius();
+        Vector3 v[4];
+        for (int j = 0; j < 4; j++) {
+            v[j] = ball.center + (child.center - ball.center).unit() * ball.maxRadius() + (last.v[j] - child.center) * scale;
+        }
+        addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], child.maxRadius(), ball.maxRadius());
+    }
+
+    // TODO: remove this when stitching is implemented
+    result.invalid = true;
+}
+
+void sweep(Mesh &mesh, const Ball &ball, ResultQuad &result)
+{
+    if (ball.childrenIndices.isEmpty())
+        makeCap(mesh, ball, result);
+    else if (ball.parentIndex == -1 || ball.childrenIndices.count() > 1)
+        makeJoint(mesh, ball, result);
+    else
+        makeElbow(mesh, ball, result);
+}
+
+void MeshConstruction::BMeshInit(Mesh &m) {
+    ResultQuad result;
+
+    //empty the mesh
+    m.vertices.clear();
+    m.quads.clear();
+    m.triangles.clear();
+
+    //call sweep at each root node
+    foreach(const Ball &b, m.balls){
+        if(b.parentIndex == -1){
+            sweep(m, b, result);
+        }
+    }
+
+    m.updateNormals();
 }
