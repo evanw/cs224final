@@ -1,12 +1,13 @@
 #include "view.h"
 #include "geometry.h"
+#include "curvature.h"
 #include <QWheelEvent>
 
 #define PLANE_SIZE 10
 #define CURSOR_SIZE 20
 
 View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), oppositeSelectedBall(-1), mouseX(0), mouseY(0),
-    mode(MODE_EDIT_MESH), mirrorChanges(false), drawWireframe(true), drawInterpolated(true), currentTool(NULL)
+    mode(MODE_EDIT_MESH), mirrorChanges(false), drawWireframe(true), drawInterpolated(true), drawCurvature(false), currentTool(NULL)
 {
     resetCamera();
     setMouseTracking(true);
@@ -204,7 +205,7 @@ void View::resetInteraction()
     selectedBall = oppositeSelectedBall = -1;
 }
 
-void View::drawMesh() const
+void View::drawMesh() //const
 {
     if (doc->mesh.triangles.count() + doc->mesh.quads.count() == 0) return;
 
@@ -227,6 +228,18 @@ void View::drawMesh() const
         doc->mesh.drawWireframe();
 
         // disable line drawing
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
+    }
+    if (drawCurvature)
+    {
+        glDepthMask(GL_FALSE);
+        glEnable(GL_BLEND);
+
+        glColor4f(0, 0, 0, 0.5);
+        Curvature().drawCurvatures(doc->mesh);
+        //curvature.drawCurvatures(doc->mesh);
+
         glDisable(GL_BLEND);
         glDepthMask(GL_TRUE);
     }
@@ -435,6 +448,11 @@ void View::setWireframe(bool useWireframe)
 void View::setInterpolated(bool useInterpolated)
 {
     drawInterpolated = useInterpolated;
+    updateGL();
+}
+
+void View::setCurvature(bool useCurvature) {
+    drawCurvature = useCurvature;
     updateGL();
 }
 

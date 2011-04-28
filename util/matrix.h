@@ -125,16 +125,4 @@ inline Matrix3& Matrix3::operator =(const Matrix3& M) {
     return *this;
 }
 
-/* inline void Matrix3::copyFrom(float f[3][3]) {
-    assign(f[0][0], f[1][0], f[2][0],
-           f[0][1], f[1][1], f[2][1],
-           f[0][2], f[1][2], f[2][2]);
-}
-
-void Matrix3::copyTo(float f[3][3]) const {
-    f[0][0] = m_[0][0]; f[0][1] = m_[0][1]; f[0][2] = m_[0][2];
-    f[1][0] = m_[1][0]; f[1][1] = m_[1][1]; f[1][2] = m_[1][2];
-    f[2][0] = m_[2][0]; f[2][1] = m_[2][1]; f[2][2] = m_[2][2];
-} */
-
 #endif // MATRIX_H

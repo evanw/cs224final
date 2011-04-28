@@ -1,6 +1,7 @@
 #include "curvature.h"
 #include "matrix.h"
 #include "mesh.h"
+#include "qgl.h"
 
 // fill in u and v given w
 void generateComplementBasis(Vector3& u, Vector3& v, const Vector3& w) {
@@ -83,8 +84,7 @@ void Curvature::computeCurvatures(const Mesh &mesh) {
     for (int i = 0; i < nVerts; ++i) {
         for (row = 0; row < 3; ++row) {
             for (col = 0; col < 3; ++col) {
-                WWTrn[i][row][col] = 0.5f * WWTrn[i][row][col] +
-                    mesh.vertices[i].normal.xyz[row] * mesh.vertices[i].normal.xyz[col];
+                WWTrn[i][row][col] = 0.5f * WWTrn[i][row][col] + mesh.vertices[i].normal.xyz[row] * mesh.vertices[i].normal.xyz[col];
                 DWTrn[i][row][col] *= 0.5f;
             }
         }
@@ -104,7 +104,7 @@ void Curvature::computeCurvatures(const Mesh &mesh) {
             DWTrnZero[i] = true;
         }
 
-        DNormal[i] = DWTrn[i]*WWTrn[i].inverse();
+        DNormal[i] = DWTrn[i] * WWTrn[i].inverse();
     }
 
     // If N is a unit-length normal at a vertex, let U and V be unit-length
@@ -180,4 +180,17 @@ void Curvature::computeCurvatures(const Mesh &mesh) {
             maxDirections[i] = W1.x * U + W1.y * V;
         }
     }
+}
+
+
+void Curvature::drawCurvatures(const Mesh &mesh) {
+    computeCurvatures(mesh);
+
+    glBegin(GL_LINES);
+    for (int i = 0; i < mesh.vertices.size(); ++i) {
+        glVertex3fv(mesh.vertices[i].pos.xyz);
+        glVertex3fv((mesh.vertices[i].pos + maxDirections[i] * 0.05f).xyz);
+        //glVertex3fv((mesh.vertices[i].pos + maxDirections[i] * maxCurvatures[i] * 0.05f).xyz);
+    }
+    glEnd();
 }

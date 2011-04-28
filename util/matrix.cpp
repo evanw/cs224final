@@ -17,7 +17,7 @@ inline float MINOR(const Matrix3& M, int r0, int r1, int c0, int c1) {
 
 
 inline bool fuzzyEQ(float f1, float f2) {
-    return fabs(f1 - f2) < 1e-8;
+    return fabsf(f1 - f2) < 1e-8;
 }
 
 Matrix3& Matrix3::operator +=(const Matrix3& M) {
@@ -88,11 +88,13 @@ Matrix3 Matrix3::operator *(float d) const {
 }
 
 Matrix3 Matrix3::operator /(float d) const {
-    assert(!fuzzyEQ(d, 0));
-    float di = 1 / d;
-    return Matrix3(m_[0][0] * di, m_[1][0] * di, m_[2][0] * di,
-                   m_[0][1] * di, m_[1][1] * di, m_[2][1] * di,
-                   m_[0][2] * di, m_[1][2] * di, m_[2][2] * di);
+    if (!fuzzyEQ(d, 0)) {
+        float di = 1 / d;
+        return Matrix3(m_[0][0] * di, m_[1][0] * di, m_[2][0] * di,
+                       m_[0][1] * di, m_[1][1] * di, m_[2][1] * di,
+                       m_[0][2] * di, m_[1][2] * di, m_[2][2] * di);
+    }
+    return Matrix3();
 }
 
 Matrix3 operator *(float d, const Matrix3& M) {
@@ -138,8 +140,37 @@ Matrix3 Matrix3::transpose() const {
 }
 
 Matrix3 Matrix3::inverse() const {
-    assert(!isSingular());
-    return adjoint() / determinant();
+    Matrix3 inverse;
+
+    // Compute the adjoint.
+    inverse[0][0] = m_[1][1]*m_[2][2] - m_[1][2]*m_[2][1];
+    inverse[0][1] = m_[0][2]*m_[2][1] - m_[0][1]*m_[2][2];
+    inverse[0][2] = m_[0][1]*m_[1][2] - m_[0][2]*m_[1][1];
+    inverse[1][0] = m_[1][2]*m_[2][0] - m_[1][0]*m_[2][2];
+    inverse[1][1] = m_[0][0]*m_[2][2] - m_[0][2]*m_[2][0];
+    inverse[1][2] = m_[0][2]*m_[1][0] - m_[0][0]*m_[1][2];
+    inverse[2][0] = m_[1][0]*m_[2][1] - m_[1][1]*m_[2][0];
+    inverse[2][1] = m_[0][1]*m_[2][0] - m_[0][0]*m_[2][1];
+    inverse[2][2] = m_[0][0]*m_[1][1] - m_[0][1]*m_[1][0];
+
+    float det = m_[0][0] * inverse.m_[0][0] + m_[0][1] * inverse.m_[1][0] +
+        m_[0][2] * inverse.m_[2][0];
+
+    if (fabsf(det) > 1e-8) {
+        float invDet = 1.f / det;
+        inverse.m_[0][0] *= invDet;
+        inverse.m_[0][1] *= invDet;
+        inverse.m_[0][2] *= invDet;
+        inverse.m_[1][0] *= invDet;
+        inverse.m_[1][1] *= invDet;
+        inverse.m_[1][2] *= invDet;
+        inverse.m_[2][0] *= invDet;
+        inverse.m_[2][1] *= invDet;
+        inverse.m_[2][2] *= invDet;
+        return inverse;
+    }
+
+    return Matrix3();
 }
 
 Matrix3 Matrix3::adjoint() const {
@@ -165,7 +196,7 @@ float Matrix3::determinant() const {
 }
 
 bool Matrix3::isSingular() const {
-    return determinant();
+    return fuzzyEQ(determinant(), 0);
 }
 
 Matrix3 Matrix3::identity() {

@@ -5,6 +5,7 @@
 #include "tools.h"
 #include "camera.h"
 #include "document.h"
+#include "curvature.h"
 
 enum
 {
@@ -48,6 +49,7 @@ private:
     bool mirrorChanges;
     bool drawWireframe;
     bool drawInterpolated;
+    bool drawCurvature;
     OrbitCamera camera;
 
     Tool *currentTool;
@@ -63,7 +65,7 @@ private:
     void resetTools();
     void resetCamera();
     void resetInteraction();
-    void drawMesh() const;
+    void drawMesh();//const;
     void drawSkeleton(bool drawTransparent) const;
     void drawGroundPlane() const;
     void camera2D() const;
@@ -73,6 +75,7 @@ public slots:
     void setMirrorChanges(bool useMirrorChanges);
     void setWireframe(bool useWireframe);
     void setInterpolated(bool useInterpolated);
+    void setCurvature(bool useCurvature);
     void deleteSelection();
 };
 
