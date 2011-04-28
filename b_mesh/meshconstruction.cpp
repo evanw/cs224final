@@ -5,6 +5,10 @@ struct ResultQuad
     Vector3 v[4];
     int i0, i1, i2, i3;
 
+    // TODO: remove this when stitching is implemented
+    bool invalid;
+    ResultQuad() : invalid(false) {}
+
     void setVertices(const Vector3 &a, const Vector3 &b, const Vector3 &c, const Vector3 &d) { v[0] = a; v[1] = b; v[2] = c; v[3] = d; }
     void setIndices(int a, int b, int c, int d) { i0 = a; i1 = b; i2 = c; i3 = d; }
 };
@@ -126,7 +130,7 @@ static void makeElbow(Mesh &mesh, const Ball &ball, ResultQuad &result)
     ResultQuad last;
     sweep(mesh, child, last);
 
-    if (ball.parentIndex == -1)
+    if (ball.parentIndex == -1 || last.invalid)
     {
         // TODO: handle this case
         return;
@@ -165,36 +169,30 @@ static void makeJoint(Mesh &mesh, const Ball &ball, ResultQuad &result)
         ResultQuad last;
         sweep(mesh, child, last);
 
+        // TODO: remove this when stitching is implemented
+        if (last.invalid) continue;
+
         // move the quad center from child to ball
         float scale = ball.maxRadius() / child.maxRadius();
         Vector3 v[4];
         for (int j = 0; j < 4; j++) {
             v[j] = ball.center + (child.center - ball.center).unit() * ball.maxRadius() + (last.v[j] - child.center) * scale;
         }
-        int i = mesh.vertices.count();
         addSweep(mesh, last.i0, last.i1, last.i2, last.i3, v[0], v[1], v[2], v[3]);
-
-        // TODO: stitching step instead
-        result.setIndices(i, i + 1, i + 2, i + 3);
-        result.setVertices(v[0], v[1], v[2], v[3]);
     }
+
+    // TODO: remove this when stitching is implemented
+    result.invalid = true;
 }
 
-void sweep(Mesh &m, const Ball &b, ResultQuad &result)
+void sweep(Mesh &mesh, const Ball &ball, ResultQuad &result)
 {
-    switch (b.childrenIndices.count())
-    {
-    case 0:
-        makeCap(m, b, result);
-        break;
-
-    case 1:
-        makeElbow(m, b, result);
-        break;
-
-    default:
-        makeJoint(m, b, result);
-    }
+    if (ball.childrenIndices.isEmpty())
+        makeCap(mesh, ball, result);
+    else if (ball.parentIndex == -1 || ball.childrenIndices.count() > 1)
+        makeJoint(mesh, ball, result);
+    else
+        makeElbow(mesh, ball, result);
 }
 
 void MeshConstruction::BMeshInit(Mesh &m) {
