@@ -444,7 +444,7 @@ void View::camera3D() const
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45, (float)width() / (float)height(), 0.1, 1000.0);
+    gluPerspective(45, (float)width() / (float)height(), 0.1, 5000.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     camera.apply();

@@ -108,7 +108,6 @@ bool Mesh::loadFromOBJ(const string &file)
     }
 
     // remove bad triangles
-    int original = triangles.size();
     for (int i = 0; i < triangles.size(); i++)
     {
         Triangle &tri = triangles[i];
@@ -116,22 +115,15 @@ bool Mesh::loadFromOBJ(const string &file)
                 tri.a.index >= vertices.count() || tri.b.index >= vertices.count() || tri.c.index >= vertices.count())
             triangles.remove(i--);
     }
-    cout << "removed " << (original - triangles.size()) << " bad triangles" << endl;
 
     // remove bad quads
-    original = quads.size();
     for (int i = 0; i < quads.size(); i++)
     {
         Quad &quad = quads[i];
         if (quad.a.index < 0 || quad.b.index < 0 || quad.c.index < 0 || quad.d.index < 0 ||
                 quad.a.index >= vertices.count() || quad.b.index >= vertices.count() || quad.c.index >= vertices.count() || quad.d.index >= vertices.count())
-        {
-            cout << quad.a.index << " " << quad.b.index << " " << quad.c.index << " " << quad.d.index << endl;
-            exit(0);
             quads.remove(i--);
-        }
     }
-    cout << "removed " << (original - quads.size()) << " bad quads" << endl;
 
     // remove bad balls
     for (int i = 0; i < balls.size(); i++)
