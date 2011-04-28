@@ -52,7 +52,6 @@ public:
 
     bool operator == (const Vector2 &vec) const { return x == vec.x && y == vec.y; }
     bool operator != (const Vector2 &vec) const { return x != vec.x || y != vec.y; }
-    bool apequal(const Vector2 &vec) const {return abs(x-vec.x)<EPSILON && abs(y-vec.y)<EPSILON;}
 
     float lengthSquared() const { return x * x + y * y; }
     float length() const { return sqrtf(lengthSquared()); }
@@ -111,7 +110,6 @@ public:
 
     bool operator == (const Vector3 &vec) const { return x == vec.x && y == vec.y && z == vec.z; }
     bool operator != (const Vector3 &vec) const { return x != vec.x || y != vec.y || z != vec.z; }
-    bool apequal(const Vector3 &vec) const {return abs(x-vec.x)<EPSILON && abs(y-vec.y)<EPSILON && abs(z-vec.z)<EPSILON;}
 
     float lengthSquared() const { return x * x + y * y + z * z; }
     float length() const { return sqrtf(lengthSquared()); }

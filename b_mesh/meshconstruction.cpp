@@ -31,7 +31,7 @@ static Vector3 rotate(const Vector3 &p, const Vector3 &v, float radians)
 {
     Vector3 temp = Vector3(p);
 
-    Vector3 axisX = Vector3(1, 1, 1).cross(v).unit();
+    Vector3 axisX = ((fabsf(v.dot(X)) < 0.75) ? X : Y).cross(v).unit();
     Vector3 axisY = v.cross(axisX);
 
     float x = temp.dot(axisX);
@@ -50,13 +50,8 @@ static void makeStartOfSweep(Mesh &mesh, const Ball &ball, Vector3 &v0, Vector3 
     Vector3 boneDirection = parent.center - ball.center;
     Vector3 x,y,z;
     x = -boneDirection.unit();
-    if(x.apequal(Y) || x.apequal(-Y)){
-        y = X;
-        z = Z;
-    }else {
-        y = Y.cross(x).unit();
-        z = x.cross(y).unit();
-    }
+    y = (fabsf(x.dot(Y)) < 0.5 ? Y : X).cross(x).unit();
+    z = x.cross(y).unit();
 
     float r = ball.maxRadius();
     x*=r;

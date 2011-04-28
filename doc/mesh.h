@@ -98,6 +98,7 @@ public:
     void uploadToGPU();
 
     int getOppositeBall(int index) const;
+    void drawPoints() const;
     void drawFill() const;
     void drawWireframe() const;
     void drawKeyBalls(float alpha = 1) const;

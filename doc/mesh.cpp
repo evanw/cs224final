@@ -265,6 +265,14 @@ int Mesh::getOppositeBall(int index) const
     return oppositeIndex;
 }
 
+void Mesh::drawPoints() const
+{
+    glBegin(GL_POINTS);
+    foreach (const Vertex &vertex, vertices)
+        glVertex3fv(vertex.pos.xyz);
+    glEnd();
+}
+
 void Mesh::drawFill() const
 {
 #if ENABLE_GPU_UPLOAD

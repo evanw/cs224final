@@ -65,7 +65,8 @@ private:
     void resetTools();
     void resetCamera();
     void resetInteraction();
-    void drawMesh();//const;
+    void drawPoints() const;
+    void drawMesh() const;
     void drawSkeleton(bool drawTransparent) const;
     void drawGroundPlane() const;
     void camera2D() const;

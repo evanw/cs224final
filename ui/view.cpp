@@ -89,6 +89,7 @@ void View::initializeGL()
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_POINT_SMOOTH);
     glEnable(GL_COLOR_MATERIAL);
     glClearColor(0.875, 0.875, 0.875, 0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -114,6 +115,7 @@ void View::paintGL()
     if (mode == MODE_EDIT_MESH)
     {
         drawMesh();
+        drawPoints();
         drawGroundPlane();
         drawSkeleton(true);
     }
@@ -205,7 +207,20 @@ void View::resetInteraction()
     selectedBall = oppositeSelectedBall = -1;
 }
 
-void View::drawMesh() //const
+void View::drawPoints() const
+{
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+
+    glPointSize(3);
+    glColor3f(0, 0, 0);
+    doc->mesh.drawPoints();
+
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+}
+
+void View::drawMesh() const
 {
     if (doc->mesh.triangles.count() + doc->mesh.quads.count() == 0) return;
 
@@ -238,7 +253,6 @@ void View::drawMesh() //const
 
         glColor4f(0, 0, 0, 0.5);
         Curvature().drawCurvatures(doc->mesh);
-        //curvature.drawCurvatures(doc->mesh);
 
         glDisable(GL_BLEND);
         glDepthMask(GL_TRUE);
