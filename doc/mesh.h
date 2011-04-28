@@ -5,6 +5,8 @@
 #include <string>
 #include "vector.h"
 
+#define BALL_DETAIL 16
+
 // true = use vertex buffers, will be faster because data stays on the GPU between frames
 // false = use glBegin() and glEnd() blocks, use for older platforms or if vertex buffers don't work
 #define ENABLE_GPU_UPLOAD 0
@@ -95,7 +97,6 @@ public:
     void updateNormals();
     void uploadToGPU();
 
-    int getDetail() const;
     int getOppositeBall(int index) const;
     void drawFill() const;
     void drawWireframe() const;

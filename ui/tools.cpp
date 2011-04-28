@@ -39,7 +39,6 @@ int Tool::getOppositeIndex(bool ignorePlanarBalls) const
 
 int Tool::getSelection(int x, int y) const
 {
-    int detail = view->doc->mesh.getDetail();
     SelectionRecorder sel;
     view->camera3D();
     sel.enterSelectionMode(x, y);
@@ -49,7 +48,7 @@ int Tool::getSelection(int x, int y) const
     {
         Ball &ball = view->doc->mesh.balls[i];
         sel.setObjectIndex(i);
-        ball.draw(detail);
+        ball.draw(BALL_DETAIL);
     }
     return sel.exitSelectionMode();
 }

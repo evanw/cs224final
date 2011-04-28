@@ -1,13 +1,20 @@
 #include "meshconstruction.h"
+#include "convexhull3d.h"
+#include <QHash>
+
+unsigned int qHash(const Vector3 &vec)
+{
+    unsigned int h1 = qHash(*(int *)&vec.x);
+    unsigned int h2 = qHash(*(int *)&vec.y);
+    unsigned int h3 = qHash(*(int *)&vec.z);
+    unsigned int h12 = ((h1 << 16) | (h1 >> 16)) ^ h2;
+    return ((h12 << 16) | (h12 >> 16)) ^ h3;
+}
 
 struct ResultQuad
 {
     Vector3 v[4];
     int i0, i1, i2, i3;
-
-    // TODO: remove this when stitching is implemented
-    bool invalid;
-    ResultQuad() : invalid(false) {}
 
     void setVertices(const Vector3 &a, const Vector3 &b, const Vector3 &c, const Vector3 &d) { v[0] = a; v[1] = b; v[2] = c; v[3] = d; }
     void setIndices(int a, int b, int c, int d) { i0 = a; i1 = b; i2 = c; i3 = d; }
@@ -36,14 +43,8 @@ static Vector3 rotate(const Vector3 &p, const Vector3 &v, float radians)
     return axisX * (x * cosA - y * sinA) + axisY * (y * cosA + x * sinA) + v * z;
 }
 
-static void makeCap(Mesh &mesh, const Ball &ball, ResultQuad &result)
+static void makeStartOfSweep(Mesh &mesh, const Ball &ball, Vector3 &v0, Vector3 &v1, Vector3 &v2, Vector3 &v3)
 {
-    if (ball.parentIndex == -1)
-    {
-        // TODO: handle this case
-        return;
-    }
-
     //this is an end node. find the local vectors
     Ball parent = mesh.balls.at(ball.parentIndex);
     Vector3 boneDirection = parent.center - ball.center;
@@ -63,23 +64,25 @@ static void makeCap(Mesh &mesh, const Ball &ball, ResultQuad &result)
     z*=r;
 
     //make the quad cap
-    Vector3 v0, v1, v2, v3, v4, v5, v6, v7;
-    v4 = ball.center;
-    v5 = ball.center;
-    v6 = ball.center;
-    v7 = ball.center;
+    v0 = ball.center + y + z;
+    v1 = ball.center - y + z;
+    v2 = ball.center - y - z;
+    v3 = ball.center + y - z;
+}
 
-    //these verts are the center of the sphere
-    v4 += y;
-    v4 += z;
-    v5 -= y;
-    v5 += z;
-    v6 -= y;
-    v6 -= z;
-    v7 += y;
-    v7 -= z;
+static void makeCap(Mesh &mesh, const Ball &ball, ResultQuad &result)
+{
+    if (ball.parentIndex == -1)
+    {
+        // TODO: handle this case
+        return;
+    }
 
     //these are the edge of the sphere
+    Ball parent = mesh.balls.at(ball.parentIndex);
+    Vector3 x = -(parent.center - ball.center).unit() * ball.maxRadius();
+    Vector3 v0, v1, v2, v3, v4, v5, v6, v7;
+    makeStartOfSweep(mesh, ball, v4, v5, v6, v7);
     v0 = v4 + x;
     v1 = v5 + x;
     v2 = v6 + x;
@@ -109,21 +112,6 @@ static void makeCap(Mesh &mesh, const Ball &ball, ResultQuad &result)
     result.setIndices(i + 4, i + 5, i + 6, i + 7);
 }
 
-static void addSweep(Mesh &mesh, int i0, int i1, int i2, int i3, const Vector3 &v0, const Vector3 &v1, const Vector3 &v2, const Vector3 &v3)
-{
-    int i = mesh.vertices.count();
-
-    mesh.vertices += v0;
-    mesh.vertices += v1;
-    mesh.vertices += v2;
-    mesh.vertices += v3;
-
-    mesh.quads += Quad(i, i + 1, i1, i0);
-    mesh.quads += Quad(i + 1, i + 2, i2, i1);
-    mesh.quads += Quad(i + 2, i + 3, i3, i2);
-    mesh.quads += Quad(i + 3, i, i0, i3);
-}
-
 static void addSegmentedSweep(Mesh &mesh,
                               ResultQuad &startQuad,
                               const Vector3 &end0, const Vector3 &end1, const Vector3 &end2, const Vector3 &end3,
@@ -132,7 +120,7 @@ static void addSegmentedSweep(Mesh &mesh,
     Vector3 start = (mesh.vertices[startQuad.i0].pos + mesh.vertices[startQuad.i1].pos + mesh.vertices[startQuad.i2].pos + mesh.vertices[startQuad.i3].pos) / 4;
     Vector3 end = (end0 + end1 + end2 + end3) / 4;
     float startToEnd = (end - start).length();
-    const int divisions = max(0, (startToEnd - startRadius - endRadius) / (startRadius + endRadius));
+    const int divisions = 0;//max(0, (startToEnd - startRadius - endRadius) / (startRadius + endRadius));
     int i0 = startQuad.i0;
     int i1 = startQuad.i1;
     int i2 = startQuad.i2;
@@ -184,10 +172,9 @@ static void makeElbow(Mesh &mesh, const Ball &ball, ResultQuad &result)
     ResultQuad last;
     sweep(mesh, child, last);
 
-    if (ball.parentIndex == -1 || last.invalid)
+    if (ball.parentIndex == -1)
     {
         // TODO: handle this case
-        result.invalid = true;
         return;
     }
 
@@ -218,14 +205,14 @@ static void makeElbow(Mesh &mesh, const Ball &ball, ResultQuad &result)
 
 static void makeJoint(Mesh &mesh, const Ball &ball, ResultQuad &result)
 {
-    for (int k = 0; k < ball.childrenIndices.count(); k++) {
+    QVector<Quad> quads;
+
+    for (int k = 0; k < ball.childrenIndices.count(); k++)
+    {
         Ball &child = mesh.balls[ball.childrenIndices[k]];
 
         ResultQuad last;
         sweep(mesh, child, last);
-
-        // TODO: remove this when stitching is implemented
-        if (last.invalid) continue;
 
         // move the quad center from child to ball
         float scale = ball.maxRadius() / child.maxRadius();
@@ -234,10 +221,94 @@ static void makeJoint(Mesh &mesh, const Ball &ball, ResultQuad &result)
             v[j] = ball.center + (child.center - ball.center).unit() * ball.maxRadius() + (last.v[j] - child.center) * scale;
         }
         addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], child.maxRadius(), ball.maxRadius());
+
+        // remember the last quad for convex hull
+        int i = mesh.vertices.count() - 4;
+        quads += Quad(i, i + 1, i + 2, i + 3);
     }
 
-    // TODO: remove this when stitching is implemented
-    result.invalid = true;
+    // if there's a parent, we have to do a join using a convex hull
+    if (ball.parentIndex != -1)
+    {
+        // create the quad that will be swept up the parent after this
+        int i = mesh.vertices.count();
+        Vector3 v0, v1, v2, v3;
+        Ball &parent = mesh.balls[ball.parentIndex];
+        Vector3 offset = (parent.center - ball.center).unit() * ball.maxRadius();
+        makeStartOfSweep(mesh, ball, v0, v1, v2, v3);
+        mesh.vertices += v0 + offset;
+        mesh.vertices += v1 + offset;
+        mesh.vertices += v2 + offset;
+        mesh.vertices += v3 + offset;
+        result.setIndices(i, i + 1, i + 2, i + 3);
+        result.setVertices(v0, v1, v2, v3);
+        quads += Quad(i, i + 1, i + 2, i + 3);
+    }
+
+    // run the convex hull
+    Mesh temp;
+    QHash<Vector3, int> indexForVector;
+    foreach (const Quad &quad, quads)
+    {
+        // read the quad vertices
+        Vector3 v0 = mesh.vertices[quad.a.index].pos;
+        Vector3 v1 = mesh.vertices[quad.b.index].pos;
+        Vector3 v2 = mesh.vertices[quad.c.index].pos;
+        Vector3 v3 = mesh.vertices[quad.d.index].pos;
+
+        // hack: temporarily shrink the size of the quad so things are much less likely to intersect
+        Vector3 center = (v0 + v1 + v2 + v3) / 4;
+        const float percent = 0.99;
+        v0 += (center - v0) * percent;
+        v1 += (center - v1) * percent;
+        v2 += (center - v2) * percent;
+        v3 += (center - v3) * percent;
+
+        // add the vertices to the input of the convex hul algorithm
+        temp.vertices += Vertex(v0);
+        temp.vertices += Vertex(v1);
+        temp.vertices += Vertex(v2);
+        temp.vertices += Vertex(v3);
+
+        // remember what maps where for reconstruction
+        indexForVector[v0] = quad.a.index;
+        indexForVector[v1] = quad.b.index;
+        indexForVector[v2] = quad.c.index;
+        indexForVector[v3] = quad.d.index;
+    }
+    ConvexHull3D::run(temp);
+    foreach (const Triangle &tri, temp.triangles)
+    {
+        Vector3 v0 = temp.vertices[tri.a.index].pos;
+        Vector3 v1 = temp.vertices[tri.b.index].pos;
+        Vector3 v2 = temp.vertices[tri.c.index].pos;
+
+        // if we generate more vertices, then some of the old vertices were inside the convex hull
+        // we can't deal with that so skip these (don't add any triangles to the mesh with new vertices)
+        if (!indexForVector.contains(v0) ||
+            !indexForVector.contains(v1) ||
+            !indexForVector.contains(v2))
+        {
+            cout << "warning: new vertex generated by convex hull, ignoring triangles with this vertex" << endl;
+            continue;
+        }
+
+        Triangle tri(indexForVector[v0], indexForVector[v1], indexForVector[v2]);
+        bool allOnSameQuad = false;
+
+        // is the triangle all on the same quad?
+        foreach (const Quad &quad, quads)
+        {
+            if (quad.a.index != tri.a.index && quad.b.index != tri.a.index && quad.c.index != tri.a.index && quad.d.index != tri.a.index) continue;
+            if (quad.a.index != tri.b.index && quad.b.index != tri.b.index && quad.c.index != tri.b.index && quad.d.index != tri.b.index) continue;
+            if (quad.a.index != tri.c.index && quad.b.index != tri.c.index && quad.c.index != tri.c.index && quad.d.index != tri.c.index) continue;
+            allOnSameQuad = true;
+            break;
+        }
+
+        // only add the triangle if it won't be inside the mesh
+        if (!allOnSameQuad) mesh.triangles += tri;
+    }
 }
 
 void sweep(Mesh &mesh, const Ball &ball, ResultQuad &result)
