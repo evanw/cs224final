@@ -6,6 +6,7 @@
 #include "meshevolution.h"
 #include "convexhull3d.h"
 #include "edgefairing.h"
+#include "trianglestoquads.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
@@ -214,6 +215,17 @@ void MainWindow::edgeFairing()
     Mesh mesh = doc.mesh;
     EdgeFairing::run(mesh);
     doc.getUndoStack().beginMacro("Edge Fairing");
+    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.getUndoStack().endMacro();
+    updateMode();
+}
+
+void MainWindow::trianglesToQuads()
+{
+    Document &doc = ui->view->getDocument();
+    Mesh mesh = doc.mesh;
+    TrianglesToQuads::run(mesh);
+    doc.getUndoStack().beginMacro("Triangles To Quads");
     doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
     updateMode();

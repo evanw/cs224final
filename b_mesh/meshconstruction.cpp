@@ -1,5 +1,6 @@
 #include "meshconstruction.h"
 #include "convexhull3d.h"
+#include "trianglestoquads.h"
 #include <QHash>
 
 unsigned int qHash(const Vector3 &vec)
@@ -165,7 +166,7 @@ static void addSegmentedSweep(Mesh &mesh,
     Vector3 start = (mesh.vertices[startQuad.i0].pos + mesh.vertices[startQuad.i1].pos + mesh.vertices[startQuad.i2].pos + mesh.vertices[startQuad.i3].pos) / 4;
     Vector3 end = (end0 + end1 + end2 + end3) / 4;
     float startToEnd = (end - start).length();
-    const int divisions = max(0, (startToEnd - startRadius - endRadius) / (startRadius + endRadius));
+    const int divisions = 0;//max(0, (startToEnd - startRadius - endRadius) / (startRadius + endRadius));
     int i0 = startQuad.i0;
     int i1 = startQuad.i1;
     int i2 = startQuad.i2;
@@ -397,5 +398,6 @@ void MeshConstruction::BMeshInit(Mesh &m) {
         }
     }
 
+    TrianglesToQuads::run(m);
     m.updateNormals();
 }

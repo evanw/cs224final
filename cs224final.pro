@@ -23,7 +23,8 @@ HEADERS += \
     util/chull.h \
     util/convexhull3d.h \
     util/curvature.h \
-    util/matrix.h
+    util/matrix.h \
+    b_mesh/trianglestoquads.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -45,7 +46,8 @@ SOURCES += \
     util/chull.cpp \
     util/convexhull3d.cpp \
     util/curvature.cpp \
-    util/matrix.cpp
+    util/matrix.cpp \
+    b_mesh/trianglestoquads.cpp
 
 RESOURCES += \
     resources.qrc

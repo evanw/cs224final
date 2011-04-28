@@ -10,9 +10,18 @@ inline int getInt(const string &str)
     return atoi((slash == string::npos ? str : str.substr(0, slash)).c_str());
 }
 
-void split(const string &str, const string &split, vector<string> &result)
+void split(string str, const string &split, vector<string> &result)
 {
-    string::size_type start = 0, end;
+    // trim characters in split from the start of str
+    string::size_type start = str.find_first_not_of(split);
+    if (start != string::npos) str = str.substr(start);
+
+    // trim characters in split from the end of str
+    string::size_type end = str.find_last_not_of(split);
+    if (end != string::npos) str = str.substr(0, end + 1);
+
+    // perform the split
+    start = 0;
     while ((end = str.find_first_of(split, start)) != string::npos)
     {
         result.push_back(str.substr(start, end - start));
@@ -37,6 +46,10 @@ bool Mesh::loadFromOBJ(const string &file)
     Vector3 maxVertex(-FLT_MAX, -FLT_MAX, -FLT_MAX);
     while (getline(f, line))
     {
+        // remove the trailing newline
+        if (!line.empty() && line[line.size() - 1] == '\r') line.erase(line.end() - 1);
+        if (!line.empty() && line[line.size() - 1] == '\n') line.erase(line.end() - 1);
+
         vector<string> parts;
         split(line, " ", parts);
 
@@ -95,6 +108,7 @@ bool Mesh::loadFromOBJ(const string &file)
     }
 
     // remove bad triangles
+    int original = triangles.size();
     for (int i = 0; i < triangles.size(); i++)
     {
         Triangle &tri = triangles[i];
@@ -102,15 +116,22 @@ bool Mesh::loadFromOBJ(const string &file)
                 tri.a.index >= vertices.count() || tri.b.index >= vertices.count() || tri.c.index >= vertices.count())
             triangles.remove(i--);
     }
+    cout << "removed " << (original - triangles.size()) << " bad triangles" << endl;
 
     // remove bad quads
+    original = quads.size();
     for (int i = 0; i < quads.size(); i++)
     {
         Quad &quad = quads[i];
         if (quad.a.index < 0 || quad.b.index < 0 || quad.c.index < 0 || quad.d.index < 0 ||
                 quad.a.index >= vertices.count() || quad.b.index >= vertices.count() || quad.c.index >= vertices.count() || quad.d.index >= vertices.count())
+        {
+            cout << quad.a.index << " " << quad.b.index << " " << quad.c.index << " " << quad.d.index << endl;
+            exit(0);
             quads.remove(i--);
+        }
     }
+    cout << "removed " << (original - quads.size()) << " bad quads" << endl;
 
     // remove bad balls
     for (int i = 0; i < balls.size(); i++)

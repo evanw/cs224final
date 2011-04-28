@@ -32,6 +32,7 @@ public slots:
     void convexHull();
     void evolveMesh();
     void edgeFairing();
+    void trianglesToQuads();
 
 private:
     Ui::MainWindow *ui;

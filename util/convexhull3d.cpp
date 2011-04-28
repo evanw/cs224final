@@ -16,7 +16,7 @@ void ConvexHull3D::run(Mesh &mesh)
 // The following test crashes on mac but passes on linux. It occurs in both 32-bit and 64-bit builds.
 // Problem: Chull3D::edges == NULL
 // Stacktrace:
-// 0  Chull3D::clean_edges()     line 242
+// 0  Chull3D::clean_edges()     line 424
 // 1  Chull3D::clean_up()        line 389
 // 2  Chull3D::construct_hull()  line 273
 // 3  Chull3D::compute()         line 200
