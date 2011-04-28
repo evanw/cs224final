@@ -72,9 +72,59 @@ static void makeStartOfSweep(Mesh &mesh, const Ball &ball, Vector3 &v0, Vector3 
 
 static void makeCap(Mesh &mesh, const Ball &ball, ResultQuad &result)
 {
+    // if we have no parent (and no children, since we are in this method), then just make a box
     if (ball.parentIndex == -1)
     {
-        // TODO: handle this case
+        float r = ball.maxRadius();
+        Vector3 x,y,z;
+        x = X*r;
+        y = Y*r;
+        z = Z*r;
+
+        Vector3 v0, v1, v2, v3, v4, v5, v6, v7;
+        v0 = ball.center;
+        v1 = ball.center;
+        v2 = ball.center;
+        v3 = ball.center;
+        v4 = ball.center;
+        v5 = ball.center;
+        v6 = ball.center;
+        v7 = ball.center;
+
+        v0 += y + x;
+        v0 += z;
+        v1 -= y - x;
+        v1 += z;
+        v2 -= y - x;
+        v2 -= z;
+        v3 += y + x;
+        v3 -= z;
+        v4 += y - x;
+        v4 += z;
+        v5 -= y + x;
+        v5 += z;
+        v6 -= y + x;
+        v6 -= z;
+        v7 += y - x;
+        v7 -= z;
+
+        int i = mesh.vertices.count();
+        mesh.vertices += Vertex(v0);
+        mesh.vertices += Vertex(v1);
+        mesh.vertices += Vertex(v2);
+        mesh.vertices += Vertex(v3);
+        mesh.vertices += Vertex(v4);
+        mesh.vertices += Vertex(v5);
+        mesh.vertices += Vertex(v6);
+        mesh.vertices += Vertex(v7);
+
+        mesh.quads += Quad(i,i+1,i+2,i+3);
+        mesh.quads += Quad(i+7,i+6,i+5,i+4);
+        mesh.quads += Quad(i+7,i+4,i,i+3);
+        mesh.quads += Quad(i+6,i+7,i+3,i+2);
+        mesh.quads += Quad(i+6,i+2,i+1,i+5);
+        mesh.quads += Quad(i,i+4,i+5,i+1);
+
         return;
     }
 

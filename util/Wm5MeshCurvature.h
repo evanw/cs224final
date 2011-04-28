@@ -16,40 +16,40 @@
 namespace Wm5
 {
 
-template <typename Real>
+template <typename float>
 class WM5_MATHEMATICS_ITEM MeshCurvature
 {
 public:
     // The caller is responsible for deleting the input arrays.
-    MeshCurvature (int numVertices, const Vector3<Real>* vertices,
+    MeshCurvature (int numVertices, const Vector3<float>* vertices,
         int numTriangles, const int* indices);
 
     virtual ~MeshCurvature ();
 
     // Input values from the constructor.
     int GetNumVertices () const;
-    const Vector3<Real>* GetVertices () const;
+    const Vector3<float>* GetVertices () const;
     int GetNumTriangles () const;
     const int* GetIndices () const;
 
     // Derived quantites from the input mesh.
-    const Vector3<Real>* GetNormals () const;
-    const Real* GetMinCurvatures () const;
-    const Real* GetMaxCurvatures () const;
-    const Vector3<Real>* GetMinDirections () const;
-    const Vector3<Real>* GetMaxDirections () const;
+    const Vector3<float>* GetNormals () const;
+    const float* GetMinCurvatures () const;
+    const float* GetMaxCurvatures () const;
+    const Vector3<float>* GetMinDirections () const;
+    const Vector3<float>* GetMaxDirections () const;
 
 protected:
     int mNumVertices;
-    const Vector3<Real>* mVertices;
+    const Vector3<float>* mVertices;
     int mNumTriangles;
     const int* mIndices;
 
-    Vector3<Real>* mNormals;
-    Real* mMinCurvatures;
-    Real* mMaxCurvatures;
-    Vector3<Real>* mMinDirections;
-    Vector3<Real>* mMaxDirections;
+    Vector3<float>* mNormals;
+    float* mMinCurvatures;
+    float* mMaxCurvatures;
+    Vector3<float>* mMinDirections;
+    Vector3<float>* mMaxDirections;
 };
 
 typedef MeshCurvature<float> MeshCurvaturef;

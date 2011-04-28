@@ -21,7 +21,9 @@ HEADERS += \
     b_mesh/meshevolution.h \
     b_mesh/edgefairing.h \
     util/chull.h \
-    util/convexhull3d.h
+    util/convexhull3d.h \
+    util/curvature.h \
+    util/matrix.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -41,7 +43,9 @@ SOURCES += \
     b_mesh/meshevolution.cpp \
     b_mesh/edgefairing.cpp \
     util/chull.cpp \
-    util/convexhull3d.cpp
+    util/convexhull3d.cpp \
+    util/curvature.cpp \
+    util/matrix.cpp
 
 RESOURCES += \
     resources.qrc
