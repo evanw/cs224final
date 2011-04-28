@@ -7,9 +7,11 @@
 class Curvature
 {
 public:
-    Curvature();
-
     void computeCurvatures(const Mesh &mesh);
+    const QVector<float>& getMinCurvatures() { return minCurvatures; }
+    const QVector<float>& getMaxCurvaturs() { return maxCurvatures; }
+    const QVector<Vector3>& getMinDirections() { return minDirections; }
+    const QVector<Vector3>& getMaxDirections() { return maxDirections; }
 
 private:
     QVector<float> minCurvatures;

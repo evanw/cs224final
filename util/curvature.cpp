@@ -28,11 +28,6 @@ void generateComplementBasis(Vector3& u, Vector3& v, const Vector3& w) {
 }
 
 
-Curvature::Curvature()
-{
-}
-
-
 void Curvature::computeCurvatures(const Mesh &mesh) {
     int nVerts = mesh.vertices.size();
 
@@ -137,8 +132,8 @@ void Curvature::computeCurvatures(const Mesh &mesh) {
 
         if (DWTrnZero[i]) {
             // At a locally planar point.
-            minCurvatures[i] = (float)0;
-            maxCurvatures[i] = (float)0;
+            minCurvatures[i] = 0.f;
+            maxCurvatures[i] = 0.f;
             minDirections[i] = U;
             maxDirections[i] = V;
             continue;
@@ -186,23 +181,3 @@ void Curvature::computeCurvatures(const Mesh &mesh) {
         }
     }
 }
-
-/* const float* Curvature<float>::GetMinCurvatures() const
-{
-    return mMinCurvatures;
-}
-
-const float* Curvature<float>::GetMaxCurvatures() const
-{
-    return mMaxCurvatures;
-}
-
-const Vector3<float>* Curvature::getMinDirections() const
-{
-    return mMinDirections;
-}
-
-const Vector3<float>* Curvature::getMaxDirections() const
-{
-    return mMaxDirections;
-} */
