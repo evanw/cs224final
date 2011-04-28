@@ -209,15 +209,18 @@ void View::resetInteraction()
 
 void View::drawPoints() const
 {
-    glDepthMask(GL_FALSE);
-    glEnable(GL_BLEND);
+    if (drawWireframe)
+    {
+        glDepthMask(GL_FALSE);
+        glEnable(GL_BLEND);
 
-    glPointSize(3);
-    glColor3f(0, 0, 0);
-    doc->mesh.drawPoints();
+        glPointSize(3);
+        glColor3f(0, 0, 0);
+        doc->mesh.drawPoints();
 
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
+    }
 }
 
 void View::drawMesh() const

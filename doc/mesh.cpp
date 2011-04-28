@@ -267,10 +267,24 @@ int Mesh::getOppositeBall(int index) const
 
 void Mesh::drawPoints() const
 {
-    glBegin(GL_POINTS);
-    foreach (const Vertex &vertex, vertices)
-        glVertex3fv(vertex.pos.xyz);
-    glEnd();
+#if ENABLE_GPU_UPLOAD
+    if (vertexBuffer && triangleIndexBuffer)
+    {
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertexBuffer);
+        glVertexPointer(3, GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(0));
+        glDrawArrays(GL_POINTS, 0, cachedVertices.count());
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+        glDisableClientState(GL_VERTEX_ARRAY);
+    }
+    else
+#endif
+    {
+        glBegin(GL_POINTS);
+        foreach (const Vertex &vertex, vertices)
+            glVertex3fv(vertex.pos.xyz);
+        glEnd();
+    }
 }
 
 void Mesh::drawFill() const
