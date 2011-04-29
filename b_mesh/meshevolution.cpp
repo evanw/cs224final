@@ -1,9 +1,13 @@
 #include "meshevolution.h"
+#include "curvature.h"
+#include <float.h>
+
 
 inline float squared(float x)
 {
     return x * x;
 }
+
 
 static float scalarField(const Ball &ball, const Vector3 &pos)
 {
@@ -15,6 +19,7 @@ static float scalarField(const Ball &ball, const Vector3 &pos)
             squared(delta.dot(ball.ez) / ball.ez.lengthSquared());
     return squared(1 - ratioSquared / squared(alpha));
 }
+
 
 MeshEvolution::MeshEvolution(Mesh &mesh) : mesh(mesh)
 {
@@ -44,12 +49,31 @@ MeshEvolution::MeshEvolution(Mesh &mesh) : mesh(mesh)
             balls += tween;
         }
     }
+
+    // get step size
+    float minRadius = FLT_MAX;
+    foreach (const Ball &ball, mesh.balls) {
+        float currRadius = ball.maxRadius();
+        if (currRadius < minRadius) {
+            minRadius = currRadius;
+        }
+    }
+    // step = min(r_i) / 2^k, k = subdivision level
+    step = minRadius / pow(2, mesh.subdivisionLevel);
+}
+
+float MeshEvolution::motionSpeed(int vertIndex) const
+{
+    float fk = 1.f / (1 + fabsf(maxCurvatures[vertIndex]) + fabsf(minCurvatures[vertIndex]));
+    // TODO: what's Itarget?
+    float Itarget = scalarField(mesh.vertices[vertIndex].pos);
+    return (scalarField(mesh.vertices[vertIndex].pos) - Itarget) * fk;
 }
 
 float MeshEvolution::scalarField(const Vector3 &pos) const
 {
     // TODO: threshold parameter
-    const float threshold = 0;
+    const float threshold = 0.1f;
     float total = 0;
     foreach (const Ball &ball, balls)
         total += ::scalarField(ball, pos);
@@ -58,22 +82,37 @@ float MeshEvolution::scalarField(const Vector3 &pos) const
 
 void MeshEvolution::evolve(float time) const
 {
-    const float target = 0;
-    for (int i = 0; i < mesh.vertices.count(); i++)
-    {
+    for (int i = 0; i < mesh.vertices.count(); ++i) {
         Vertex &vertex = mesh.vertices[i];
-        float k1 = 0, k2 = 0; // TODO: principal curvatures
-        float speed = (scalarField(vertex.pos) - target) / (1 + fabsf(k1) + fabsf(k2));
-        vertex.pos += vertex.normal * (speed * time);
+        vertex.pos += vertex.normal * (motionSpeed(i) * time);
     }
     mesh.updateNormals();
+}
+
+float MeshEvolution::getMaxTimestep() const
+{
+    float fMax = FLT_MIN;
+
+    for (int i = 0, n = mesh.vertices.size(); i < n; ++i) {
+        float fCurr = motionSpeed(i);
+        if (fCurr < fMax) {
+            fMax = fCurr;
+        }
+    }
+
+    return step / fMax;
 }
 
 void MeshEvolution::run(Mesh &mesh)
 {
     MeshEvolution evolution(mesh);
+    Curvature curvature;
+    curvature.computeCurvatures(mesh);
+    evolution.maxCurvatures = curvature.getMaxCurvatures();
+    evolution.minCurvatures = curvature.getMinCurvatures();
 
-    // TODO: adaptive step size
-    for (int i = 0; i < 100; i++)
-        evolution.evolve(0.01);
+    // TODO: stop evolution based on error threshold
+    for (int i = 0; i < 1; ++i) {
+        evolution.evolve(evolution.getMaxTimestep());
+    }
 }

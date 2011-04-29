@@ -3,7 +3,7 @@
 #include "mesh.h"
 #include "qgl.h"
 
-// fill in u and v given w
+// fills in u and v given w
 void generateComplementBasis(Vector3& u, Vector3& v, const Vector3& w) {
     float invLength;
 

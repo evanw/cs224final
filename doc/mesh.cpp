@@ -51,6 +51,7 @@ Mesh::Mesh()
     : vertexBuffer(0), triangleIndexBuffer(0), lineIndexBuffer(0)
 #endif
 {
+    subdivisionLevel = 0;
 }
 
 Mesh::~Mesh()

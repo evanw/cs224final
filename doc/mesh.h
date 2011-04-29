@@ -89,6 +89,7 @@ public:
     QVector<Vertex> vertices;
     QVector<Triangle> triangles;
     QVector<Quad> quads;
+    int subdivisionLevel;
 
     Mesh();
     ~Mesh();
