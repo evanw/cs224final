@@ -23,14 +23,6 @@ struct CatmullFace {
     int facePoint;
 };
 
-// a vertex in a CatmullMesh
-struct CatmullVertex {
-    Vector3 pos;
-
-    QVector<Vector3> facePoints; // face points for faces including this vertex
-    QVector<Vector3> edgePoints; // edge points for faces including this vertex
-};
-
 // an edge in a CatmullMesh
 struct CatmullEdge {
     CatmullEdge() { faces[0] = faces[1] = NULL; }
@@ -38,6 +30,14 @@ struct CatmullEdge {
     Vector3 pos; // position of this edge's edgePoint
 
     CatmullFace *faces[2];
+};
+
+// a vertex in a CatmullMesh
+struct CatmullVertex {
+    Vector3 pos;
+
+    QVector<Vector3> facePoints; // face points for faces including this vertex
+    QVector<CatmullEdge *> edges; // edges including this vertex
 };
 
 // a mesh holding additional data used for Catmull-Clark subdivision

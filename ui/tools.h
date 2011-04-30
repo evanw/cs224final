@@ -3,6 +3,7 @@
 
 #include "camera.h"
 #include "raytracer.h"
+#include "mesh.h"
 
 class View;
 class QMouseEvent;
@@ -12,7 +13,13 @@ class Tool
 protected:
     View *view;
 
-    int getOpposite(bool ignorePlanarBalls) const;
+    Ball &getSelectedBall();
+    Ball &getOppositeBall();
+
+    const Ball &getSelectedBall() const;
+    const Ball &getOppositeBall() const;
+
+    int getOppositeIndex(bool ignorePlanarBalls) const;
     int getSelection(int x, int y) const;
     bool hitTestSelection(int x, int y, HitTest &result, int method) const;
 
@@ -56,8 +63,7 @@ public:
 class ScaleSelectionTool : public Tool
 {
 private:
-    Vector3 planeNormal;
-    Vector3 originalHit;
+    int originalMouseY;
     Vector3 originalX;
     Vector3 originalY;
     Vector3 originalZ;

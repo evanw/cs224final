@@ -4,8 +4,9 @@
 #include "meshconstruction.h"
 #include "catmullclark.h"
 #include "meshevolution.h"
-#include "convexhullsolver.h"
+#include "convexhull3d.h"
 #include "edgefairing.h"
+#include "trianglestoquads.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
@@ -167,7 +168,7 @@ void MainWindow::generateMesh()
     Document &doc = ui->view->getDocument();
     mesh.balls = doc.mesh.balls;
     mesh.updateChildIndices();
-    MeshConstruction::BMeshInit(&mesh);
+    MeshConstruction::BMeshInit(mesh);
     doc.getUndoStack().beginMacro("Generate Mesh");
     doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
@@ -181,6 +182,7 @@ void MainWindow::subdivideMesh()
     CatmullMesh::subdivide(doc.mesh, mesh);
     doc.getUndoStack().beginMacro("Subdivide Mesh");
     doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.mesh.subdivisionLevel += 1;
     doc.getUndoStack().endMacro();
     updateMode();
 }
@@ -190,7 +192,7 @@ void MainWindow::convexHull()
     Mesh mesh;
     Document &doc = ui->view->getDocument();
     mesh.vertices = doc.mesh.vertices;
-    ConvexHullSolver::run(mesh);
+    ConvexHull3D::run(mesh);
     doc.getUndoStack().beginMacro("Convex Hull");
     doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
@@ -214,6 +216,17 @@ void MainWindow::edgeFairing()
     Mesh mesh = doc.mesh;
     EdgeFairing::run(mesh);
     doc.getUndoStack().beginMacro("Edge Fairing");
+    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.getUndoStack().endMacro();
+    updateMode();
+}
+
+void MainWindow::trianglesToQuads()
+{
+    Document &doc = ui->view->getDocument();
+    Mesh mesh = doc.mesh;
+    TrianglesToQuads::run(mesh);
+    doc.getUndoStack().beginMacro("Triangles To Quads");
     doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
     updateMode();

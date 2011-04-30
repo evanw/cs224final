@@ -64,6 +64,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="drawCurvature">
+         <property name="text">
+          <string>Draw Curvature</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="generateMesh">
          <property name="text">
           <string>Generate Mesh</string>
@@ -99,6 +106,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="trianglesToQuads">
+         <property name="text">
+          <string>Triangles To Quads</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QWidget" name="emptySpace" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
@@ -122,7 +136,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -340,6 +354,7 @@
     <slot>deleteSelection()</slot>
     <slot>setInterpolated(bool)</slot>
     <slot>setMirrorChanges(bool)</slot>
+    <slot>setCurvature(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -683,6 +698,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>drawCurvature</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>view</receiver>
+   <slot>setCurvature(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>99</x>
+     <y>183</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>499</x>
+     <y>339</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>trianglesToQuads</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>trianglesToQuads()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>99</x>
+     <y>379</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>modeChanged()</slot>
@@ -700,5 +747,6 @@
   <slot>convexHull()</slot>
   <slot>evolveMesh()</slot>
   <slot>edgeFairing()</slot>
+  <slot>trianglesToQuads()</slot>
  </slots>
 </ui>

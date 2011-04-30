@@ -5,6 +5,7 @@
 #include "tools.h"
 #include "camera.h"
 #include "document.h"
+#include "curvature.h"
 
 enum
 {
@@ -41,11 +42,14 @@ protected:
 private:
     Document *doc;
     int selectedBall;
+    int oppositeSelectedBall; // used by tools
+    int mouseX, mouseY; // for highlighting the face of the selection cube
     int mode;
 
     bool mirrorChanges;
     bool drawWireframe;
     bool drawInterpolated;
+    bool drawCurvature;
     OrbitCamera camera;
 
     Tool *currentTool;
@@ -61,6 +65,7 @@ private:
     void resetTools();
     void resetCamera();
     void resetInteraction();
+    void drawPoints() const;
     void drawMesh() const;
     void drawSkeleton(bool drawTransparent) const;
     void drawGroundPlane() const;
@@ -71,6 +76,7 @@ public slots:
     void setMirrorChanges(bool useMirrorChanges);
     void setWireframe(bool useWireframe);
     void setInterpolated(bool useInterpolated);
+    void setCurvature(bool useCurvature);
     void deleteSelection();
 };
 

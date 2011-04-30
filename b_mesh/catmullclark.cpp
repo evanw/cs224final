@@ -78,12 +78,13 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
     QMap<QPair<int, int>, CatmullEdge>::const_iterator it;
     for (it = edges.begin(); it != edges.end(); ++it) {
         if (it.value().faces[1] == NULL) {
-            std::cerr << "Error, edge connects to only one face" << std::endl;
-            valid = false;
-            return;
-        }
-        edges[it.key()].pos = (vertices[it.key().first].pos + vertices[it.key().second].pos +
+            // for edges on the border of a hole, the edge point is average of edge endpoints
+            edges[it.key()].pos = (vertices[it.key().first].pos + vertices[it.key().second].pos) / 2;
+        } else {
+            // edge point is average of edge endpoints and adjacent face points
+            edges[it.key()].pos = (vertices[it.key().first].pos + vertices[it.key().second].pos +
                                facePoints[it.value().faces[0]->facePoint].pos + facePoints[it.value().faces[1]->facePoint].pos) / 4;
+        }
     }
 
     valid = true;
@@ -97,11 +98,11 @@ bool CatmullMesh::moveVertices() {
             int prevIndex = (i == 0 ? face.n - 1 : i - 1);
             CatmullVertex &v = vertices[face.points[i]];
             v.facePoints += facePoints[face.facePoint].pos;
-            if (!v.edgePoints.contains(edges[face.edges[i]].pos)) {
-                v.edgePoints += edges[face.edges[i]].pos;
+            if (!v.edges.contains(&edges[face.edges[i]])) {
+                v.edges += &edges[face.edges[i]];
             }
-            if (!v.edgePoints.contains(edges[face.edges[prevIndex]].pos)) {
-                v.edgePoints += edges[face.edges[prevIndex]].pos;
+            if (!v.edges.contains(&edges[face.edges[prevIndex]])) {
+                v.edges += &edges[face.edges[prevIndex]];
             }
         }
     }
@@ -110,23 +111,32 @@ bool CatmullMesh::moveVertices() {
     Vector3 faceAverage, edgeAverage;
     for (int i = 0; i < vertices.size(); ++i) {
         CatmullVertex &v = vertices[i];
-        if (v.edgePoints.size() != v.facePoints.size()) {
-            std::cerr << "Valence mismatch error: " << v.edgePoints.size() << " edges, " << v.facePoints.size() << " faces" << std::endl;
-            return false;
-        }
-        int numNeighbors = v.edgePoints.size();
         faceAverage.x = faceAverage.y = faceAverage.z = 0;
         edgeAverage.x = edgeAverage.y = edgeAverage.z = 0;
 
-        for (int i = 0; i < numNeighbors; ++i) {
-            faceAverage += v.facePoints[i];
-            edgeAverage += v.edgePoints[i];
-        }
-        faceAverage /= numNeighbors;
-        edgeAverage /= numNeighbors;
+        if (v.edges.size() != v.facePoints.size()) {
+            // point is on the border of a hole, average edges along hole and old point
+            int count = 0;
+            foreach (const CatmullEdge *edge, v.edges) {
+                if (edge->faces[1] == NULL) {
+                    edgeAverage += edge->pos;
+                    ++count;
+                }
+            }
+            v.pos = (edgeAverage + v.pos) / (count + 1);
+        } else {
+            int numNeighbors = v.edges.size();
 
-        // Pnew = ( F + 2R + (n - 3)P ) / n
-        v.pos = (faceAverage + edgeAverage * 2 + v.pos * (numNeighbors - 3)) / numNeighbors;
+            for (int i = 0; i < numNeighbors; ++i) {
+                faceAverage += v.facePoints[i];
+                edgeAverage += v.edges[i]->pos;
+            }
+            faceAverage /= numNeighbors;
+            edgeAverage /= numNeighbors;
+
+            // Pnew = ( F + 2R + (n - 3)P ) / n
+            v.pos = (faceAverage + edgeAverage * 2 + v.pos * (numNeighbors - 3)) / numNeighbors;
+        }
     }
 
     return true;

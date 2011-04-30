@@ -75,3 +75,67 @@ void drawWireDisk()
     }
     glEnd();
 }
+
+void drawMoveCursor()
+{
+    glBegin(GL_LINE_LOOP);
+
+    // +y
+    glVertex2f(-0.2, 0.2);
+    glVertex2f(-0.2, 0.6);
+    glVertex2f(-0.4, 0.6);
+    glVertex2f(0, 1);
+    glVertex2f(0.4, 0.6);
+    glVertex2f(0.2, 0.6);
+    glVertex2f(0.2, 0.2);
+
+    // +x
+    glVertex2f(0.2, 0.2);
+    glVertex2f(0.6, 0.2);
+    glVertex2f(0.6, 0.4);
+    glVertex2f(1, 0);
+    glVertex2f(0.6, -0.4);
+    glVertex2f(0.6, -0.2);
+    glVertex2f(0.2, -0.2);
+
+    // -y
+    glVertex2f(0.2, -0.2);
+    glVertex2f(0.2, -0.6);
+    glVertex2f(0.4, -0.6);
+    glVertex2f(0, -1);
+    glVertex2f(-0.4, -0.6);
+    glVertex2f(-0.2, -0.6);
+    glVertex2f(-0.2, -0.2);
+
+    // -x
+    glVertex2f(-0.2, -0.2);
+    glVertex2f(-0.6, -0.2);
+    glVertex2f(-0.6, -0.4);
+    glVertex2f(-1, 0);
+    glVertex2f(-0.6, 0.4);
+    glVertex2f(-0.6, 0.2);
+    glVertex2f(-0.2, 0.2);
+
+    glEnd();
+}
+
+void drawScaleCursor()
+{
+    glBegin(GL_LINE_LOOP);
+
+    // +y
+    glVertex2f(-0.2, 0.6);
+    glVertex2f(-0.4, 0.6);
+    glVertex2f(0, 1);
+    glVertex2f(0.4, 0.6);
+    glVertex2f(0.2, 0.6);
+
+    // -y
+    glVertex2f(0.2, -0.6);
+    glVertex2f(0.4, -0.6);
+    glVertex2f(0, -1);
+    glVertex2f(-0.4, -0.6);
+    glVertex2f(-0.2, -0.6);
+
+    glEnd();
+}

@@ -10,9 +10,18 @@ inline int getInt(const string &str)
     return atoi((slash == string::npos ? str : str.substr(0, slash)).c_str());
 }
 
-void split(const string &str, const string &split, vector<string> &result)
+void split(string str, const string &split, vector<string> &result)
 {
-    string::size_type start = 0, end;
+    // trim characters in split from the start of str
+    string::size_type start = str.find_first_not_of(split);
+    if (start != string::npos) str = str.substr(start);
+
+    // trim characters in split from the end of str
+    string::size_type end = str.find_last_not_of(split);
+    if (end != string::npos) str = str.substr(0, end + 1);
+
+    // perform the split
+    start = 0;
     while ((end = str.find_first_of(split, start)) != string::npos)
     {
         result.push_back(str.substr(start, end - start));
@@ -37,6 +46,10 @@ bool Mesh::loadFromOBJ(const string &file)
     Vector3 maxVertex(-FLT_MAX, -FLT_MAX, -FLT_MAX);
     while (getline(f, line))
     {
+        // remove the trailing newline
+        if (!line.empty() && line[line.size() - 1] == '\r') line.erase(line.end() - 1);
+        if (!line.empty() && line[line.size() - 1] == '\n') line.erase(line.end() - 1);
+
         vector<string> parts;
         split(line, " ", parts);
 
@@ -83,11 +96,15 @@ bool Mesh::loadFromOBJ(const string &file)
     }
 
     // scale the model to fit in a 4x4x4 cube
-    float scale = 4 / max(-minVertex.min(), maxVertex.max());
-    for (int i = 0; i < vertices.count(); i++)
+    // don't do this if there are any balls, because otherwise the skeleton would be misaligned
+    if (balls.isEmpty())
     {
-        Vertex &vertex = vertices[i];
-        vertex.pos *= scale;
+        float scale = 4 / max(-minVertex.min(), maxVertex.max());
+        for (int i = 0; i < vertices.count(); i++)
+        {
+            Vertex &vertex = vertices[i];
+            vertex.pos *= scale;
+        }
     }
 
     // remove bad triangles

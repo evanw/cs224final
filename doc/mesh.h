@@ -5,9 +5,11 @@
 #include <string>
 #include "vector.h"
 
+#define BALL_DETAIL 16
+
 // true = use vertex buffers, will be faster because data stays on the GPU between frames
 // false = use glBegin() and glEnd() blocks, use for older platforms or if vertex buffers don't work
-#define ENABLE_GPU_UPLOAD false
+#define ENABLE_GPU_UPLOAD 0
 
 struct Ball
 {
@@ -27,6 +29,7 @@ struct Ball
 
     float minRadius() const { return min(min(ex.length(), ey.length()), ez.length()); }
     float maxRadius() const { return max(max(ex.length(), ey.length()), ez.length()); }
+    bool isOppositeOf(const Ball &other) const;
     void draw(int detail) const;
 };
 
@@ -49,7 +52,7 @@ struct Index
     // texture coordinate
     Vector2 coord;
 
-    Index() {}
+    Index() : index(0) {}
     Index(int index) : index(index) {}
 };
 
@@ -86,6 +89,7 @@ public:
     QVector<Vertex> vertices;
     QVector<Triangle> triangles;
     QVector<Quad> quads;
+    int subdivisionLevel;
 
     Mesh();
     ~Mesh();
@@ -94,8 +98,8 @@ public:
     void updateNormals();
     void uploadToGPU();
 
-    int getDetail() const;
     int getOppositeBall(int index) const;
+    void drawPoints() const;
     void drawFill() const;
     void drawWireframe() const;
     void drawKeyBalls(float alpha = 1) const;
