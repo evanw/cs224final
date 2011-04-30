@@ -20,6 +20,7 @@ private:
     void evolve(float time) const;
     float getMaxTimestep() const;
     float motionSpeed(int vertIndex) const; // motion speed function F
+    void testEvolve(float time) const;
 
 public:
     static void run(Mesh &mesh);

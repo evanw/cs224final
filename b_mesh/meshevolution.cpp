@@ -103,6 +103,30 @@ float MeshEvolution::getMaxTimestep() const
     return step / fMax;
 }
 
+// simplified evolution based on signed distance
+void MeshEvolution::testEvolve(float time) const
+{
+    for (int i = 0; i < mesh.vertices.size(); ++i) {
+        Vertex &v = mesh.vertices[i];
+        Vector3 minDiff;
+        const Ball *minBall;
+        float minLengthSquared = FLT_MAX;
+        // find closest point
+        foreach (const Ball &b, mesh.balls) {
+            Vector3 diff = v.pos - b.center;
+            float lengthSquared = diff.lengthSquared();
+            if (lengthSquared < minLengthSquared) {
+                minLengthSquared = lengthSquared;
+                minDiff = diff;
+                minBall = &b;
+            }
+        }
+
+        Vector3 newPos = minBall->center + minDiff.unit() * minBall->maxRadius();
+        v.pos = 0.9f * v.pos + 0.1f * newPos;
+    }
+}
+
 void MeshEvolution::run(Mesh &mesh)
 {
     MeshEvolution evolution(mesh);
@@ -113,6 +137,7 @@ void MeshEvolution::run(Mesh &mesh)
 
     // TODO: stop evolution based on error threshold
     for (int i = 0; i < 1; ++i) {
-        evolution.evolve(evolution.getMaxTimestep());
+        //evolution.evolve(evolution.getMaxTimestep());
+        evolution.testEvolve(0.1f);
     }
 }
