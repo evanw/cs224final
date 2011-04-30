@@ -66,7 +66,7 @@ float MeshEvolution::motionSpeed(int vertIndex) const
 {
     float fk = 1.f / (1 + fabsf(maxCurvatures[vertIndex]) + fabsf(minCurvatures[vertIndex]));
     // TODO: what's Itarget?
-    float Itarget = scalarField(mesh.vertices[vertIndex].pos);
+    float Itarget = 0;
     return (scalarField(mesh.vertices[vertIndex].pos) - Itarget) * fk;
 }
 
@@ -95,7 +95,7 @@ float MeshEvolution::getMaxTimestep() const
 
     for (int i = 0, n = mesh.vertices.size(); i < n; ++i) {
         float fCurr = motionSpeed(i);
-        if (fCurr < fMax) {
+        if (fCurr > fMax) {
             fMax = fCurr;
         }
     }

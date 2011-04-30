@@ -39,18 +39,19 @@ void Curvature::computeCurvatures(const Mesh &mesh) {
     bool DWTrnZero[nVerts];
 
     int row, col;
-    foreach (const Triangle &t, mesh.triangles) {
+    foreach (const Quad &q, mesh.quads) {
         // Get vertex indices.
-        int V[3];
-        V[0] = t.a.index;
-        V[1] = t.b.index;
-        V[2] = t.c.index;
+        int V[4];
+        V[0] = q.a.index;
+        V[1] = q.b.index;
+        V[2] = q.c.index;
+        V[3] = q.d.index;
 
-        for (int j = 0; j < 3; ++j) {
+        for (int j = 0; j < 4; ++j) {
             int i0 = V[j];
             const Vertex &v0 = mesh.vertices[V[j]];
-            const Vertex &v1 = mesh.vertices[V[(j+1) % 3]];
-            const Vertex &v2 = mesh.vertices[V[(j+2) % 3]];
+            const Vertex &v1 = mesh.vertices[V[(j+1) % 4]];
+            const Vertex &v2 = mesh.vertices[V[(j+3) % 4]];
 
             // Compute edge from V0 to V1, project to tangent plane of vertex,
             // and compute difference of adjacent normals.
@@ -91,7 +92,7 @@ void Curvature::computeCurvatures(const Mesh &mesh) {
 
         // Compute the max-abs entry of D*W^T.  If this entry is (nearly)
         // zero, flag the DNormal matrix as singular.
-        float maxAbs = (float)0;
+        float maxAbs = 0.f;
         for (row = 0; row < 3; ++row) {
             for (col = 0; col < 3; ++col) {
                 float absEntry = fabsf(DWTrn[i][row][col]);
