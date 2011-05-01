@@ -1,4 +1,6 @@
 #include "matrix.h"
+#include <cstdio>
+
 //
 // private function: RCD
 // - dot product of row i of matrix A and row j of matrix B

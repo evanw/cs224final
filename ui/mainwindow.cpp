@@ -182,6 +182,7 @@ void MainWindow::subdivideMesh()
     CatmullMesh::subdivide(doc.mesh, mesh);
     doc.getUndoStack().beginMacro("Subdivide Mesh");
     doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.mesh.subdivisionLevel += 1;
     doc.getUndoStack().endMacro();
     updateMode();
 }
