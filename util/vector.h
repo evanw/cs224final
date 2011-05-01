@@ -6,7 +6,6 @@
 #include <iostream>
 
 #define M_2PI (2 * M_PI)
-#define EPSILON (1*10^-6)
 
 inline float frand() { return (float)rand() / (float)RAND_MAX; }
 inline float min(float a, float b) { return a < b ? a : b; }

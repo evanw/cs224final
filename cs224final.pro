@@ -54,3 +54,51 @@ RESOURCES += \
 
 OTHER_FILES += \
     README
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# find . -type d | sed 's/$/ \\/' | sed 's/\.\//util\/wm5\//'
+INCLUDEPATH += \
+    util/wm5/LibCore \
+    util/wm5/LibCore/Assert \
+    util/wm5/LibCore/DataTypes \
+    util/wm5/LibCore/Memory \
+    util/wm5/LibMathematics \
+    util/wm5/LibMathematics/Base \
+    util/wm5/LibMathematics/Algebra \
+    util/wm5/LibMathematics/ComputationalGeometry \
+    util/wm5/LibMathematics/Query \
+    util/wm5/LibMathematics/Rational
+
+# find . -name *.cpp | sed 's/$/ \\/' | sed 's/\.\//util\/wm5\//'
+SOURCES += \
+    util/wm5/LibCore/Assert/Wm5Assert.cpp \
+    util/wm5/LibCore/Wm5CorePCH.cpp \
+    util/wm5/LibMathematics/Algebra/Wm5Vector2.cpp \
+    util/wm5/LibMathematics/Algebra/Wm5Vector3.cpp \
+    util/wm5/LibMathematics/Algebra/Wm5Vector4.cpp \
+    util/wm5/LibMathematics/Base/Wm5BitHacks.cpp \
+    util/wm5/LibMathematics/Base/Wm5Float1.cpp \
+    util/wm5/LibMathematics/Base/Wm5Float2.cpp \
+    util/wm5/LibMathematics/Base/Wm5Float3.cpp \
+    util/wm5/LibMathematics/Base/Wm5Float4.cpp \
+    util/wm5/LibMathematics/Base/Wm5Math.cpp \
+    util/wm5/LibMathematics/ComputationalGeometry/Wm5ConvexHull.cpp \
+    util/wm5/LibMathematics/ComputationalGeometry/Wm5ConvexHull1.cpp \
+    util/wm5/LibMathematics/ComputationalGeometry/Wm5ConvexHull2.cpp \
+    util/wm5/LibMathematics/ComputationalGeometry/Wm5ConvexHull3.cpp \
+    util/wm5/LibMathematics/Query/Wm5Query.cpp \
+    util/wm5/LibMathematics/Rational/Wm5IVector2.cpp \
+    util/wm5/LibMathematics/Rational/Wm5IVector3.cpp \
+    util/wm5/LibMathematics/Wm5MathematicsPCH.cpp

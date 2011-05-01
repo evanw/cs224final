@@ -1,3 +1,6 @@
 *~
 *.user
 .DS_Store
+*.o
+cs224final
+Makefile
