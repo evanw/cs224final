@@ -1,5 +1,5 @@
 #include "texture.h"
-#include "util.h"
+#define GL_GLEXT_PROTOTYPES
 #include <qgl.h>
 #include <iostream>
 using namespace std;
@@ -43,26 +43,26 @@ static unsigned int renderbuffer = 0;
 
 void Texture::startDrawingTo()
 {
-    if (!framebuffer) glGenFramebuffers(1, &framebuffer);
-    if (!renderbuffer) glGenRenderbuffers(1, &renderbuffer);
+    if (!framebuffer) glGenFramebuffersEXT(1, &framebuffer);
+    if (!renderbuffer) glGenRenderbuffersEXT(1, &renderbuffer);
     if (bufferWidth != width || bufferHeight != height)
     {
-        glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, renderbuffer);
+        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT16, width, height);
+        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target, id, 0);
-    switch (glCheckFramebufferStatus(GL_FRAMEBUFFER))
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer);
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, renderbuffer);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, target, id, 0);
+    switch (glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT))
     {
-        case GL_FRAMEBUFFER_UNDEFINED: cout << "GL_FRAMEBUFFER_UNDEFINED" << endl; exit(0);
-        case GL_FRAMEBUFFER_UNSUPPORTED: cout << "GL_FRAMEBUFFER_UNSUPPORTED" << endl; exit(0);
-        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: cout << "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT" << endl; exit(0);
-        case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER: cout << "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER" << endl; exit(0);
-        case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER: cout << "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER" << endl; exit(0);
-        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE: cout << "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE" << endl; exit(0);
-        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: cout << "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT" << endl; exit(0);
+        case GL_FRAMEBUFFER_UNSUPPORTED_EXT: cout << "GL_FRAMEBUFFER_UNSUPPORTED" << endl; exit(0);
+        case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT: cout << "GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS" << endl; exit(0);
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT: cout << "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT" << endl; exit(0);
+        case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT: cout << "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER" << endl; exit(0);
+        case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT: cout << "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER" << endl; exit(0);
+        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_EXT: cout << "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE" << endl; exit(0);
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT: cout << "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT" << endl; exit(0);
     }
     glGetIntegerv(GL_VIEWPORT, viewport);
     glViewport(0, 0, width, height);
