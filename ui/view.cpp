@@ -24,7 +24,7 @@ void View::setMode(int newMode)
 {
     mode = newMode;
     updateTools();
-    updateGL();
+    update();
 }
 
 void View::setCamera(int camera)
@@ -41,7 +41,7 @@ void View::setCamera(int camera)
         break;
     }
     updateTools();
-    updateGL();
+    update();
 }
 
 void View::setDocument(Document *newDoc)
@@ -50,21 +50,21 @@ void View::setDocument(Document *newDoc)
     doc = newDoc;
     resetCamera();
     resetInteraction();
-    updateGL();
+    update();
 }
 
 void View::undo()
 {
     resetInteraction();
     doc->getUndoStack().undo();
-    updateGL();
+    update();
 }
 
 void View::redo()
 {
     resetInteraction();
     doc->getUndoStack().redo();
-    updateGL();
+    update();
 }
 
 void View::initializeGL()
@@ -94,6 +94,8 @@ void View::initializeGL()
     glClearColor(0.875, 0.875, 0.875, 0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glPolygonOffset(1, 1);
+
+    shader.load(":/shaders/shader.vert", ":/shaders/shader.frag");
 }
 
 void View::resizeGL(int width, int height)
@@ -114,7 +116,9 @@ void View::paintGL()
 
     if (mode == MODE_SCULPT_MESH)
     {
+        shader.use();
         drawMesh();
+        shader.unuse();
         drawGroundPlane();
     }
     else if (mode == MODE_EDIT_MESH)
@@ -152,7 +156,7 @@ void View::mousePressEvent(QMouseEvent *event)
         }
     }
 
-    updateGL();
+    update();
 }
 
 void View::mouseMoveEvent(QMouseEvent *event)
@@ -163,7 +167,7 @@ void View::mouseMoveEvent(QMouseEvent *event)
     if (currentTool)
         currentTool->mouseDragged(event);
 
-    updateGL();
+    update();
 }
 
 void View::mouseReleaseEvent(QMouseEvent *event)
@@ -177,7 +181,7 @@ void View::mouseReleaseEvent(QMouseEvent *event)
         currentTool = NULL;
     }
 
-    updateGL();
+    update();
 }
 
 void View::wheelEvent(QWheelEvent *event)
@@ -186,7 +190,7 @@ void View::wheelEvent(QWheelEvent *event)
     {
         if (tools[i]->wheelEvent(event))
         {
-            updateGL();
+            update();
             break;
         }
     }
@@ -471,24 +475,24 @@ void View::camera3D() const
 void View::setMirrorChanges(bool useMirrorChanges)
 {
     mirrorChanges = useMirrorChanges;
-    updateGL();
+    update();
 }
 
 void View::setWireframe(bool useWireframe)
 {
     drawWireframe = useWireframe;
-    updateGL();
+    update();
 }
 
 void View::setInterpolated(bool useInterpolated)
 {
     drawInterpolated = useInterpolated;
-    updateGL();
+    update();
 }
 
 void View::setCurvature(bool useCurvature) {
     drawCurvature = useCurvature;
-    updateGL();
+    update();
 }
 
 void View::deleteSelection()
@@ -505,6 +509,6 @@ void View::deleteSelection()
 
         doc->deleteBall(selectedBall);
         selectedBall = -1;
-        updateGL();
+        update();
     }
 }

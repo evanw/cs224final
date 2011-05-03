@@ -6,6 +6,7 @@
 #include "camera.h"
 #include "document.h"
 #include "curvature.h"
+#include "shader.h"
 
 enum
 {
@@ -73,6 +74,8 @@ private:
     friend class SetAndMoveSelectionTool;
     friend class SetAndScaleSelectionTool;
     friend class CreateBallTool;
+
+    Shader shader;
 
     void clearTools();
     void updateTools();

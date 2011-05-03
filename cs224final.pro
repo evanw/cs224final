@@ -24,7 +24,8 @@ HEADERS += \
     util/convexhull3d.h \
     util/curvature.h \
     util/matrix.h \
-    b_mesh/trianglestoquads.h
+    b_mesh/trianglestoquads.h \
+    util/shader.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -47,13 +48,16 @@ SOURCES += \
     util/convexhull3d.cpp \
     util/curvature.cpp \
     util/matrix.cpp \
-    b_mesh/trianglestoquads.cpp
+    b_mesh/trianglestoquads.cpp \
+    util/shader.cpp
 
 RESOURCES += \
     resources.qrc
 
 OTHER_FILES += \
-    README
+    README \
+    shaders/shader.vert \
+    shaders/shader.frag
 
 
 
