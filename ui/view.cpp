@@ -101,11 +101,14 @@ void View::initializeGL()
 void View::resizeGL(int width, int height)
 {
     glViewport(0, 0, width, height);
+    texture.init(GL_TEXTURE_2D, width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, GL_CLAMP_TO_EDGE, GL_NEAREST);
 }
 
 void View::paintGL()
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (texture.getWidth() * texture.getHeight() == 0)
+        return;
+
     camera3D();
 
     // position lights
@@ -116,19 +119,36 @@ void View::paintGL()
 
     if (mode == MODE_SCULPT_MESH)
     {
+        // draw to the texture
+        texture.startDrawingTo();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        camera3D();
         shader.use();
         drawMesh();
         shader.unuse();
         drawGroundPlane();
+        texture.stopDrawingTo();
+
+        // draw the texture to the screen
+        camera2D();
+        texture.bind(0);
+        glEnable(GL_TEXTURE_2D);
+        glDisable(GL_DEPTH_TEST);
+        drawFullscreenQuad();
+        glEnable(GL_DEPTH_TEST);
+        glDisable(GL_TEXTURE_2D);
+        texture.unbind(0);
     }
     else if (mode == MODE_EDIT_MESH)
     {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         drawMesh();
         drawGroundPlane();
         drawSkeleton(true);
     }
     else
     {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         drawSkeleton(false);
         drawGroundPlane();
     }
@@ -451,6 +471,18 @@ void View::drawGroundPlane() const
     // disable line drawing
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
+}
+
+void View::drawFullscreenQuad() const
+{
+    int w = width(), h = height();
+    glColor3f(1, 1, 1);
+    glBegin(GL_QUADS);
+    glTexCoord2i(0, 1); glVertex2i(0, 0);
+    glTexCoord2i(0, 0); glVertex2i(0, h);
+    glTexCoord2i(1, 0); glVertex2i(w, h);
+    glTexCoord2i(1, 1); glVertex2i(w, 0);
+    glEnd();
 }
 
 void View::camera2D() const

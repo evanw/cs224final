@@ -25,7 +25,8 @@ HEADERS += \
     util/curvature.h \
     util/matrix.h \
     b_mesh/trianglestoquads.h \
-    util/shader.h
+    util/shader.h \
+    util/texture.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -49,7 +50,8 @@ SOURCES += \
     util/curvature.cpp \
     util/matrix.cpp \
     b_mesh/trianglestoquads.cpp \
-    util/shader.cpp
+    util/shader.cpp \
+    util/texture.cpp
 
 RESOURCES += \
     resources.qrc

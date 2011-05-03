@@ -7,6 +7,7 @@
 #include "document.h"
 #include "curvature.h"
 #include "shader.h"
+#include "texture.h"
 
 enum
 {
@@ -76,6 +77,7 @@ private:
     friend class CreateBallTool;
 
     Shader shader;
+    Texture texture;
 
     void clearTools();
     void updateTools();
@@ -84,6 +86,7 @@ private:
     void drawMesh() const;
     void drawSkeleton(bool drawTransparent) const;
     void drawGroundPlane() const;
+    void drawFullscreenQuad() const;
     void camera2D() const;
     void camera3D() const;
 
