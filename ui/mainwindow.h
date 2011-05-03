@@ -19,6 +19,7 @@ public:
 
 public slots:
     void modeChanged();
+    void cameraChanged();
     void fileNew();
     void fileOpen();
     bool fileSave();

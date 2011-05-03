@@ -3,6 +3,10 @@
 #include "selectionrecorder.h"
 #include <QMouseEvent>
 
+// 0 = cursor moves like normal
+// 1 = cursor doesn't move when dragging camera parameters
+#define KEEP_CURSOR_STILL 1
+
 enum { METHOD_SPHERE, METHOD_CUBE };
 
 Ball &Tool::getSelectedBall()
@@ -82,23 +86,104 @@ bool Tool::hitTestSelection(int x, int y, HitTest &result, int method) const
 
 bool OrbitCameraTool::mousePressed(QMouseEvent *event)
 {
-    oldX = event->x();
-    oldY = event->y();
-    return true;
+    originalX = event->globalX();
+    originalY = event->globalY();
+
+    return (event->button() == Qt::LeftButton || event->button() == Qt::RightButton);
 }
 
 void OrbitCameraTool::mouseDragged(QMouseEvent *event)
 {
-    view->camera.theta += (event->x() - oldX) * 0.01f;
-    view->camera.phi += (event->y() - oldY) * 0.01f;
+    // rotate the eye vector around the origin
+    view->orbitCamera.theta += (event->globalX() - originalX) * 0.01f;
+    view->orbitCamera.phi += (event->globalY() - originalY) * 0.01f;
 
     // keep theta in [0, 2pi] and phi in [-pi/2, pi/2]
-    view->camera.theta -= floorf(view->camera.theta / M_2PI) * M_2PI;
-    view->camera.phi = max(0.01f - M_PI / 2, min(M_PI / 2 - 0.01f, view->camera.phi));
+    view->orbitCamera.theta -= floorf(view->orbitCamera.theta / M_2PI) * M_2PI;
+    view->orbitCamera.phi = max(0.01f - M_PI / 2, min(M_PI / 2 - 0.01f, view->orbitCamera.phi));
 
-    view->camera.update();
-    oldX = event->x();
-    oldY = event->y();
+    view->orbitCamera.update();
+
+#if KEEP_CURSOR_STILL
+    QCursor::setPos(originalX, originalY);
+#else
+    originalX = event->globalX();
+    originalY = event->globalY();
+#endif
+}
+
+bool OrbitCameraTool::wheelEvent(QWheelEvent *event)
+{
+    if (event->orientation() == Qt::Vertical)
+    {
+        view->orbitCamera.zoom *= powf(0.999f, event->delta());
+        view->orbitCamera.update();
+        return true;
+    }
+
+    return false;
+}
+
+bool FirstPersonCameraTool::mousePressed(QMouseEvent *event)
+{
+    originalX = event->globalX();
+    originalY = event->globalY();
+
+    switch (event->button())
+    {
+    case Qt::LeftButton:
+        isStrafing = true;
+        return true;
+
+    case Qt::RightButton:
+        isStrafing = false;
+        return true;
+
+    default:
+        return false;
+    }
+}
+
+void FirstPersonCameraTool::mouseDragged(QMouseEvent *event)
+{
+    if (isStrafing)
+    {
+        // move in the camera plane
+        Vector3 sideways = Vector3(0, 1, 0).cross(view->firstPersonCamera.dir).unit();
+        Vector3 up = sideways.cross(view->firstPersonCamera.dir).unit();
+        view->firstPersonCamera.eye += (sideways * (originalX - event->globalX()) + up * (event->globalY() - originalY)) * 0.01f;
+    }
+    else
+    {
+        // rotate the direction vector around the eye
+        view->firstPersonCamera.theta += (event->globalX() - originalX) * 0.0025f;
+        view->firstPersonCamera.phi += (event->globalY() - originalY) * 0.0025f;
+
+        // keep theta in [0, 2pi] and phi in [-pi/2, pi/2]
+        view->firstPersonCamera.theta -= floorf(view->firstPersonCamera.theta / M_2PI) * M_2PI;
+        view->firstPersonCamera.phi = max(0.01f - M_PI / 2, min(M_PI / 2 - 0.01f, view->firstPersonCamera.phi));
+    }
+
+    view->firstPersonCamera.update();
+
+#if KEEP_CURSOR_STILL
+    QCursor::setPos(originalX, originalY);
+#else
+    originalX = event->globalX();
+    originalY = event->globalY();
+#endif
+}
+
+bool FirstPersonCameraTool::wheelEvent(QWheelEvent *event)
+{
+    if (event->orientation() == Qt::Vertical)
+    {
+        view->firstPersonCamera.eye += view->firstPersonCamera.dir * (event->delta() * 0.0025f);
+        view->firstPersonCamera.update();
+        return true;
+    }
+
+    return false;
 }
 
 Vector3 MoveSelectionTool::getHit(QMouseEvent *event)

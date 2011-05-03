@@ -11,7 +11,14 @@ enum
 {
     MODE_ADD_JOINTS,
     MODE_SCALE_JOINTS,
-    MODE_EDIT_MESH
+    MODE_EDIT_MESH,
+    MODE_SCULPT_MESH,
+};
+
+enum
+{
+    CAMERA_ORBIT,
+    CAMERA_FIRST_PERSON,
 };
 
 class View : public QGLWidget
@@ -23,6 +30,7 @@ public:
     ~View();
 
     void setMode(int mode);
+    void setCamera(int camera);
     void setDocument(Document *doc);
     Document &getDocument() { return *doc; }
 
@@ -50,22 +58,26 @@ private:
     bool drawWireframe;
     bool drawInterpolated;
     bool drawCurvature;
-    OrbitCamera camera;
+
+    Camera *currentCamera;
+    OrbitCamera orbitCamera;
+    FirstPersonCamera firstPersonCamera;
 
     Tool *currentTool;
     QList<Tool *> tools;
     friend class Tool;
     friend class OrbitCameraTool;
+    friend class FirstPersonCameraTool;
     friend class MoveSelectionTool;
     friend class ScaleSelectionTool;
     friend class SetAndMoveSelectionTool;
     friend class SetAndScaleSelectionTool;
     friend class CreateBallTool;
 
-    void resetTools();
+    void clearTools();
+    void updateTools();
     void resetCamera();
     void resetInteraction();
-    void drawPoints() const;
     void drawMesh() const;
     void drawSkeleton(bool drawTransparent) const;
     void drawGroundPlane() const;

@@ -19,6 +19,16 @@ struct OrbitCamera : public Camera
     float zoom;
 
     void update();
+    void reset();
+};
+
+struct FirstPersonCamera : public Camera
+{
+    float theta;
+    float phi;
+
+    void update();
+    void reset();
 };
 
 #endif // CAMERA_H

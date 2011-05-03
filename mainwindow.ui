@@ -71,6 +71,29 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="Camera">
+         <property name="title">
+          <string>Camera</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QRadioButton" name="orbitCamera">
+            <property name="text">
+             <string>Orbit Camera</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="firstPersonCamera">
+            <property name="text">
+             <string>First Person Camera</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="generateMesh">
          <property name="text">
           <string>Generate Mesh</string>
@@ -136,7 +159,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -161,6 +184,7 @@
     <addaction name="actionAddJoints"/>
     <addaction name="actionScaleJoints"/>
     <addaction name="actionEditMesh"/>
+    <addaction name="actionSculptMesh"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -191,6 +215,7 @@
    <addaction name="actionAddJoints"/>
    <addaction name="actionScaleJoints"/>
    <addaction name="actionEditMesh"/>
+   <addaction name="actionSculptMesh"/>
   </widget>
   <action name="actionNew">
    <property name="icon">
@@ -340,6 +365,18 @@
    </property>
    <property name="text">
     <string>Redo</string>
+   </property>
+  </action>
+  <action name="actionSculptMesh">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
+   </property>
+   <property name="text">
+    <string>Sculpt Mesh</string>
    </property>
   </action>
  </widget>
@@ -730,6 +767,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>orbitCamera</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>cameraChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>98</x>
+     <y>202</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>firstPersonCamera</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>cameraChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>98</x>
+     <y>221</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>modeChanged()</slot>
@@ -748,5 +817,6 @@
   <slot>evolveMesh()</slot>
   <slot>edgeFairing()</slot>
   <slot>trianglesToQuads()</slot>
+  <slot>cameraChanged()</slot>
  </slots>
 </ui>

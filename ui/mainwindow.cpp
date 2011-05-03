@@ -28,10 +28,12 @@ MainWindow::MainWindow(QWidget *parent) :
     group->addAction(ui->actionAddJoints);
     group->addAction(ui->actionScaleJoints);
     group->addAction(ui->actionEditMesh);
+    group->addAction(ui->actionSculptMesh);
 
     ui->mirrorChanges->setChecked(true);
     ui->drawWireframe->setChecked(true);
     ui->drawInterpolated->setChecked(true);
+    ui->orbitCamera->setChecked(true);
 
     setWindowState(windowState() | Qt::WindowMaximized);
     fileNew();
@@ -47,6 +49,12 @@ void MainWindow::modeChanged()
     if (ui->actionAddJoints->isChecked()) ui->view->setMode(MODE_ADD_JOINTS);
     else if (ui->actionScaleJoints->isChecked()) ui->view->setMode(MODE_SCALE_JOINTS);
     else if (ui->actionEditMesh->isChecked()) ui->view->setMode(MODE_EDIT_MESH);
+    else if (ui->actionSculptMesh->isChecked()) ui->view->setMode(MODE_SCULPT_MESH);
+}
+
+void MainWindow::cameraChanged()
+{
+    ui->view->setCamera(ui->orbitCamera->isChecked() ? CAMERA_ORBIT : CAMERA_FIRST_PERSON);
 }
 
 void MainWindow::fileNew()
@@ -237,11 +245,15 @@ void MainWindow::updateMode()
     Mesh &mesh = ui->view->getDocument().mesh;
     if (mesh.balls.isEmpty() || mesh.triangles.count() + mesh.quads.count() > 0)
     {
+        // try to keep the currently checked action
+        QAction *checked = ui->actionSculptMesh->isChecked() ? ui->actionSculptMesh : ui->actionEditMesh;
+
         ui->actionAddJoints->setEnabled(false);
         ui->actionScaleJoints->setEnabled(false);
         ui->actionEditMesh->setEnabled(true);
+        ui->actionSculptMesh->setEnabled(true);
 
-        ui->actionEditMesh->setChecked(true);
+        checked->setChecked(true);
     }
     else
     {
@@ -251,6 +263,7 @@ void MainWindow::updateMode()
         ui->actionAddJoints->setEnabled(true);
         ui->actionScaleJoints->setEnabled(true);
         ui->actionEditMesh->setEnabled(false);
+        ui->actionSculptMesh->setEnabled(false);
 
         checked->setChecked(true);
     }

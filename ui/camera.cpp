@@ -11,3 +11,24 @@ void OrbitCamera::update()
     dir = -Vector3::fromAngles(theta, phi);
     eye = center - dir * zoom;
 }
+
+void OrbitCamera::reset()
+{
+    theta = M_PI * 0.4;
+    phi = M_PI * 0.1;
+    zoom = 10;
+    update();
+}
+
+void FirstPersonCamera::update()
+{
+    dir = -Vector3::fromAngles(theta, phi);
+}
+
+void FirstPersonCamera::reset()
+{
+    theta = M_PI * 0.4;
+    phi = M_PI * 0.1;
+    update();
+    eye = -dir * 10;
+}

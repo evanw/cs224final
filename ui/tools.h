@@ -7,6 +7,7 @@
 
 class View;
 class QMouseEvent;
+class QWheelEvent;
 
 class Tool
 {
@@ -29,18 +30,34 @@ public:
     virtual bool mousePressed(QMouseEvent *) = 0;
     virtual void mouseDragged(QMouseEvent *) {}
     virtual void mouseReleased(QMouseEvent *) {}
+    virtual bool wheelEvent(QWheelEvent *) { return false; }
 };
 
 class OrbitCameraTool : public Tool
 {
 private:
-    int oldX, oldY;
+    int originalX, originalY;
 
 public:
     OrbitCameraTool(View *view) : Tool(view) {}
 
     bool mousePressed(QMouseEvent *event);
     void mouseDragged(QMouseEvent *event);
+    bool wheelEvent(QWheelEvent *event);
+};
+
+class FirstPersonCameraTool : public Tool
+{
+private:
+    int originalX, originalY;
+    bool isStrafing;
+
+public:
+    FirstPersonCameraTool(View *view) : Tool(view) {}
+
+    bool mousePressed(QMouseEvent *event);
+    void mouseDragged(QMouseEvent *event);
+    bool wheelEvent(QWheelEvent *event);
 };
 
 class MoveSelectionTool : public Tool

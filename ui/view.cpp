@@ -6,8 +6,9 @@
 #define PLANE_SIZE 10
 #define CURSOR_SIZE 20
 
-View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), oppositeSelectedBall(-1), mouseX(0), mouseY(0),
-    mode(MODE_EDIT_MESH), mirrorChanges(false), drawWireframe(true), drawInterpolated(true), drawCurvature(false), currentTool(NULL)
+View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), oppositeSelectedBall(-1),
+    mouseX(0), mouseY(0), mode(MODE_EDIT_MESH), mirrorChanges(false), drawWireframe(true), drawInterpolated(true),
+    drawCurvature(false), currentCamera(&firstPersonCamera), currentTool(NULL)
 {
     resetCamera();
     setMouseTracking(true);
@@ -16,31 +17,30 @@ View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall
 View::~View()
 {
     delete doc;
-    resetTools();
+    clearTools();
 }
 
 void View::setMode(int newMode)
 {
-    resetTools();
-    switch (newMode)
+    mode = newMode;
+    updateTools();
+    updateGL();
+}
+
+void View::setCamera(int camera)
+{
+    resetCamera();
+    switch (camera)
     {
-    case MODE_ADD_JOINTS:
-        tools += new CreateBallTool(this);
-        tools += new MoveSelectionTool(this);
-        tools += new SetAndMoveSelectionTool(this);
+    case CAMERA_ORBIT:
+        currentCamera = &orbitCamera;
         break;
 
-    case MODE_SCALE_JOINTS:
-        tools += new ScaleSelectionTool(this);
-        tools += new SetAndScaleSelectionTool(this);
-        break;
-
-    case MODE_EDIT_MESH:
+    case CAMERA_FIRST_PERSON:
+        currentCamera = &firstPersonCamera;
         break;
     }
-    tools += new OrbitCameraTool(this);
-
-    mode = newMode;
+    updateTools();
     updateGL();
 }
 
@@ -112,10 +112,14 @@ void View::paintGL()
     glLightfv(GL_LIGHT0, GL_POSITION, position0);
     glLightfv(GL_LIGHT1, GL_POSITION, position1);
 
-    if (mode == MODE_EDIT_MESH)
+    if (mode == MODE_SCULPT_MESH)
     {
         drawMesh();
-        drawPoints();
+        drawGroundPlane();
+    }
+    else if (mode == MODE_EDIT_MESH)
+    {
+        drawMesh();
         drawGroundPlane();
         drawSkeleton(true);
     }
@@ -178,15 +182,41 @@ void View::mouseReleaseEvent(QMouseEvent *event)
 
 void View::wheelEvent(QWheelEvent *event)
 {
-    if (event->orientation() == Qt::Vertical)
+    for (int i = 0; i < tools.count(); i++)
     {
-        camera.zoom *= powf(0.999f, event->delta());
-        camera.update();
-        updateGL();
+        if (tools[i]->wheelEvent(event))
+        {
+            updateGL();
+            break;
+        }
     }
 }
 
-void View::resetTools()
+void View::updateTools()
+{
+    clearTools();
+
+    switch (mode)
+    {
+    case MODE_ADD_JOINTS:
+        tools += new CreateBallTool(this);
+        tools += new MoveSelectionTool(this);
+        tools += new SetAndMoveSelectionTool(this);
+        break;
+
+    case MODE_SCALE_JOINTS:
+        tools += new ScaleSelectionTool(this);
+        tools += new SetAndScaleSelectionTool(this);
+        break;
+    }
+
+    if (currentCamera == &orbitCamera)
+        tools += new OrbitCameraTool(this);
+    else
+        tools += new FirstPersonCameraTool(this);
+}
+
+void View::clearTools()
 {
     for (int i = 0; i < tools.count(); i++)
         delete tools[i];
@@ -195,32 +225,14 @@ void View::resetTools()
 
 void View::resetCamera()
 {
-    camera.theta = M_PI * 0.4;
-    camera.phi = M_PI * 0.1;
-    camera.zoom = 10;
-    camera.update();
+    orbitCamera.reset();
+    firstPersonCamera.reset();
 }
 
 void View::resetInteraction()
 {
     currentTool = NULL;
     selectedBall = oppositeSelectedBall = -1;
-}
-
-void View::drawPoints() const
-{
-    if (drawWireframe)
-    {
-        glDepthMask(GL_FALSE);
-        glEnable(GL_BLEND);
-
-        glPointSize(3);
-        glColor3f(0, 0, 0);
-        doc->mesh.drawPoints();
-
-        glDisable(GL_BLEND);
-        glDepthMask(GL_TRUE);
-    }
 }
 
 void View::drawMesh() const
@@ -245,10 +257,16 @@ void View::drawMesh() const
         glColor4f(0, 0, 0, 0.5);
         doc->mesh.drawWireframe();
 
+        // draw the vertex points
+        glPointSize(3);
+        glColor3f(0, 0, 0);
+        doc->mesh.drawPoints();
+
         // disable line drawing
         glDisable(GL_BLEND);
         glDepthMask(GL_TRUE);
     }
+
     if (drawCurvature)
     {
         glDepthMask(GL_FALSE);
@@ -326,9 +344,9 @@ void View::drawSkeleton(bool drawTransparent) const
                 Raytracer tracer;
                 Vector3 ray = tracer.getRayForPixel(mouseX, mouseY);
                 HitTest result;
-                if (Raytracer::hitTestCube(selection.center - radius, selection.center + radius, camera.eye, ray, result))
+                if (Raytracer::hitTestCube(selection.center - radius, selection.center + radius, currentCamera->eye, ray, result))
                 {
-                    float size = (result.hit - camera.eye).length() * CURSOR_SIZE / height();
+                    float size = (result.hit - currentCamera->eye).length() * CURSOR_SIZE / height();
                     Vector2 angles = result.normal.toAngles();
                     glColor3f(0, 0, 0);
                     glDisable(GL_DEPTH_TEST);
@@ -348,7 +366,7 @@ void View::drawSkeleton(bool drawTransparent) const
                 Raytracer tracer;
                 Vector3 ray = tracer.getRayForPixel(mouseX, mouseY);
                 HitTest result;
-                if (Raytracer::hitTestSphere(selection.center, radius, camera.eye, ray, result))
+                if (Raytracer::hitTestSphere(selection.center, radius, currentCamera->eye, ray, result))
                 {
                     camera2D();
                     glColor3f(0, 0, 0);
@@ -360,7 +378,7 @@ void View::drawSkeleton(bool drawTransparent) const
                     camera3D();
                 }
 
-                Vector3 delta = camera.eye - selection.center;
+                Vector3 delta = currentCamera->eye - selection.center;
                 Vector2 angles = delta.toAngles();
 
                 // adjust the radius to the profile of the ball as seen from the camera
@@ -447,7 +465,7 @@ void View::camera3D() const
     gluPerspective(45, (float)width() / (float)height(), 0.1, 5000.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    camera.apply();
+    currentCamera->apply();
 }
 
 void View::setMirrorChanges(bool useMirrorChanges)
