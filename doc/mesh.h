@@ -7,9 +7,9 @@
 
 #define BALL_DETAIL 16
 
-// true = use vertex buffers, will be faster because data stays on the GPU between frames
-// false = use glBegin() and glEnd() blocks, use for older platforms or if vertex buffers don't work
-#define ENABLE_GPU_UPLOAD 0
+// 1 = use vertex buffers, will be faster because data stays on the GPU between frames
+// 0 = use glBegin() and glEnd() blocks, use for older platforms or if vertex buffers don't work
+#define ENABLE_GPU_UPLOAD 1
 
 struct Ball
 {

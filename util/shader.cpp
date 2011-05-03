@@ -1,4 +1,5 @@
 #include "shader.h"
+#define GL_GLEXT_PROTOTYPES
 #include <qgl.h>
 #include <QFile>
 #include <QTextStream>
