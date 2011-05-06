@@ -4,6 +4,13 @@ TEMPLATE = app
 FORMS    += mainwindow.ui
 INCLUDEPATH += ui doc util b_mesh
 
+# NDEBUG disables asserts
+release {
+    DEFINES += NDEBUG
+}
+
+# DEFINES += ANIM_DEBUG
+
 HEADERS += \
     util/vector.h \
     ui/mainwindow.h \
@@ -60,14 +67,6 @@ OTHER_FILES += \
     README \
     shaders/shader.vert \
     shaders/shader.frag
-
-
-
-
-
-
-
-
 
 
 

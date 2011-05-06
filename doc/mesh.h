@@ -3,13 +3,14 @@
 
 #include <QVector>
 #include <string>
+#include <QQuaternion>
 #include "vector.h"
 
 #define BALL_DETAIL 16
 
 // 1 = use vertex buffers, will be faster because data stays on the GPU between frames
 // 0 = use glBegin() and glEnd() blocks, use for older platforms or if vertex buffers don't work
-#define ENABLE_GPU_UPLOAD 1
+#define ENABLE_GPU_UPLOAD 0
 
 struct Ball
 {
@@ -17,6 +18,10 @@ struct Ball
 
     // local coordinate frame of ellipsoid (includes scale factors)
     Vector3 ex, ey, ez;
+
+    // rotation quaternion and translation vector
+    QQuaternion rotation;
+    Vector3 translation;
 
     // index into Mesh::balls
     int parentIndex;
@@ -37,9 +42,23 @@ struct Vertex
 {
     Vector3 pos;
     Vector3 normal;
+    float jointWeights[2];
+    int jointIndices[2];
 
-    Vertex() {}
-    Vertex(const Vector3 &pos) : pos(pos) {}
+    Vertex() {
+        jointWeights[0] = jointWeights[1] = 0;
+        jointIndices[0] = jointIndices[1] = -1;
+    }
+    Vertex(const Vector3 &pos) : pos(pos) {
+        jointWeights[0] = jointWeights[1] = 0;
+        jointIndices[0] = jointIndices[1] = -1;
+    }
+    Vertex(const Vector3 &pos, int jointIndex) : pos(pos) {
+        jointWeights[0] = 1;
+        jointWeights[1] = 0;
+        jointIndices[0] = jointIndex;
+        jointIndices[1] = -1;
+    }
 
     void draw() const;
 };
