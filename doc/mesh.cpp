@@ -285,25 +285,6 @@ void Mesh::drawPoints() const
         foreach (const Vertex &vertex, vertices)
             glVertex3fv(vertex.pos.xyz);
         glEnd();
-
-#if ANIM_DEBUG
-        glDisable(GL_DEPTH_TEST);
-      glBegin(GL_LINES);
-      foreach (const Vertex &vertex, vertices) {
-          if (vertex.jointIndices[0] != -1) {
-                glColor3f(vertex.jointWeights[0], 0, 0);
-                glVertex3fv(vertex.pos.xyz);
-                glVertex3fv(balls[vertex.jointIndices[0]].center.xyz);
-          }
-          if (vertex.jointIndices[1] != -1) {
-              glColor3f(0, vertex.jointWeights[1], 0);
-              glVertex3fv(vertex.pos.xyz);
-              glVertex3fv(balls[vertex.jointIndices[1]].center.xyz);
-          }
-        }
-      glEnd();
-      glEnable(GL_DEPTH_TEST);
-#endif
     }
 }
 
@@ -345,6 +326,24 @@ void Mesh::drawFill() const
         }
         glEnd();
     }
+#if ANIM_DEBUG
+        glDisable(GL_DEPTH_TEST);
+      glBegin(GL_LINES);
+      foreach (const Vertex &vertex, vertices) {
+          if (vertex.jointIndices[0] != -1) {
+                glColor3f(vertex.jointWeights[0], 0, 0);
+                glVertex3fv(vertex.pos.xyz);
+                glVertex3fv(balls[vertex.jointIndices[0]].center.xyz);
+          }
+          if (vertex.jointIndices[1] != -1) {
+              glColor3f(0, vertex.jointWeights[1], 0);
+              glVertex3fv(vertex.pos.xyz);
+              glVertex3fv(balls[vertex.jointIndices[1]].center.xyz);
+          }
+        }
+      glEnd();
+      glEnable(GL_DEPTH_TEST);
+#endif
 }
 
 void Mesh::drawWireframe() const

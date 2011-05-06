@@ -3,6 +3,7 @@ TARGET = cs224final
 TEMPLATE = app
 FORMS    += mainwindow.ui
 INCLUDEPATH += ui doc util b_mesh
+DEPENDPATH += ui doc util b_mesh
 
 # NDEBUG disables asserts
 release {

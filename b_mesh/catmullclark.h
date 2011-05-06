@@ -27,7 +27,18 @@ struct CatmullFace {
 struct CatmullEdge {
     CatmullEdge() { faces[0] = faces[1] = NULL; }
 
+    // weighted joints for animation
+    float jointWeights[2];
+    int jointIndices[2];
+
     Vector3 pos; // position of this edge's edgePoint
+
+    void assignJoints(const Vertex &v) {
+        jointWeights[0] = v.jointWeights[0];
+        jointWeights[1] = v.jointWeights[1];
+        jointIndices[0] = v.jointIndices[0];
+        jointIndices[1] = v.jointIndices[1];
+    }
 
     CatmullFace *faces[2];
 };
@@ -36,8 +47,19 @@ struct CatmullEdge {
 struct CatmullVertex {
     Vector3 pos;
 
+    // weighted joints for animation
+    float jointWeights[2];
+    int jointIndices[2];
+
     QVector<Vector3> facePoints; // face points for faces including this vertex
     QVector<CatmullEdge *> edges; // edges including this vertex
+
+    void assignJoints(const Vertex &v) {
+        jointWeights[0] = v.jointWeights[0];
+        jointWeights[1] = v.jointWeights[1];
+        jointIndices[0] = v.jointIndices[0];
+        jointIndices[1] = v.jointIndices[1];
+    }
 };
 
 // a mesh holding additional data used for Catmull-Clark subdivision
