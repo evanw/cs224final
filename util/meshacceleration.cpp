@@ -125,7 +125,7 @@ void VoxelGrid::updateVertices(const QVector<MetaVertex *> &vertices)
 bool VoxelGrid::hitTest(const Vector3 &origin, const Vector3 &ray, HitTest &result) const
 {
     // Process extra voxel first
-    Voxel &extra = voxels[countX * countY * countZ];
+    const Voxel &extra = voxels[countX * countY * countZ];
     // TODO: process extra
 
     // This uses the slab intersection method
@@ -163,7 +163,7 @@ bool VoxelGrid::hitTest(const Vector3 &origin, const Vector3 &ray, HitTest &resu
     while (1)
     {
         // Process the current voxel
-        Voxel &voxel = voxels[getInternalIndex(x, y, z)];
+        const Voxel &voxel = voxels[getInternalIndex(x, y, z)];
         // TODO: process voxel
 
         // Advance to the next voxel
