@@ -135,14 +135,14 @@ void Mesh::uploadToGPU()
         COMPILE_TIME_ASSERT(sizeof(Vertex) == sizeof(float) * 6);
 
         cachedVertices = vertices;
-        triangleIndices.clear();
-        lineIndices.clear();
+        cachedTriangleIndices.clear();
+        cachedLineIndices.clear();
 
         foreach (const Triangle &tri, triangles)
         {
-            triangleIndices += tri.a.index;
-            triangleIndices += tri.b.index;
-            triangleIndices += tri.c.index;
+            cachedTriangleIndices += tri.a.index;
+            cachedTriangleIndices += tri.b.index;
+            cachedTriangleIndices += tri.c.index;
 
             addEdge(edges, tri.a.index, tri.b.index);
             addEdge(edges, tri.b.index, tri.c.index);
@@ -151,13 +151,13 @@ void Mesh::uploadToGPU()
 
         foreach (const Quad &quad, quads)
         {
-            triangleIndices += quad.a.index;
-            triangleIndices += quad.b.index;
-            triangleIndices += quad.c.index;
+            cachedTriangleIndices += quad.a.index;
+            cachedTriangleIndices += quad.b.index;
+            cachedTriangleIndices += quad.c.index;
 
-            triangleIndices += quad.a.index;
-            triangleIndices += quad.c.index;
-            triangleIndices += quad.d.index;
+            cachedTriangleIndices += quad.a.index;
+            cachedTriangleIndices += quad.c.index;
+            cachedTriangleIndices += quad.d.index;
 
             addEdge(edges, quad.a.index, quad.b.index);
             addEdge(edges, quad.b.index, quad.c.index);
@@ -167,8 +167,8 @@ void Mesh::uploadToGPU()
 
         foreach (const Edge &edge, edges)
         {
-            lineIndices += edge.first;
-            lineIndices += edge.second;
+            cachedLineIndices += edge.first;
+            cachedLineIndices += edge.second;
         }
 
         if (!vertexBuffer) glGenBuffersARB(1, &vertexBuffer);
@@ -178,12 +178,12 @@ void Mesh::uploadToGPU()
 
         if (!triangleIndexBuffer) glGenBuffersARB(1, &triangleIndexBuffer);
         glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, triangleIndexBuffer);
-        glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, triangleIndices.count() * sizeof(int), &triangleIndices[0], GL_STATIC_DRAW_ARB);
+        glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, cachedTriangleIndices.count() * sizeof(int), &cachedTriangleIndices[0], GL_STATIC_DRAW_ARB);
         glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 
         if (!lineIndexBuffer) glGenBuffersARB(1, &lineIndexBuffer);
         glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, lineIndexBuffer);
-        glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, lineIndices.count() * sizeof(int), &lineIndices[0], GL_STATIC_DRAW_ARB);
+        glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, cachedLineIndices.count() * sizeof(int), &cachedLineIndices[0], GL_STATIC_DRAW_ARB);
         glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
     }
 #endif
@@ -299,7 +299,7 @@ void Mesh::drawFill() const
         glVertexPointer(3, GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(0));
         glNormalPointer(GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(sizeof(Vector3)));
         glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, triangleIndexBuffer);
-        glDrawElements(GL_TRIANGLES, triangleIndices.count(), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+        glDrawElements(GL_TRIANGLES, cachedTriangleIndices.count(), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
         glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
         glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
         glDisableClientState(GL_VERTEX_ARRAY);
@@ -339,7 +339,7 @@ void Mesh::drawWireframe() const
         glVertexPointer(3, GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(0));
         glNormalPointer(GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(sizeof(Vector3)));
         glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, lineIndexBuffer);
-        glDrawElements(GL_LINES, lineIndices.count(), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+        glDrawElements(GL_LINES, cachedLineIndices.count(), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
         glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
         glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
         glDisableClientState(GL_VERTEX_ARRAY);

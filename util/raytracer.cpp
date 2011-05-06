@@ -92,3 +92,28 @@ bool Raytracer::hitTestSphere(const Vector3 &center, float radius, const Vector3
 
     return false;
 }
+
+bool Raytracer::hitTestTriangle(const Vector3 &a, const Vector3 &b, const Vector3 &c, const Vector3 &origin, const Vector3 &ray, HitTest &result)
+{
+    Vector3 ab = b - a;
+    Vector3 ac = c - a;
+    result.normal = ab.cross(ac);
+    result.t = result.normal.dot(a - origin) / result.normal.dot(ray);
+
+    if (result.t > 0)
+    {
+        result.hit = origin + ray * result.t;
+        Vector3 toHit = result.hit - a;
+        float dot00 = ac.lengthSquared();
+        float dot01 = ac.dot(ab);
+        float dot02 = ac.dot(toHit);
+        float dot11 = ab.lengthSquared();
+        float dot12 = ab.dot(toHit);
+        float divide = dot00 * dot11 - dot01 * dot01;
+        float u = (dot11 * dot02 - dot01 * dot12) / divide;
+        float v = (dot00 * dot12 - dot01 * dot02) / divide;
+        return (u >= 0 && v >= 0 && u + v <= 1);
+    }
+
+    return false;
+}

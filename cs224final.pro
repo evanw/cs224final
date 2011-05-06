@@ -26,7 +26,10 @@ HEADERS += \
     util/matrix.h \
     b_mesh/trianglestoquads.h \
     util/shader.h \
-    util/texture.h
+    util/texture.h \
+    ui/meshsculpter.h \
+    util/metamesh.h \
+    util/meshacceleration.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -51,15 +54,16 @@ SOURCES += \
     util/matrix.cpp \
     b_mesh/trianglestoquads.cpp \
     util/shader.cpp \
-    util/texture.cpp
+    util/texture.cpp \
+    ui/meshsculpter.cpp \
+    util/metamesh.cpp \
+    util/meshacceleration.cpp
 
 RESOURCES += \
     resources.qrc
 
 OTHER_FILES += \
-    README \
-    shaders/shader.vert \
-    shaders/shader.frag
+    README
 
 
 

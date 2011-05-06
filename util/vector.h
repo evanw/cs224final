@@ -35,10 +35,10 @@ public:
     Vector2 operator * (float s) const { return Vector2(x * s, y * s); }
     Vector2 operator / (float s) const { return Vector2(x / s, y / s); }
 
-    friend Vector2 operator + (float s, const Vector2 &vec) { return vec + s; }
-    friend Vector2 operator - (float s, const Vector2 &vec) { return vec - s; }
-    friend Vector2 operator * (float s, const Vector2 &vec) { return vec * s; }
-    friend Vector2 operator / (float s, const Vector2 &vec) { return vec / s; }
+    friend Vector2 operator + (float s, const Vector2 &vec) { return Vector2(s + vec.x, s + vec.y); }
+    friend Vector2 operator - (float s, const Vector2 &vec) { return Vector2(s - vec.x, s - vec.y); }
+    friend Vector2 operator * (float s, const Vector2 &vec) { return Vector2(s * vec.x, s * vec.y); }
+    friend Vector2 operator / (float s, const Vector2 &vec) { return Vector2(s / vec.x, s / vec.y); }
 
     Vector2 &operator += (const Vector2 &vec) { return *this = *this + vec; }
     Vector2 &operator -= (const Vector2 &vec) { return *this = *this - vec; }
@@ -93,10 +93,10 @@ public:
     Vector3 operator * (float s) const { return Vector3(x * s, y * s, z * s); }
     Vector3 operator / (float s) const { return Vector3(x / s, y / s, z / s); }
 
-    friend Vector3 operator + (float s, const Vector3 &vec) { return vec + s; }
-    friend Vector3 operator - (float s, const Vector3 &vec) { return vec - s; }
-    friend Vector3 operator * (float s, const Vector3 &vec) { return vec * s; }
-    friend Vector3 operator / (float s, const Vector3 &vec) { return vec / s; }
+    friend Vector3 operator + (float s, const Vector3 &vec) { return Vector3(s + vec.x, s + vec.y, s + vec.z); }
+    friend Vector3 operator - (float s, const Vector3 &vec) { return Vector3(s - vec.x, s - vec.y, s - vec.z); }
+    friend Vector3 operator * (float s, const Vector3 &vec) { return Vector3(s * vec.x, s * vec.y, s * vec.z); }
+    friend Vector3 operator / (float s, const Vector3 &vec) { return Vector3(s / vec.x, s / vec.y, s / vec.z); }
 
     Vector3 &operator += (const Vector3 &vec) { return *this = *this + vec; }
     Vector3 &operator -= (const Vector3 &vec) { return *this = *this - vec; }

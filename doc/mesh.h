@@ -7,9 +7,9 @@
 
 #define BALL_DETAIL 16
 
-// 1 = use vertex buffers, will be faster because data stays on the GPU between frames
 // 0 = use glBegin() and glEnd() blocks, use for older platforms or if vertex buffers don't work
-#define ENABLE_GPU_UPLOAD 1
+// 1 = use vertex buffers, will be faster because data stays on the GPU between frames
+#define ENABLE_GPU_UPLOAD 0
 
 struct Ball
 {
@@ -81,8 +81,8 @@ private:
     unsigned int lineIndexBuffer;
 #endif
     QVector<Vertex> cachedVertices;
-    QVector<int> triangleIndices;
-    QVector<int> lineIndices;
+    QVector<int> cachedTriangleIndices;
+    QVector<int> cachedLineIndices;
 
 public:
     QVector<Ball> balls;

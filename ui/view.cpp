@@ -94,21 +94,17 @@ void View::initializeGL()
     glClearColor(0.875, 0.875, 0.875, 0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glPolygonOffset(1, 1);
-
-    shader.load(":/shaders/shader.vert", ":/shaders/shader.frag");
 }
 
 void View::resizeGL(int width, int height)
 {
     glViewport(0, 0, width, height);
-    texture.init(GL_TEXTURE_2D, width, height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, GL_CLAMP_TO_EDGE, GL_NEAREST);
 }
+
+#include "meshacceleration.h"
 
 void View::paintGL()
 {
-    if (texture.getWidth() * texture.getHeight() == 0)
-        return;
-
     camera3D();
 
     // position lights
@@ -119,30 +115,67 @@ void View::paintGL()
 
     if (mode == MODE_SCULPT_MESH)
     {
-        // draw to the texture
-        texture.startDrawingTo();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         camera3D();
-        shader.use();
-        drawMesh();
-        shader.unuse();
+        drawMesh(true);
         drawGroundPlane();
-        texture.stopDrawingTo();
 
-        // draw the texture to the screen
-        camera2D();
-        texture.bind(0);
-        glEnable(GL_TEXTURE_2D);
-        glDisable(GL_DEPTH_TEST);
-        drawFullscreenQuad();
-        glEnable(GL_DEPTH_TEST);
-        glDisable(GL_TEXTURE_2D);
-        texture.unbind(0);
+        glDepthMask(GL_FALSE);
+        glEnable(GL_BLEND);
+
+        // Test voxel grid
+        glColor4f(0, 0, 0, 0.5f);
+        MetaMesh metaMesh(doc->mesh);
+        VoxelGrid grid(metaMesh, 0.2f);
+        // grid.drawDebug();
+
+        // Test voxel traversal
+        HitTest result;
+        Raytracer tracer;
+        Vector3 eye = tracer.getEye();
+        Vector3 ray = tracer.getRayForPixel(mouseX, mouseY);
+        grid.hitTest(eye, ray, result);
+
+        // Test raytracing
+        glColor4f(0, 0, 0, 0.5f);
+        foreach (const Triangle &tri, doc->mesh.triangles)
+        {
+            const Vector3 &a = doc->mesh.vertices[tri.a.index].pos;
+            const Vector3 &b = doc->mesh.vertices[tri.b.index].pos;
+            const Vector3 &c = doc->mesh.vertices[tri.c.index].pos;
+            if (Raytracer::hitTestTriangle(a, b, c, eye, ray, result))
+            {
+                glBegin(GL_LINE_LOOP);
+                glVertex3fv(a.xyz);
+                glVertex3fv(b.xyz);
+                glVertex3fv(c.xyz);
+                glEnd();
+            }
+        }
+        foreach (const Quad &quad, doc->mesh.quads)
+        {
+            const Vector3 &a = doc->mesh.vertices[quad.a.index].pos;
+            const Vector3 &b = doc->mesh.vertices[quad.b.index].pos;
+            const Vector3 &c = doc->mesh.vertices[quad.c.index].pos;
+            const Vector3 &d = doc->mesh.vertices[quad.d.index].pos;
+            if (Raytracer::hitTestTriangle(a, b, c, eye, ray, result) || Raytracer::hitTestTriangle(a, c, d, eye, ray, result))
+            {
+                glBegin(GL_LINE_LOOP);
+                glVertex3fv(a.xyz);
+                glVertex3fv(b.xyz);
+                glVertex3fv(c.xyz);
+                glVertex3fv(d.xyz);
+                glEnd();
+            }
+        }
+
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
     }
     else if (mode == MODE_EDIT_MESH)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        drawMesh();
+        drawMesh(false);
         drawGroundPlane();
         drawSkeleton(true);
     }
@@ -259,7 +292,7 @@ void View::resetInteraction()
     selectedBall = oppositeSelectedBall = -1;
 }
 
-void View::drawMesh() const
+void View::drawMesh(bool justMesh) const
 {
     if (doc->mesh.triangles.count() + doc->mesh.quads.count() == 0) return;
 
@@ -270,6 +303,9 @@ void View::drawMesh() const
     doc->mesh.drawFill();
     glDisable(GL_POLYGON_OFFSET_FILL);
     glDisable(GL_LIGHTING);
+
+    // performance is terrible if we draw anything else with framebuffers
+    if (justMesh) return;
 
     if (drawWireframe)
     {
@@ -353,16 +389,12 @@ void View::drawSkeleton(bool drawTransparent) const
 
             if (mode == MODE_ADD_JOINTS)
             {
-                glPushMatrix();
-                glTranslatef(selection.center.x, selection.center.y, selection.center.z);
-                glScalef(radius, radius, radius);
                 glDisable(GL_DEPTH_TEST);
                 glColor4f(0, 0, 0, 0.25);
-                drawWireCube();
+                drawWireCube(selection.center - radius, selection.center + radius);
                 glEnable(GL_DEPTH_TEST);
                 glColor3f(0, 0, 0);
-                drawWireCube();
-                glPopMatrix();
+                drawWireCube(selection.center - radius, selection.center + radius);
 
                 // find the currently selected cube face and display the cursor
                 Raytracer tracer;

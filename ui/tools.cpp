@@ -132,11 +132,15 @@ bool FirstPersonCameraTool::mousePressed(QMouseEvent *event)
     switch (event->button())
     {
     case Qt::LeftButton:
-        isStrafing = true;
+        mode = MODE_ROTATE;
+        return true;
+
+    case Qt::MidButton:
+        mode = MODE_DOLLY;
         return true;
 
     case Qt::RightButton:
-        isStrafing = false;
+        mode = MODE_PAN;
         return true;
 
     default:
@@ -146,12 +150,16 @@ bool FirstPersonCameraTool::mousePressed(QMouseEvent *event)
 
 void FirstPersonCameraTool::mouseDragged(QMouseEvent *event)
 {
-    if (isStrafing)
+    if (mode == MODE_PAN)
     {
         // move in the camera plane
         Vector3 sideways = Vector3(0, 1, 0).cross(view->firstPersonCamera.dir).unit();
         Vector3 up = sideways.cross(view->firstPersonCamera.dir).unit();
         view->firstPersonCamera.eye += (sideways * (originalX - event->globalX()) + up * (event->globalY() - originalY)) * 0.01f;
+    }
+    else if (mode == MODE_DOLLY)
+    {
+        view->firstPersonCamera.eye += view->firstPersonCamera.dir * (originalY - event->globalY()) * 0.025f;
     }
     else
     {
@@ -178,7 +186,7 @@ bool FirstPersonCameraTool::wheelEvent(QWheelEvent *event)
 {
     if (event->orientation() == Qt::Vertical)
     {
-        view->firstPersonCamera.eye += view->firstPersonCamera.dir * (event->delta() * 0.0025f);
+        view->firstPersonCamera.eye += view->firstPersonCamera.dir * (event->delta() * 0.01f);
         view->firstPersonCamera.update();
         return true;
     }

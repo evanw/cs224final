@@ -64,6 +64,17 @@ void drawWireCube()
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+void drawWireCube(const Vector3 &minCorner, const Vector3 &maxCorner)
+{
+    Vector3 center = (minCorner + maxCorner) / 2;
+    Vector3 scale = (maxCorner - minCorner) / 2;
+    glPushMatrix();
+    glTranslatef(center.x, center.y, center.z);
+    glScalef(scale.x, scale.y, scale.z);
+    drawWireCube();
+    glPopMatrix();
+}
+
 void drawWireDisk()
 {
     const int count = 64;

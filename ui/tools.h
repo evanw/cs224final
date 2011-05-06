@@ -49,8 +49,8 @@ public:
 class FirstPersonCameraTool : public Tool
 {
 private:
-    int originalX, originalY;
-    bool isStrafing;
+    enum { MODE_ROTATE, MODE_PAN, MODE_DOLLY };
+    int originalX, originalY, mode;
 
 public:
     FirstPersonCameraTool(View *view) : Tool(view) {}

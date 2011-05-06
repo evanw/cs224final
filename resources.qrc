@@ -9,7 +9,5 @@
         <file>img/edit-delete.png</file>
         <file>img/image-missing.png</file>
         <file>img/process-stop.png</file>
-        <file>shaders/shader.frag</file>
-        <file>shaders/shader.vert</file>
     </qresource>
 </RCC>
