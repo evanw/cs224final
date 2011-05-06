@@ -1,6 +1,18 @@
 #include "catmullclark.h"
 
 
+void averageJointWeights(const CatmullVertex &v1, const CatmullVertex &v2,
+                         int dstIndices[], float dstWeights[]) {
+    if (v1.jointIndices[0] == v2.jointIndices[0]) {
+        std::copy(v1.jointIndices, v1.jointIndices + 2, dstIndices);
+        std::copy(v1.jointWeights, v1.jointWeights + 2, dstWeights);
+    } else {
+        dstIndices[0] = v1.jointIndices[0];
+        dstIndices[1] = v2.jointIndices[0];
+        dstWeights[0] = dstWeights[1] = 0.5;
+    }
+}
+
 
 QPair<int, int> getEdgeIndex(int v1, int v2) {
     return v1 < v2 ? QPair<int, int>(v1, v2) : QPair<int, int>(v2, v1);
@@ -73,9 +85,17 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
         }
         fp.pos /= face.n;
 
+        // set the bone weights for animation
         const CatmullVertex &v = vertices[face.points[0]];
-        std::copy(v.jointIndices, v.jointIndices + 2, fp.jointIndices);
-        std::copy(v.jointWeights, v.jointWeights + 2, fp.jointWeights);
+        // TODO: Fix weights, can it be split between 3 bones?
+        if (face.n == 4) {
+            const CatmullVertex &v2 = vertices[face.points[2]];
+            averageJointWeights(v, v2, fp.jointIndices, fp.jointWeights);
+        } else {
+            std::copy(v.jointIndices, v.jointIndices + 2, fp.jointIndices);
+            std::copy(v.jointWeights, v.jointWeights + 2, fp.jointWeights);
+        }
+
 
         face.facePoint = facePoints.size();
         facePoints += fp;
@@ -84,16 +104,22 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
     // add the edge points
     QMap<QPair<int, int>, CatmullEdge>::const_iterator it;
     for (it = edges.begin(); it != edges.end(); ++it) {
+        CatmullEdge &edge = edges[it.key()];
+
         if (it.value().faces[1] == NULL) {
             // for edges on the border of a hole, the edge point is average of edge endpoints
-            edges[it.key()].pos = (vertices[it.key().first].pos + vertices[it.key().second].pos) / 2;
-            // TODO: Finish edges and faces
-            //edges[it.key()].jointWeights = vertices[it.key().first].jointWeights;
-            //edges[it.key()].jointIndices = vertices[it.key().first].jointIndices;
+            edge.pos = (vertices[it.key().first].pos + vertices[it.key().second].pos) / 2;
+
+            // set the weights for animation
+            averageJointWeights(vertices[it.key().first], vertices[it.key().second], edge.jointIndices, edge.jointWeights);
+
         } else {
             // edge point is average of edge endpoints and adjacent face points
             edges[it.key()].pos = (vertices[it.key().first].pos + vertices[it.key().second].pos +
                                facePoints[it.value().faces[0]->facePoint].pos + facePoints[it.value().faces[1]->facePoint].pos) / 4;
+
+            // TODO: Fix edge animation weights
+            averageJointWeights(vertices[it.key().first], vertices[it.key().second], edge.jointIndices, edge.jointWeights);
         }
     }
 
@@ -163,6 +189,8 @@ bool CatmullMesh::convertToMesh(Mesh &m) {
     foreach (const CatmullVertex &cv, vertices) {
         Vertex v;
         v.pos = cv.pos;
+        std::copy(cv.jointIndices, cv.jointIndices + 2, v.jointIndices);
+        std::copy(cv.jointWeights, cv.jointWeights + 2, v.jointWeights);
         m.vertices += v;
     }
 
