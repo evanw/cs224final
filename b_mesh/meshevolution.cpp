@@ -112,7 +112,7 @@ void MeshEvolution::testEvolve(float time) const
         const Ball *minBall;
         float minLengthSquared = FLT_MAX;
         // find closest point
-        foreach (const Ball &b, mesh.balls) {
+        foreach (const Ball &b, balls) {
             Vector3 diff = v.pos - b.center;
             float lengthSquared = diff.lengthSquared();
             if (lengthSquared < minLengthSquared) {
@@ -122,9 +122,11 @@ void MeshEvolution::testEvolve(float time) const
             }
         }
 
-        Vector3 newPos = minBall->center + minDiff.unit() * minBall->maxRadius();
-        v.pos = 0.9f * v.pos + 0.1f * newPos;
+        Vector3 newPos = minBall->center + minDiff * (minBall->maxRadius() / sqrtf(minLengthSquared));
+        //v.pos = 0.9f * v.pos + 0.1f * newPos;
+        v.pos = newPos;
     }
+    mesh.updateNormals();
 }
 
 void MeshEvolution::run(Mesh &mesh)
@@ -137,7 +139,7 @@ void MeshEvolution::run(Mesh &mesh)
 
     // TODO: stop evolution based on error threshold
     for (int i = 0; i < 1; ++i) {
-        //evolution.evolve(evolution.getMaxTimestep());
-        evolution.testEvolve(0.1f);
+        evolution.evolve(evolution.getMaxTimestep());
+        //evolution.testEvolve(0.1f);
     }
 }

@@ -21,6 +21,8 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
     foreach (const Vertex &v, m.vertices) {
         CatmullVertex cv;
         cv.pos = v.pos;
+        std::copy(v.jointIndices, v.jointIndices + 2, cv.jointIndices);
+        std::copy(v.jointWeights, v.jointWeights + 2, cv.jointWeights);
         vertices += cv;
     }
 
@@ -44,8 +46,8 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
     }
 
     // add the edges and face points
-    for (int i = 0; i < faces.size(); ++i) {
-        CatmullFace &face = faces[i];
+    for (int iface = 0; iface < faces.size(); ++iface) {
+        CatmullFace &face = faces[iface];
 
         // add edges
         for (int i = 0; i < face.n; ++i) {
@@ -70,6 +72,11 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
             fp.pos += vertices[face.points[i]].pos;
         }
         fp.pos /= face.n;
+
+        const CatmullVertex &v = vertices[face.points[0]];
+        std::copy(v.jointIndices, v.jointIndices + 2, fp.jointIndices);
+        std::copy(v.jointWeights, v.jointWeights + 2, fp.jointWeights);
+
         face.facePoint = facePoints.size();
         facePoints += fp;
     }
@@ -80,6 +87,9 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
         if (it.value().faces[1] == NULL) {
             // for edges on the border of a hole, the edge point is average of edge endpoints
             edges[it.key()].pos = (vertices[it.key().first].pos + vertices[it.key().second].pos) / 2;
+            // TODO: Finish edges and faces
+            //edges[it.key()].jointWeights = vertices[it.key().first].jointWeights;
+            //edges[it.key()].jointIndices = vertices[it.key().first].jointIndices;
         } else {
             // edge point is average of edge endpoints and adjacent face points
             edges[it.key()].pos = (vertices[it.key().first].pos + vertices[it.key().second].pos +

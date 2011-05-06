@@ -3,6 +3,14 @@ TARGET = cs224final
 TEMPLATE = app
 FORMS    += mainwindow.ui
 INCLUDEPATH += ui doc util b_mesh
+DEPENDPATH += ui doc util b_mesh
+
+# NDEBUG disables asserts
+release {
+    DEFINES += NDEBUG
+}
+
+# DEFINES += ANIM_DEBUG
 
 HEADERS += \
     util/vector.h \
@@ -64,14 +72,6 @@ RESOURCES += \
 
 OTHER_FILES += \
     README
-
-
-
-
-
-
-
-
 
 
 

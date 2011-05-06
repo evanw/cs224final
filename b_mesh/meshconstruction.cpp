@@ -68,6 +68,8 @@ static void makeStartOfSweep(Mesh &mesh, const Ball &ball, Vector3 &v0, Vector3 
 
 static void makeCap(Mesh &mesh, const Ball &ball, ResultQuad &result)
 {
+    int ballIndex = &ball - &mesh.balls[0];
+
     // if we have no parent (and no children, since we are in this method), then just make a box
     if (ball.parentIndex == -1)
     {
@@ -105,14 +107,14 @@ static void makeCap(Mesh &mesh, const Ball &ball, ResultQuad &result)
         v7 -= z;
 
         int i = mesh.vertices.count();
-        mesh.vertices += Vertex(v0);
-        mesh.vertices += Vertex(v1);
-        mesh.vertices += Vertex(v2);
-        mesh.vertices += Vertex(v3);
-        mesh.vertices += Vertex(v4);
-        mesh.vertices += Vertex(v5);
-        mesh.vertices += Vertex(v6);
-        mesh.vertices += Vertex(v7);
+        mesh.vertices += Vertex(v0, ballIndex);
+        mesh.vertices += Vertex(v1, ballIndex);
+        mesh.vertices += Vertex(v2, ballIndex);
+        mesh.vertices += Vertex(v3, ballIndex);
+        mesh.vertices += Vertex(v4, ballIndex);
+        mesh.vertices += Vertex(v5, ballIndex);
+        mesh.vertices += Vertex(v6, ballIndex);
+        mesh.vertices += Vertex(v7, ballIndex);
 
         mesh.quads += Quad(i,i+1,i+2,i+3);
         mesh.quads += Quad(i+7,i+6,i+5,i+4);
@@ -136,14 +138,14 @@ static void makeCap(Mesh &mesh, const Ball &ball, ResultQuad &result)
 
     //add the cap vertices to the mesh, keep track of the start index
     int i = mesh.vertices.count();
-    mesh.vertices += Vertex(v0);
-    mesh.vertices += Vertex(v1);
-    mesh.vertices += Vertex(v2);
-    mesh.vertices += Vertex(v3);
-    mesh.vertices += Vertex(v4);
-    mesh.vertices += Vertex(v5);
-    mesh.vertices += Vertex(v6);
-    mesh.vertices += Vertex(v7);
+    mesh.vertices += Vertex(v0, ballIndex);
+    mesh.vertices += Vertex(v1, ballIndex);
+    mesh.vertices += Vertex(v2, ballIndex);
+    mesh.vertices += Vertex(v3, ballIndex);
+    mesh.vertices += Vertex(v4, ballIndex);
+    mesh.vertices += Vertex(v5, ballIndex);
+    mesh.vertices += Vertex(v6, ballIndex);
+    mesh.vertices += Vertex(v7, ballIndex);
 
     //add the quad to the cap
     mesh.quads += Quad(i, i + 1, i + 2, i + 3);
@@ -161,8 +163,11 @@ static void makeCap(Mesh &mesh, const Ball &ball, ResultQuad &result)
 static void addSegmentedSweep(Mesh &mesh,
                               ResultQuad &startQuad,
                               const Vector3 &end0, const Vector3 &end1, const Vector3 &end2, const Vector3 &end3,
-                              float startRadius, float endRadius)
+                              const Ball &startBall, float endRadius)
 {
+    int startBallIndex = &startBall - &mesh.balls[0];
+    float startRadius = startBall.maxRadius();
+
     Vector3 start = (mesh.vertices[startQuad.i0].pos + mesh.vertices[startQuad.i1].pos + mesh.vertices[startQuad.i2].pos + mesh.vertices[startQuad.i3].pos) / 4;
     Vector3 end = (end0 + end1 + end2 + end3) / 4;
     float startToEnd = (end - start).length();
@@ -177,10 +182,10 @@ static void addSegmentedSweep(Mesh &mesh,
         if (i == divisions)
         {
             // special-case the end, which is at a different angle
-            mesh.vertices += end0;
-            mesh.vertices += end1;
-            mesh.vertices += end2;
-            mesh.vertices += end3;
+            mesh.vertices += Vertex(end0, startBallIndex);
+            mesh.vertices += Vertex(end1, startBallIndex);
+            mesh.vertices += Vertex(end2, startBallIndex);
+            mesh.vertices += Vertex(end3, startBallIndex);
         }
         else
         {
@@ -192,10 +197,10 @@ static void addSegmentedSweep(Mesh &mesh,
 
             // interpolate the position along the bone, growing or shrinking based on startRadius, endRadius, and how far along the bone we are
             scale = (startRadius + (endRadius - startRadius) * scale) / startRadius;
-            mesh.vertices += offset + (startQuad.v[0] - start) * scale;
-            mesh.vertices += offset + (startQuad.v[1] - start) * scale;
-            mesh.vertices += offset + (startQuad.v[2] - start) * scale;
-            mesh.vertices += offset + (startQuad.v[3] - start) * scale;
+            mesh.vertices += Vertex(offset + (startQuad.v[0] - start) * scale, startBallIndex);
+            mesh.vertices += Vertex(offset + (startQuad.v[1] - start) * scale, startBallIndex);
+            mesh.vertices += Vertex(offset + (startQuad.v[2] - start) * scale, startBallIndex);
+            mesh.vertices += Vertex(offset + (startQuad.v[3] - start) * scale, startBallIndex);
         }
 
         // generate the quads
@@ -215,22 +220,23 @@ static void addSegmentedSweep(Mesh &mesh,
 static void makeElbow(Mesh &mesh, const Ball &ball, ResultQuad &result)
 {
     Ball &child = mesh.balls[ball.childrenIndices[0]];
+    int ballIndex = &ball - &mesh.balls[0];
     ResultQuad last;
     sweep(mesh, child, last);
 
     if (ball.parentIndex == -1)
     {
-        // we are the root node and we have one child, so cap off other end
+        // we are the root node and we have one child, so cap off the root's end
         float scale = ball.maxRadius() / child.maxRadius();
         Vector3 v[4];
         for (int j = 0; j < 4; j++) {
             v[j] = ball.center + (last.v[j] - child.center) * scale;
         }
-        addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], child.maxRadius(), ball.maxRadius());
+        addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], child, ball.maxRadius());
         int i = mesh.vertices.count() - 4;
         Vector3 offset = ball.center + (ball.center - child.center).unit() * ball.maxRadius();
         for (int j = 0; j < 4; j++) {
-            mesh.vertices += offset + (last.v[j] - child.center) * scale;
+            mesh.vertices += Vertex(offset + (last.v[j] - child.center) * scale, ballIndex);
         }
         mesh.quads += Quad(i, i + 4, i + 5, i + 1);
         mesh.quads += Quad(i + 1, i + 5, i + 6, i + 2);
@@ -254,7 +260,7 @@ static void makeElbow(Mesh &mesh, const Ball &ball, ResultQuad &result)
     for (int j = 0; j < 4; j++) {
         v[j] = ball.center + rotate(last.v[j] - child.center, rotationAxis, rotationAngle / 2) * scale;
     }
-    addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], child.maxRadius(), ball.maxRadius());
+    addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], child, ball.maxRadius());
 
     // rotate 100% for the next step
     for (int j = 0; j < 4; j++) {
@@ -267,6 +273,7 @@ static void makeElbow(Mesh &mesh, const Ball &ball, ResultQuad &result)
 
 static void makeJoint(Mesh &mesh, const Ball &ball, ResultQuad &result)
 {
+    int ballIndex = &ball - &mesh.balls[0];
     QVector<Quad> quads;
 
     for (int k = 0; k < ball.childrenIndices.count(); k++)
@@ -282,7 +289,7 @@ static void makeJoint(Mesh &mesh, const Ball &ball, ResultQuad &result)
         for (int j = 0; j < 4; j++) {
             v[j] = ball.center + (child.center - ball.center).unit() * ball.maxRadius() + (last.v[j] - child.center) * scale;
         }
-        addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], child.maxRadius(), ball.maxRadius());
+        addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], child, ball.maxRadius());
 
         // remember the last quad for convex hull
         int i = mesh.vertices.count() - 4;
@@ -298,10 +305,10 @@ static void makeJoint(Mesh &mesh, const Ball &ball, ResultQuad &result)
         Ball &parent = mesh.balls[ball.parentIndex];
         Vector3 offset = (parent.center - ball.center).unit() * ball.maxRadius();
         makeStartOfSweep(mesh, ball, v0, v1, v2, v3);
-        mesh.vertices += v0 + offset;
-        mesh.vertices += v1 + offset;
-        mesh.vertices += v2 + offset;
-        mesh.vertices += v3 + offset;
+        mesh.vertices += Vertex(v0 + offset, ballIndex);
+        mesh.vertices += Vertex(v1 + offset, ballIndex);
+        mesh.vertices += Vertex(v2 + offset, ballIndex);
+        mesh.vertices += Vertex(v3 + offset, ballIndex);
         result.setIndices(i, i + 1, i + 2, i + 3);
         result.setVertices(v0, v1, v2, v3);
         quads += Quad(i, i + 1, i + 2, i + 3);
@@ -326,7 +333,7 @@ static void makeJoint(Mesh &mesh, const Ball &ball, ResultQuad &result)
         v2 += (center - v2) * percent;
         v3 += (center - v3) * percent;
 
-        // add the vertices to the input of the convex hul algorithm
+        // add the vertices to the input of the convex hull algorithm
         temp.vertices += Vertex(v0);
         temp.vertices += Vertex(v1);
         temp.vertices += Vertex(v2);
