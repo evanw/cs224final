@@ -3,6 +3,38 @@
 #include <float.h>
 
 
+class Sweep
+{
+private:
+    float project(const Vector3 &pos)
+    {
+        return AtoB.dot(pos - centerA) / AtoB_lengthSquared;
+    }
+
+    Vector3 centerA;
+    Vector3 centerB;
+    Vector3 AtoB;
+    float radiusA;
+    float radiusB;
+    float AtoB_lengthSquared;
+
+public:
+    Sweep(const Ball &ballA, const Ball &ballB) :
+            centerA(ballA.center), centerB(ballB.center), AtoB(centerB - centerA),
+            radiusA(ballA.maxRadius()), radiusB(ballB.maxRadius()), AtoB_lengthSquared(AtoB.lengthSquared())
+    {
+    }
+
+    float scalarField(const Vector3 &pos)
+    {
+        Vector3 closest = centerA + AtoB * project(pos);
+        Vector3 tilted = closest + AtoB * ((radiusB - radiusA) * (closest - pos).length() / AtoB_lengthSquared);
+        float t = max(0, min(1, project(tilted)));
+        return (centerA + AtoB * t - pos).length() - (radiusA + (radiusB - radiusA) * t);
+    }
+};
+
+
 inline float squared(float x)
 {
     return x * x;
