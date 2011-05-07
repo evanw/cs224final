@@ -1,6 +1,7 @@
 #include "view.h"
 #include "geometry.h"
 #include "curvature.h"
+#include "meshsculpter.h"
 #include <QWheelEvent>
 
 #define PLANE_SIZE 10
@@ -101,10 +102,9 @@ void View::resizeGL(int width, int height)
     glViewport(0, 0, width, height);
 }
 
-#include "meshacceleration.h"
-
 void View::paintGL()
 {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     camera3D();
 
     // position lights
@@ -115,76 +115,23 @@ void View::paintGL()
 
     if (mode == MODE_SCULPT_MESH)
     {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        camera3D();
         drawMesh(true);
         drawGroundPlane();
-
-        glDepthMask(GL_FALSE);
-        glEnable(GL_BLEND);
-
-        // Test voxel grid
-        glColor4f(0, 0, 0, 0.5f);
-        MetaMesh metaMesh(doc->mesh);
-        VoxelGrid grid(metaMesh, 0.2f);
-        // grid.drawDebug();
-
-        // Test voxel traversal
-        HitTest result;
-        Raytracer tracer;
-        Vector3 eye = tracer.getEye();
-        Vector3 ray = tracer.getRayForPixel(mouseX, mouseY);
-        grid.hitTest(eye, ray, result);
-
-        // Test raytracing
-        glColor4f(0, 0, 0, 0.5f);
-        foreach (const Triangle &tri, doc->mesh.triangles)
-        {
-            const Vector3 &a = doc->mesh.vertices[tri.a.index].pos;
-            const Vector3 &b = doc->mesh.vertices[tri.b.index].pos;
-            const Vector3 &c = doc->mesh.vertices[tri.c.index].pos;
-            if (Raytracer::hitTestTriangle(a, b, c, eye, ray, result))
-            {
-                glBegin(GL_LINE_LOOP);
-                glVertex3fv(a.xyz);
-                glVertex3fv(b.xyz);
-                glVertex3fv(c.xyz);
-                glEnd();
-            }
-        }
-        foreach (const Quad &quad, doc->mesh.quads)
-        {
-            const Vector3 &a = doc->mesh.vertices[quad.a.index].pos;
-            const Vector3 &b = doc->mesh.vertices[quad.b.index].pos;
-            const Vector3 &c = doc->mesh.vertices[quad.c.index].pos;
-            const Vector3 &d = doc->mesh.vertices[quad.d.index].pos;
-            if (Raytracer::hitTestTriangle(a, b, c, eye, ray, result) || Raytracer::hitTestTriangle(a, c, d, eye, ray, result))
-            {
-                glBegin(GL_LINE_LOOP);
-                glVertex3fv(a.xyz);
-                glVertex3fv(b.xyz);
-                glVertex3fv(c.xyz);
-                glVertex3fv(d.xyz);
-                glEnd();
-            }
-        }
-
-        glDisable(GL_BLEND);
-        glDepthMask(GL_TRUE);
     }
     else if (mode == MODE_EDIT_MESH)
     {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         drawMesh(false);
         drawGroundPlane();
         drawSkeleton(true);
     }
     else
     {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         drawSkeleton(false);
         drawGroundPlane();
     }
+
+    foreach (Tool *tool, tools)
+        tool->drawDebug(mouseX, mouseY);
 }
 
 void View::mousePressEvent(QMouseEvent *event)
@@ -234,6 +181,8 @@ void View::mouseReleaseEvent(QMouseEvent *event)
         currentTool = NULL;
     }
 
+    doc->mesh.updateNormals();
+
     update();
 }
 
@@ -264,6 +213,12 @@ void View::updateTools()
     case MODE_SCALE_JOINTS:
         tools += new ScaleSelectionTool(this);
         tools += new SetAndScaleSelectionTool(this);
+        break;
+
+    case MODE_SCULPT_MESH:
+        MeshSculpterTool *sculpterTool = new MeshSculpterTool(this);
+        sculpterTool->brushRadius = 0.5f;
+        tools += sculpterTool;
         break;
     }
 

@@ -73,6 +73,7 @@ private:
     friend class SetAndMoveSelectionTool;
     friend class SetAndScaleSelectionTool;
     friend class CreateBallTool;
+    friend class MeshSculpterTool;
 
     void clearTools();
     void updateTools();

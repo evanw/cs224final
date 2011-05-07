@@ -2,12 +2,17 @@
 #define RAYTRACER_H
 
 #include "vector.h"
+#include <float.h>
 
 struct HitTest
 {
     float t;
     Vector3 hit;
     Vector3 normal;
+
+    HitTest() : t(FLT_MAX) {}
+
+    void mergeWith(const HitTest &other);
 };
 
 class Raytracer

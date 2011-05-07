@@ -4,6 +4,16 @@
 #include <iostream>
 using namespace std;
 
+void HitTest::mergeWith(const HitTest &other)
+{
+    if (other.t > 0 && other.t < t)
+    {
+        t = other.t;
+        hit = other.hit;
+        normal = other.normal;
+    }
+}
+
 static Vector3 unProject(float winX, float winY, double *modelview, double *projection, int *viewport)
 {
     double objX, objY, objZ;
@@ -97,7 +107,7 @@ bool Raytracer::hitTestTriangle(const Vector3 &a, const Vector3 &b, const Vector
 {
     Vector3 ab = b - a;
     Vector3 ac = c - a;
-    result.normal = ab.cross(ac);
+    result.normal = ab.cross(ac).unit();
     result.t = result.normal.dot(a - origin) / result.normal.dot(ray);
 
     if (result.t > 0)

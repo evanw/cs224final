@@ -27,6 +27,7 @@ protected:
 public:
     Tool(View *view) : view(view) {}
 
+    virtual void drawDebug(int, int) {}
     virtual bool mousePressed(QMouseEvent *) = 0;
     virtual void mouseDragged(QMouseEvent *) {}
     virtual void mouseReleased(QMouseEvent *) {}

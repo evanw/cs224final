@@ -6,13 +6,13 @@
 class MetaVertex
 {
 public:
-    bool marked;
+    int accelData;
     Vector3 &pos;
     Vector3 &normal;
     Vector3 prevPos;
     QVector<Quad *> neighbors;
 
-    MetaVertex(Vertex &vertex) : marked(false), pos(vertex.pos), normal(vertex.normal), prevPos(vertex.pos) {}
+    MetaVertex(Vertex &vertex) : accelData(0), pos(vertex.pos), normal(vertex.normal), prevPos(vertex.pos) {}
 };
 
 class MetaMesh

@@ -11,6 +11,7 @@ release {
 }
 
 # DEFINES += ANIM_DEBUG
+# DEFINES += VOXEL_DEBUG
 
 HEADERS += \
     util/vector.h \
