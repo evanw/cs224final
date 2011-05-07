@@ -132,11 +132,17 @@ void Mesh::uploadToGPU()
     {
         QSet<Edge> edges;
 
-        COMPILE_TIME_ASSERT(sizeof(Vertex) == sizeof(float) * 6);
+        COMPILE_TIME_ASSERT(sizeof(Vector3) == sizeof(float) * 3);
 
-        cachedVertices = vertices;
+        cachedVertices.clear();
         cachedTriangleIndices.clear();
         cachedLineIndices.clear();
+
+        foreach (const Vertex &vertex, vertices)
+        {
+            cachedVertices += vertex.pos;
+            cachedVertices += vertex.normal;
+        }
 
         foreach (const Triangle &tri, triangles)
         {
@@ -173,7 +179,7 @@ void Mesh::uploadToGPU()
 
         if (!vertexBuffer) glGenBuffersARB(1, &vertexBuffer);
         glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertexBuffer);
-        glBufferDataARB(GL_ARRAY_BUFFER_ARB, cachedVertices.count() * sizeof(Vertex), &cachedVertices[0], GL_STATIC_DRAW_ARB);
+        glBufferDataARB(GL_ARRAY_BUFFER_ARB, cachedVertices.count() * sizeof(Vector3), &cachedVertices[0], GL_STATIC_DRAW_ARB);
         glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
         if (!triangleIndexBuffer) glGenBuffersARB(1, &triangleIndexBuffer);
@@ -273,8 +279,8 @@ void Mesh::drawPoints() const
     {
         glEnableClientState(GL_VERTEX_ARRAY);
         glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertexBuffer);
-        glVertexPointer(3, GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(0));
-        glDrawArrays(GL_POINTS, 0, cachedVertices.count());
+        glVertexPointer(3, GL_FLOAT, sizeof(Vector3) * 2, BUFFER_OFFSET(0));
+        glDrawArrays(GL_POINTS, 0, cachedVertices.count() / 2);
         glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
         glDisableClientState(GL_VERTEX_ARRAY);
     }
@@ -296,8 +302,8 @@ void Mesh::drawFill() const
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
         glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertexBuffer);
-        glVertexPointer(3, GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(0));
-        glNormalPointer(GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(sizeof(Vector3)));
+        glVertexPointer(3, GL_FLOAT, sizeof(Vector3) * 2, BUFFER_OFFSET(0));
+        glNormalPointer(GL_FLOAT, sizeof(Vector3) * 2, BUFFER_OFFSET(sizeof(Vector3)));
         glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, triangleIndexBuffer);
         glDrawElements(GL_TRIANGLES, cachedTriangleIndices.count(), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
         glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
@@ -354,8 +360,8 @@ void Mesh::drawWireframe() const
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
         glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertexBuffer);
-        glVertexPointer(3, GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(0));
-        glNormalPointer(GL_FLOAT, sizeof(Vertex), BUFFER_OFFSET(sizeof(Vector3)));
+        glVertexPointer(3, GL_FLOAT, sizeof(Vector3) * 2, BUFFER_OFFSET(0));
+        glNormalPointer(GL_FLOAT, sizeof(Vector3) * 2, BUFFER_OFFSET(sizeof(Vector3)));
         glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, lineIndexBuffer);
         glDrawElements(GL_LINES, cachedLineIndices.count(), GL_UNSIGNED_INT, BUFFER_OFFSET(0));
         glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);

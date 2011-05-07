@@ -98,10 +98,10 @@ private:
     unsigned int vertexBuffer;
     unsigned int triangleIndexBuffer;
     unsigned int lineIndexBuffer;
-#endif
-    QVector<Vertex> cachedVertices;
+    QVector<Vector3> cachedVertices;
     QVector<int> cachedTriangleIndices;
     QVector<int> cachedLineIndices;
+#endif
 
 public:
     QVector<Ball> balls;

@@ -66,8 +66,8 @@ void MeshSculpterTool::stampBrush(const Vector3 &brushCenter, const Vector3 &bru
         float lengthSquared = (vertex->pos - brushCenter).lengthSquared();
         if (lengthSquared < radiusSquared)
         {
-            // float percent = 1 - sqrtf(lengthSquared) / brushRadius;
-            float weight = vertex->normal.dot(brushNormal) * brushRadius * 0.05f;
+            float percent = 1 - sqrtf(lengthSquared) / brushRadius;
+            float weight = vertex->normal.dot(brushNormal) * brushRadius * percent * 0.05f;
             vertex->pos += brushNormal * weight;
             movedVertices += vertex;
 
@@ -88,7 +88,11 @@ void MeshSculpterTool::stampBrush(const Vector3 &brushCenter, const Vector3 &bru
         verticesNeedingNormals += mesh->vertices[quad->d.index];
     }
     foreach (MetaVertex *vertex, verticesNeedingNormals)
+    {
+        foreach (Quad *quad, vertex->neighbors)
+            movedQuads += quad;
         vertex->normal = Vector3();
+    }
     foreach (Quad *quad, movedQuads)
     {
         MetaVertex *a = mesh->vertices[quad->a.index];
@@ -108,6 +112,9 @@ void MeshSculpterTool::stampBrush(const Vector3 &brushCenter, const Vector3 &bru
     }
     foreach (MetaVertex *vertex, verticesNeedingNormals)
         vertex->normal.normalize();
+
+    // Commit the result to the GPU
+    mesh->mesh.uploadToGPU();
 }
 
 MeshSculpterTool::MeshSculpterTool(View *view) : Tool(view), mesh(NULL), accel(NULL), brushRadius(0)
@@ -128,7 +135,7 @@ void MeshSculpterTool::drawDebug(int x, int y)
     glEnable(GL_BLEND);
 
     updateAccel();
-    // accel->drawDebug();
+    accel->drawDebug();
 
     Raytracer tracer;
     HitTest result;
