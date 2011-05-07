@@ -17,6 +17,7 @@ private:
     MeshEvolution(Mesh &mesh);
 
     float scalarField(const Vector3 &pos) const;
+    Vector3 scalarFieldNormal(const Vector3 &pos) const;
     void evolve(float time) const;
     float getMaxTimestep() const;
     float motionSpeed(int vertIndex) const; // motion speed function F
@@ -24,6 +25,7 @@ private:
 
 public:
     static void run(Mesh &mesh);
+    static void drawDebug(Mesh &mesh, float min, float max, int increments);
 };
 
 #endif // MESHEVOLUTION_H

@@ -1,6 +1,7 @@
 #include "meshevolution.h"
 #include "curvature.h"
 #include <float.h>
+#include <qgl.h>
 
 
 inline float squared(float x)
@@ -11,13 +12,56 @@ inline float squared(float x)
 
 static float scalarField(const Ball &ball, const Vector3 &pos)
 {
-    const float alpha = 1.5;
-    Vector3 delta = pos - ball.center;
-    float ratioSquared =
-            squared(delta.dot(ball.ex) / ball.ex.lengthSquared()) +
-            squared(delta.dot(ball.ey) / ball.ey.lengthSquared()) +
-            squared(delta.dot(ball.ez) / ball.ez.lengthSquared());
-    return squared(1 - ratioSquared / squared(alpha));
+    return (ball.center - pos).length() - ball.maxRadius();
+}
+
+Vector3 MeshEvolution::scalarFieldNormal(const Vector3 &pos) const
+{
+    const float e = 1e-2;
+    Vector3 dx(e, 0, 0);
+    Vector3 dy(0, e, 0);
+    Vector3 dz(0, 0, e);
+
+    Vector3 normal(
+            scalarField(pos + dx) - scalarField(pos - dx),
+            scalarField(pos + dy) - scalarField(pos - dy),
+            scalarField(pos + dz) - scalarField(pos - dz)
+    );
+
+    float len = normal.length();
+    if (len < 1e-6) {
+        return Vector3();
+    }
+
+    return normal / len;
+}
+
+void MeshEvolution::drawDebug(Mesh &mesh, float gridMin, float gridMax, int divisions)
+{
+    MeshEvolution evo(mesh);
+
+    float x, y, z;
+    float increment = (gridMax - gridMin) / divisions;
+
+    glBegin(GL_LINES);
+    glColor3f(0, 0, 1);
+
+    x = gridMin;
+    for (int i = 0; i < divisions; ++i) {
+        y = gridMin;
+        for (int j = 0; j < divisions; ++j) {
+            z = gridMin;
+            for (int k = 0; k < divisions; ++k) {
+                glVertex3f(x, y, z);
+                glVertex3fv((Vector3(x, y, z) + evo.scalarFieldNormal(Vector3(x, y, z)) * increment * 0.2f).xyz);
+                z += increment;
+            }
+            y += increment;
+        }
+        x += increment;
+    }
+
+    glEnd();
 }
 
 
@@ -64,27 +108,38 @@ MeshEvolution::MeshEvolution(Mesh &mesh) : mesh(mesh)
 
 float MeshEvolution::motionSpeed(int vertIndex) const
 {
-    float fk = 1.f / (1 + fabsf(maxCurvatures[vertIndex]) + fabsf(minCurvatures[vertIndex]));
+    float fk = 1.f;// / (1 + fabsf(maxCurvatures[vertIndex]) + fabsf(minCurvatures[vertIndex]));
     // TODO: what's Itarget?
     float Itarget = 0;
-    return (scalarField(mesh.vertices[vertIndex].pos) - Itarget) * fk;
+    return -(scalarField(mesh.vertices[vertIndex].pos) - Itarget) * fk;
 }
 
 float MeshEvolution::scalarField(const Vector3 &pos) const
 {
     // TODO: threshold parameter
-    const float threshold = 0.1f;
-    float total = 0;
-    foreach (const Ball &ball, balls)
-        total += ::scalarField(ball, pos);
-    return total - threshold;
+    const float threshold = 0.0f;
+
+    float minPos = FLT_MAX, minNeg = 0;
+    foreach (const Ball &ball, balls) {
+        float curr = ::scalarField(ball, pos);
+        if (curr < 0) {
+            minNeg = min(minNeg, curr);
+        } else {
+            minPos = min(minPos, curr);
+        }
+    }
+
+    if (minNeg == 0) {
+        return minPos;
+    }
+    return minNeg;
 }
 
 void MeshEvolution::evolve(float time) const
 {
     for (int i = 0; i < mesh.vertices.count(); ++i) {
         Vertex &vertex = mesh.vertices[i];
-        vertex.pos += vertex.normal * (motionSpeed(i) * time);
+        vertex.pos += scalarFieldNormal(vertex.pos) * (motionSpeed(i) * time);
     }
     mesh.updateNormals();
 }
@@ -132,14 +187,14 @@ void MeshEvolution::testEvolve(float time) const
 void MeshEvolution::run(Mesh &mesh)
 {
     MeshEvolution evolution(mesh);
-    Curvature curvature;
-    curvature.computeCurvatures(mesh);
-    evolution.maxCurvatures = curvature.getMaxCurvatures();
-    evolution.minCurvatures = curvature.getMinCurvatures();
+    //Curvature curvature;
+    //curvature.computeCurvatures(mesh);
+    //evolution.maxCurvatures = curvature.getMaxCurvatures();
+    //evolution.minCurvatures = curvature.getMinCurvatures();
 
     // TODO: stop evolution based on error threshold
     for (int i = 0; i < 1; ++i) {
-        evolution.evolve(evolution.getMaxTimestep());
+        evolution.evolve(.1f);//evolution.getMaxTimestep());
         //evolution.testEvolve(0.1f);
     }
 }
