@@ -70,6 +70,7 @@ public:
 
     bool convertToMesh(Mesh &m);
     static bool subdivide(const Mesh &in, Mesh &out);
+    static bool subdivide(Mesh &mesh) { return subdivide(mesh, mesh); }
 
 private:
     QList<CatmullVertex> vertices;

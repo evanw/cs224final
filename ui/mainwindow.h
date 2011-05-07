@@ -28,6 +28,7 @@ public slots:
     void editUndo();
     void editRedo();
     void documentChanged();
+    void runEverything();
     void generateMesh();
     void subdivideMesh();
     void convexHull();

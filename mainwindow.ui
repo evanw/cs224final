@@ -59,7 +59,7 @@
        <item>
         <widget class="QCheckBox" name="drawInterpolated">
          <property name="text">
-          <string>Draw Interpolated Balls</string>
+          <string>Draw Interpolated Spheres</string>
          </property>
         </widget>
        </item>
@@ -91,6 +91,23 @@
            </widget>
           </item>
          </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="runEverything">
+         <property name="text">
+          <string>Run Everything</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="space" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>40</height>
+          </size>
+         </property>
         </widget>
        </item>
        <item>
@@ -159,7 +176,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>23</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -799,6 +816,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>runEverything</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>runEverything()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>109</x>
+     <y>306</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>modeChanged()</slot>
@@ -818,5 +851,6 @@
   <slot>edgeFairing()</slot>
   <slot>trianglesToQuads()</slot>
   <slot>cameraChanged()</slot>
+  <slot>runEverything()</slot>
  </slots>
 </ui>

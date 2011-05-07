@@ -111,16 +111,16 @@ void EdgeFairing::iterate()
     // actually move the vertices (must be done in a separate loop or we would be mutating while iterating)
     // only move a small amount per iteration for stability
     for (int i = 0; i < vertexInfo.count(); i++)
-        mesh.vertices[i].pos = Vector3::lerp(mesh.vertices[i].pos, vertexInfo[i].nextPos, 0.05);
+        mesh.vertices[i].pos = Vector3::lerp(mesh.vertices[i].pos, vertexInfo[i].nextPos, 0.1);
 
     mesh.updateNormals();
 }
 
-void EdgeFairing::run(Mesh &mesh)
+void EdgeFairing::run(Mesh &mesh, int iterations)
 {
     EdgeFairing edgeFairing(mesh);
     edgeFairing.computeNeighbors();
 
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < iterations; i++)
         edgeFairing.iterate();
 }

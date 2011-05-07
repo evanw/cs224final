@@ -26,7 +26,7 @@ Vector3 X(1,0,0);
 Vector3 Y(0,1,0);
 Vector3 Z(0,0,1);
 
-void sweep(Mesh &m, const Ball &b, ResultQuad &result);
+void sweep(Mesh &m, int ballIndex, ResultQuad &result);
 
 static Vector3 rotate(const Vector3 &p, const Vector3 &v, float radians)
 {
@@ -44,8 +44,9 @@ static Vector3 rotate(const Vector3 &p, const Vector3 &v, float radians)
     return axisX * (x * cosA - y * sinA) + axisY * (y * cosA + x * sinA) + v * z;
 }
 
-static void makeStartOfSweep(Mesh &mesh, const Ball &ball, Vector3 &v0, Vector3 &v1, Vector3 &v2, Vector3 &v3)
+static void makeStartOfSweep(Mesh &mesh, int ballIndex, Vector3 &v0, Vector3 &v1, Vector3 &v2, Vector3 &v3)
 {
+    const Ball &ball = mesh.balls[ballIndex];
     //this is an end node. find the local vectors
     Ball parent = mesh.balls.at(ball.parentIndex);
     Vector3 boneDirection = parent.center - ball.center;
@@ -66,9 +67,9 @@ static void makeStartOfSweep(Mesh &mesh, const Ball &ball, Vector3 &v0, Vector3 
     v3 = ball.center + y - z;
 }
 
-static void makeCap(Mesh &mesh, const Ball &ball, ResultQuad &result)
+static void makeCap(Mesh &mesh, int ballIndex, ResultQuad &result)
 {
-    int ballIndex = &ball - &mesh.balls[0];
+    const Ball &ball = mesh.balls[ballIndex];
 
     // if we have no parent (and no children, since we are in this method), then just make a box
     if (ball.parentIndex == -1)
@@ -130,7 +131,7 @@ static void makeCap(Mesh &mesh, const Ball &ball, ResultQuad &result)
     Ball parent = mesh.balls.at(ball.parentIndex);
     Vector3 x = -(parent.center - ball.center).unit() * ball.maxRadius();
     Vector3 v0, v1, v2, v3, v4, v5, v6, v7;
-    makeStartOfSweep(mesh, ball, v4, v5, v6, v7);
+    makeStartOfSweep(mesh, ballIndex, v4, v5, v6, v7);
     v0 = v4 + x;
     v1 = v5 + x;
     v2 = v6 + x;
@@ -163,9 +164,10 @@ static void makeCap(Mesh &mesh, const Ball &ball, ResultQuad &result)
 static void addSegmentedSweep(Mesh &mesh,
                               ResultQuad &startQuad,
                               const Vector3 &end0, const Vector3 &end1, const Vector3 &end2, const Vector3 &end3,
-                              const Ball &startBall, float endRadius)
+                              int startIndex, float endRadius)
 {
-    int startBallIndex = &startBall - &mesh.balls[0];
+    const Ball &startBall = mesh.balls[startIndex];
+
     float startRadius = startBall.maxRadius();
 
     Vector3 start = (mesh.vertices[startQuad.i0].pos + mesh.vertices[startQuad.i1].pos + mesh.vertices[startQuad.i2].pos + mesh.vertices[startQuad.i3].pos) / 4;
@@ -182,10 +184,10 @@ static void addSegmentedSweep(Mesh &mesh,
         if (i == divisions)
         {
             // special-case the end, which is at a different angle
-            mesh.vertices += Vertex(end0, startBallIndex);
-            mesh.vertices += Vertex(end1, startBallIndex);
-            mesh.vertices += Vertex(end2, startBallIndex);
-            mesh.vertices += Vertex(end3, startBallIndex);
+            mesh.vertices += Vertex(end0, startIndex);
+            mesh.vertices += Vertex(end1, startIndex);
+            mesh.vertices += Vertex(end2, startIndex);
+            mesh.vertices += Vertex(end3, startIndex);
         }
         else
         {
@@ -197,10 +199,10 @@ static void addSegmentedSweep(Mesh &mesh,
 
             // interpolate the position along the bone, growing or shrinking based on startRadius, endRadius, and how far along the bone we are
             scale = (startRadius + (endRadius - startRadius) * scale) / startRadius;
-            mesh.vertices += Vertex(offset + (startQuad.v[0] - start) * scale, startBallIndex);
-            mesh.vertices += Vertex(offset + (startQuad.v[1] - start) * scale, startBallIndex);
-            mesh.vertices += Vertex(offset + (startQuad.v[2] - start) * scale, startBallIndex);
-            mesh.vertices += Vertex(offset + (startQuad.v[3] - start) * scale, startBallIndex);
+            mesh.vertices += Vertex(offset + (startQuad.v[0] - start) * scale, startIndex);
+            mesh.vertices += Vertex(offset + (startQuad.v[1] - start) * scale, startIndex);
+            mesh.vertices += Vertex(offset + (startQuad.v[2] - start) * scale, startIndex);
+            mesh.vertices += Vertex(offset + (startQuad.v[3] - start) * scale, startIndex);
         }
 
         // generate the quads
@@ -217,12 +219,13 @@ static void addSegmentedSweep(Mesh &mesh,
     }
 }
 
-static void makeElbow(Mesh &mesh, const Ball &ball, ResultQuad &result)
+static void makeElbow(Mesh &mesh, int ballIndex, ResultQuad &result)
 {
-    Ball &child = mesh.balls[ball.childrenIndices[0]];
-    int ballIndex = &ball - &mesh.balls[0];
+    const Ball &ball = mesh.balls[ballIndex];
+    int childIndex = ball.childrenIndices[0];
+    const Ball &child = mesh.balls[childIndex];
     ResultQuad last;
-    sweep(mesh, child, last);
+    sweep(mesh, childIndex, last);
 
     if (ball.parentIndex == -1)
     {
@@ -232,7 +235,7 @@ static void makeElbow(Mesh &mesh, const Ball &ball, ResultQuad &result)
         for (int j = 0; j < 4; j++) {
             v[j] = ball.center + (last.v[j] - child.center) * scale;
         }
-        addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], child, ball.maxRadius());
+        addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], childIndex, ball.maxRadius());
         int i = mesh.vertices.count() - 4;
         Vector3 offset = ball.center + (ball.center - child.center).unit() * ball.maxRadius();
         for (int j = 0; j < 4; j++) {
@@ -260,7 +263,7 @@ static void makeElbow(Mesh &mesh, const Ball &ball, ResultQuad &result)
     for (int j = 0; j < 4; j++) {
         v[j] = ball.center + rotate(last.v[j] - child.center, rotationAxis, rotationAngle / 2) * scale;
     }
-    addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], child, ball.maxRadius());
+    addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], childIndex, ball.maxRadius());
 
     // rotate 100% for the next step
     for (int j = 0; j < 4; j++) {
@@ -271,17 +274,18 @@ static void makeElbow(Mesh &mesh, const Ball &ball, ResultQuad &result)
     result.setVertices(v[0], v[1], v[2], v[3]);
 }
 
-static void makeJoint(Mesh &mesh, const Ball &ball, ResultQuad &result)
+static void makeJoint(Mesh &mesh, int ballIndex, ResultQuad &result)
 {
-    int ballIndex = &ball - &mesh.balls[0];
+    const Ball &ball = mesh.balls[ballIndex];
     QVector<Quad> quads;
 
     for (int k = 0; k < ball.childrenIndices.count(); k++)
     {
-        Ball &child = mesh.balls[ball.childrenIndices[k]];
+        int childIndex = ball.childrenIndices[k];
+        const Ball &child = mesh.balls[childIndex];
 
         ResultQuad last;
-        sweep(mesh, child, last);
+        sweep(mesh, childIndex, last);
 
         // move the quad center from child to ball
         float scale = ball.maxRadius() / child.maxRadius();
@@ -289,7 +293,7 @@ static void makeJoint(Mesh &mesh, const Ball &ball, ResultQuad &result)
         for (int j = 0; j < 4; j++) {
             v[j] = ball.center + (child.center - ball.center).unit() * ball.maxRadius() + (last.v[j] - child.center) * scale;
         }
-        addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], child, ball.maxRadius());
+        addSegmentedSweep(mesh, last, v[0], v[1], v[2], v[3], childIndex, ball.maxRadius());
 
         // remember the last quad for convex hull
         int i = mesh.vertices.count() - 4;
@@ -304,7 +308,7 @@ static void makeJoint(Mesh &mesh, const Ball &ball, ResultQuad &result)
         Vector3 v0, v1, v2, v3;
         Ball &parent = mesh.balls[ball.parentIndex];
         Vector3 offset = (parent.center - ball.center).unit() * ball.maxRadius();
-        makeStartOfSweep(mesh, ball, v0, v1, v2, v3);
+        makeStartOfSweep(mesh, ballIndex, v0, v1, v2, v3);
         mesh.vertices += Vertex(v0 + offset, ballIndex);
         mesh.vertices += Vertex(v1 + offset, ballIndex);
         mesh.vertices += Vertex(v2 + offset, ballIndex);
@@ -380,14 +384,16 @@ static void makeJoint(Mesh &mesh, const Ball &ball, ResultQuad &result)
     }
 }
 
-void sweep(Mesh &mesh, const Ball &ball, ResultQuad &result)
+void sweep(Mesh &mesh, int ballIndex, ResultQuad &result)
 {
+    const Ball &ball = mesh.balls[ballIndex];
+
     if (ball.childrenIndices.isEmpty())
-        makeCap(mesh, ball, result);
+        makeCap(mesh, ballIndex, result);
     else if (ball.childrenIndices.count() == 1)
-        makeElbow(mesh, ball, result);
+        makeElbow(mesh, ballIndex, result);
     else
-        makeJoint(mesh, ball, result);
+        makeJoint(mesh, ballIndex, result);
 }
 
 void MeshConstruction::BMeshInit(Mesh &m) {
@@ -399,9 +405,9 @@ void MeshConstruction::BMeshInit(Mesh &m) {
     m.triangles.clear();
 
     //call sweep at each root node
-    foreach(const Ball &b, m.balls){
-        if(b.parentIndex == -1){
-            sweep(m, b, result);
+    for (int i = 0; i < m.balls.size(); ++i) {
+        if(m.balls[i].parentIndex == -1){
+            sweep(m, i, result);
         }
     }
 
