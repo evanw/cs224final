@@ -4,12 +4,12 @@
 #include <qgl.h>
 
 
-float Sweep::project(const Vector3 &pos)
+float Sweep::project(const Vector3 &pos) const
 {
     return AtoB.dot(pos - centerA) / AtoB_lengthSquared;
 }
 
-float Sweep::scalarField(const Vector3 &pos)
+float Sweep::scalarField(const Vector3 &pos) const
 {
     if (onlyUseA) return (centerA - pos).length() - radiusA;
     Vector3 closest = centerA + AtoB * project(pos);
@@ -82,17 +82,16 @@ void MeshEvolution::drawDebug(Mesh &mesh, float gridMin, float gridMax, int divi
 
 MeshEvolution::MeshEvolution(Mesh &mesh) : mesh(mesh)
 {
-    // generate in-between balls using the same algorithm as Mesh::drawInBetweenBalls()
+    // generate in-between balls using hax
     foreach (const Ball &ball, mesh.balls)
     {
-        balls += ball;
-
         // get the parent ball
-        if (ball.parentIndex == -1) continue;
-        const Ball &parent = balls[ball.parentIndex];
-
-        Sweep sweep(ball, parent);
-
+        if (ball.parentIndex == -1) {
+            sweeps += Sweep(ball, ball);
+        } else {
+            const Ball &parent = mesh.balls[ball.parentIndex];
+            sweeps += Sweep(ball, parent);
+        }
     }
 
 
@@ -119,11 +118,11 @@ float MeshEvolution::motionSpeed(int vertIndex) const
 float MeshEvolution::scalarField(const Vector3 &pos) const
 {
     // TODO: threshold parameter
-    const float threshold = 0.0f;
+    // const float threshold = 0.0f;
 
     float minPos = FLT_MAX, minNeg = 0;
-    foreach (const Ball &ball, balls) {
-        float curr = ::scalarField(ball, pos);
+    foreach (const Sweep &sweep, sweeps) {
+        float curr = sweep.scalarField(pos);
         if (curr < 0) {
             minNeg = min(minNeg, curr);
         } else {
@@ -163,7 +162,7 @@ float MeshEvolution::getMaxTimestep() const
 // simplified evolution based on signed distance
 void MeshEvolution::testEvolve(float time) const
 {
-    for (int i = 0; i < mesh.vertices.size(); ++i) {
+ /*   for (int i = 0; i < mesh.vertices.size(); ++i) {
         Vertex &v = mesh.vertices[i];
         Vector3 minDiff;
         const Ball *minBall;
@@ -184,6 +183,7 @@ void MeshEvolution::testEvolve(float time) const
         v.pos = newPos;
     }
     mesh.updateNormals();
+    */
 }
 
 void MeshEvolution::run(Mesh &mesh)
