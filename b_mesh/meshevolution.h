@@ -3,6 +3,9 @@
 
 #include "mesh.h"
 
+/**
+ * Defines a signed distance field around a sphere swept from one sphere to another.
+ */
 class Sweep
 {
 private:
@@ -14,12 +17,27 @@ private:
     float radiusA;
     float radiusB;
     float AtoB_lengthSquared;
+    bool onlyUseA;
 
 public:
     Sweep(const Ball &ballA, const Ball &ballB) :
             centerA(ballA.center), centerB(ballB.center), AtoB(centerB - centerA),
-            radiusA(ballA.maxRadius()), radiusB(ballB.maxRadius()), AtoB_lengthSquared(AtoB.lengthSquared())
+            radiusA(ballA.maxRadius()), radiusB(ballB.maxRadius()),
+            AtoB_lengthSquared(AtoB.lengthSquared()), onlyUseA(false)
     {
+        float distance = (centerA - centerB).length();
+        if (distance + radiusA <= radiusB)
+        {
+            // A is inside B
+            centerA = centerB;
+            radiusA = radiusB;
+            onlyUseA = true;
+        }
+        else if (distance + radiusB <= radiusA)
+        {
+            // B is inside A
+            onlyUseA = true;
+        }
     }
 
     float scalarField(const Vector3 &pos);

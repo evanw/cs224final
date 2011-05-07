@@ -11,6 +11,7 @@ float Sweep::project(const Vector3 &pos)
 
 float Sweep::scalarField(const Vector3 &pos)
 {
+    if (onlyUseA) return (centerA - pos).length() - radiusA;
     Vector3 closest = centerA + AtoB * project(pos);
     Vector3 tilted = closest + AtoB * ((radiusB - radiusA) * (closest - pos).length() / AtoB_lengthSquared);
     float t = max(0, min(1, project(tilted)));
