@@ -6,7 +6,7 @@
 class Sweep
 {
 private:
-    float project(const Vector3 &pos);
+    float project(const Vector3 &pos) const;
 
     Vector3 centerA;
     Vector3 centerB;
@@ -22,7 +22,7 @@ public:
     {
     }
 
-    float scalarField(const Vector3 &pos);
+    float scalarField(const Vector3 &pos) const;
 };
 
 class MeshEvolution
@@ -31,7 +31,7 @@ private:
     MeshEvolution();
 
     Mesh &mesh;
-    QVector<Ball> balls;
+    QVector<Sweep> sweeps;
     QVector<float> maxCurvatures;
     QVector<float> minCurvatures;
     float step;
