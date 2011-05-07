@@ -170,6 +170,28 @@ void MainWindow::documentChanged()
     QApplication::postEvent(this, new QEvent(UPDATE_UNDO_REDO));
 }
 
+void MainWindow::runEverything()
+{
+    Mesh mesh;
+    Document &doc = ui->view->getDocument();
+    mesh.balls = doc.mesh.balls;
+    mesh.updateChildIndices();
+
+    // Run the algorithm
+    MeshConstruction::BMeshInit(mesh);
+    for (int i = 0; i < 3; i++)
+    {
+        CatmullMesh::subdivide(mesh);
+        MeshEvolution::run(mesh);
+        EdgeFairing::run(mesh, 15);
+    }
+
+    doc.getUndoStack().beginMacro("Run Everything");
+    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.getUndoStack().endMacro();
+    updateMode();
+}
+
 void MainWindow::generateMesh()
 {
     Mesh mesh;
@@ -222,7 +244,7 @@ void MainWindow::edgeFairing()
 {
     Document &doc = ui->view->getDocument();
     Mesh mesh = doc.mesh;
-    EdgeFairing::run(mesh);
+    EdgeFairing::run(mesh, 5);
     doc.getUndoStack().beginMacro("Edge Fairing");
     doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();

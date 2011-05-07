@@ -20,6 +20,7 @@ private:
     bool onlyUseA;
 
 public:
+    Sweep() {}
     Sweep(const Ball &ballA, const Ball &ballB) :
             centerA(ballA.center), centerB(ballB.center), AtoB(centerB - centerA),
             radiusA(ballA.maxRadius()), radiusB(ballB.maxRadius()),
@@ -50,18 +51,12 @@ private:
 
     Mesh &mesh;
     QVector<Sweep> sweeps;
-    QVector<float> maxCurvatures;
-    QVector<float> minCurvatures;
-    float step;
 
     MeshEvolution(Mesh &mesh);
 
     float scalarField(const Vector3 &pos) const;
     Vector3 scalarFieldNormal(const Vector3 &pos) const;
-    void evolve(float time) const;
-    float getMaxTimestep() const;
-    float motionSpeed(int vertIndex) const; // motion speed function F
-    void testEvolve(float time) const;
+    void evolve() const;
 
 public:
     static void run(Mesh &mesh);

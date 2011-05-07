@@ -1,7 +1,6 @@
 #include "view.h"
 #include "geometry.h"
 #include "curvature.h"
-#include "meshevolution.h"
 #include <QWheelEvent>
 
 #define PLANE_SIZE 10
@@ -250,14 +249,6 @@ void View::drawMesh(bool justMesh) const
 
     // performance is terrible if we draw anything else with framebuffers
     if (justMesh) return;
-
-    // enable line drawing
-    glDepthMask(GL_FALSE);
-    glEnable(GL_BLEND);
-    MeshEvolution::drawDebug(doc->mesh, -4, 4, 20);
-    // disable line drawing
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
 
     if (drawWireframe)
     {

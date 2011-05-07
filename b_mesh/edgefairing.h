@@ -21,7 +21,7 @@ private:
     void iterate();
 
 public:
-    static void run(Mesh &mesh);
+    static void run(Mesh &mesh, int iterations);
 };
 
 #endif // EDGEFAIRING_H
