@@ -227,6 +227,7 @@
      <string>Options</string>
     </property>
     <addaction name="actionDrawCurvature"/>
+    <addaction name="actionDebugDrawing"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -490,6 +491,18 @@
     <string>Draw Curvature</string>
    </property>
   </action>
+  <action name="actionDebugDrawing">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
+   </property>
+   <property name="text">
+    <string>Debug Drawing</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -503,6 +516,7 @@
     <slot>setInterpolated(bool)</slot>
     <slot>setMirrorChanges(bool)</slot>
     <slot>setCurvature(bool)</slot>
+    <slot>setDrawToolDebug(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -1019,6 +1033,22 @@
     <hint type="destinationlabel">
      <x>399</x>
      <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionDebugDrawing</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>view</receiver>
+   <slot>setDrawToolDebug(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>509</x>
+     <y>336</y>
     </hint>
    </hints>
   </connection>

@@ -10,7 +10,7 @@
 View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), oppositeSelectedBall(-1),
     mouseX(0), mouseY(0), mode(MODE_EDIT_MESH), mirrorChanges(false), drawWireframe(true), drawInterpolated(true),
     drawCurvature(false), brushMode(BRUSH_ADD_OR_SUBTRACT), brushRadius(0), brushWeight(0), brushTool(NULL),
-    currentCamera(&firstPersonCamera), currentTool(NULL)
+    currentCamera(&firstPersonCamera), drawToolDebug(false), currentTool(NULL)
 {
     resetCamera();
     setMouseTracking(true);
@@ -152,8 +152,9 @@ void View::paintGL()
         drawGroundPlane();
     }
 
-    foreach (Tool *tool, tools)
-        tool->drawDebug(mouseX, mouseY);
+    if (drawToolDebug)
+        foreach (Tool *tool, tools)
+            tool->drawDebug(mouseX, mouseY);
 }
 
 void View::mousePressEvent(QMouseEvent *event)
@@ -536,6 +537,12 @@ void View::setInterpolated(bool useInterpolated)
 
 void View::setCurvature(bool useCurvature) {
     drawCurvature = useCurvature;
+    update();
+}
+
+void View::setDrawToolDebug(bool drawDebug)
+{
+    drawToolDebug = drawDebug;
     update();
 }
 

@@ -73,6 +73,7 @@ private:
     OrbitCamera orbitCamera;
     FirstPersonCamera firstPersonCamera;
 
+    bool drawToolDebug;
     Tool *currentTool;
     QList<Tool *> tools;
     friend class Tool;
@@ -101,6 +102,7 @@ public slots:
     void setWireframe(bool useWireframe);
     void setInterpolated(bool useInterpolated);
     void setCurvature(bool useCurvature);
+    void setDrawToolDebug(bool drawDebug);
     void deleteSelection();
 };
 

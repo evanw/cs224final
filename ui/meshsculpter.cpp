@@ -177,7 +177,6 @@ MeshSculpterTool::~MeshSculpterTool()
 
 void MeshSculpterTool::drawDebug(int x, int y)
 {
-#ifdef VOXEL_DEBUG
     glColor4f(0, 0, 0, 0.5f);
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
@@ -191,7 +190,6 @@ void MeshSculpterTool::drawDebug(int x, int y)
 
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
-#endif
 }
 
 bool MeshSculpterTool::mousePressed(QMouseEvent *event)

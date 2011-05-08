@@ -40,25 +40,9 @@ void VoxelGrid::hitTestHelper(Quad *quad, const Vector3 &origin, const Vector3 &
     const Vector3 &c = mesh.vertices[quad->c.index]->pos;
     const Vector3 &d = mesh.vertices[quad->d.index]->pos;
 
-#ifdef VOXEL_DEBUG
-    float prevT = result.t;
-#endif
-
     HitTest tempResult;
     if (Raytracer::hitTestTriangle(a, b, c, origin, ray, tempResult)) result.mergeWith(tempResult);
     if (Raytracer::hitTestTriangle(a, c, d, origin, ray, tempResult)) result.mergeWith(tempResult);
-
-#ifdef VOXEL_DEBUG
-    if (result.t != prevT)
-    {
-        glBegin(GL_LINE_LOOP);
-        glVertex3fv(a.xyz);
-        glVertex3fv(b.xyz);
-        glVertex3fv(c.xyz);
-        glVertex3fv(d.xyz);
-        glEnd();
-    }
-#endif
 }
 
 void VoxelGrid::addQuadToVoxels(Quad &quad)
@@ -215,12 +199,6 @@ bool VoxelGrid::hitTest(const Vector3 &origin, const Vector3 &ray, HitTest &resu
     // Trace the ray through the grid
     while (1)
     {
-#ifdef VOXEL_DEBUG
-        Vector3 minPos = convertFromGrid(Vector3(x, y, z));
-        Vector3 maxPos = convertFromGrid(Vector3(x + 1, y + 1, z + 1));
-        drawWireCube(minPos, maxPos);
-#endif
-
         // Process the current voxel
         const Voxel &voxel = voxels[getInternalIndex(x, y, z)];
         foreach (Quad *quad, voxel.quads)
