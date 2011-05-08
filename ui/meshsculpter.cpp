@@ -72,13 +72,51 @@ void MeshSculpterTool::stampBrush(const Vector3 &brushCenter, const Vector3 &bru
         if (lengthSquared < radiusSquared)
         {
             float percent = 1 - sqrtf(lengthSquared) / brushRadius;
-            float weight = vertex->normal.dot(brushNormal) * brushRadius * percent * 0.05f;
-            vertex->pos += brushNormal * weight;
-            movedVertices += vertex;
+            float weight = percent * max(0, brushNormal.dot(vertex->prevNormal));
 
-            // We'll need to recalculate normals for all neighboring quads
-            foreach (Quad *quad, vertex->neighbors)
-                quadsNeedingNormals += quad;
+            if (weight > 0)
+            {
+                // Move the vertex
+                switch (brushMode)
+                {
+                    case BRUSH_ADD_OR_SUBTRACT:
+                    {
+                        // Add or subtract material from the original vertex position along the
+                        // original vertex normal for consistency, which will add (or subtract)
+                        // a layer of consistent thickness
+                        Vector3 offset = vertex->prevNormal * (brushWeight * brushRadius);
+                        if (isRightButton) offset = -offset;
+                        vertex->pos = Vector3::lerp(vertex->pos, vertex->prevPos + offset, weight);
+                        break;
+                    }
+
+                    case BRUSH_SMOOTH:
+                    {
+                        // Compute the average neighbor center (this is gross and order dependent
+                        // because we are modifying the vertices as we iterate over them)
+                        Vector3 average;
+                        foreach (Quad *quad, vertex->neighbors)
+                        {
+                            Vector3 &a = mesh->vertices[quad->a.index]->pos;
+                            Vector3 &b = mesh->vertices[quad->b.index]->pos;
+                            Vector3 &c = mesh->vertices[quad->c.index]->pos;
+                            Vector3 &d = mesh->vertices[quad->d.index]->pos;
+                            average += (a + b + c + d) / 4;
+                        }
+                        average /= vertex->neighbors.count();
+
+                        // Project the average onto the tangent plane
+                        Vector3 target = average + vertex->normal * vertex->normal.dot(average - vertex->pos);
+                        vertex->pos = Vector3::lerp(vertex->pos, target, brushWeight * weight);
+                        break;
+                    }
+                }
+                movedVertices += vertex;
+
+                // We'll need to recalculate normals for all neighboring quads
+                foreach (Quad *quad, vertex->neighbors)
+                    quadsNeedingNormals += quad;
+            }
         }
     }
     accel->updateVertices(movedVertices);
@@ -125,7 +163,9 @@ void MeshSculpterTool::stampBrush(const Vector3 &brushCenter, const Vector3 &bru
     mesh->mesh.uploadToGPU();
 }
 
-MeshSculpterTool::MeshSculpterTool(View *view) : Tool(view), mesh(NULL), accel(NULL), brushRadius(0)
+MeshSculpterTool::MeshSculpterTool(View *view) :
+    Tool(view), mesh(NULL), accel(NULL), isRightButton(false),
+    brushRadius(0), brushWeight(0), brushMode(BRUSH_ADD_OR_SUBTRACT)
 {
 }
 
@@ -157,6 +197,7 @@ void MeshSculpterTool::drawDebug(int x, int y)
 bool MeshSculpterTool::mousePressed(QMouseEvent *event)
 {
     updateAccel();
+    isRightButton = (event->button() == Qt::RightButton);
 
     view->camera3D();
     Raytracer tracer;
@@ -184,6 +225,10 @@ void MeshSculpterTool::mouseDragged(QMouseEvent *event)
 void MeshSculpterTool::mouseReleased(QMouseEvent *)
 {
     updateAccel();
+
+    // Don't add a no-op to the undo history
+    if (verticesToCommit.isEmpty())
+        return;
 
     // Map vertex pointers to their indices
     QHash<MetaVertex *, int> map;

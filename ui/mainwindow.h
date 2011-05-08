@@ -35,6 +35,10 @@ public slots:
     void evolveMesh();
     void edgeFairing();
     void trianglesToQuads();
+    void brushModeAddOrSubtract();
+    void brushModeSmooth();
+    void brushRadiusChanged(int value);
+    void brushWeightChanged(int value);
 
 private:
     Ui::MainWindow *ui;

@@ -189,7 +189,7 @@ void Curvature::drawCurvatures(const Mesh &mesh) {
 
     glBegin(GL_LINES);
     for (int i = 0; i < mesh.vertices.size(); ++i) {
-        glVertex3fv(mesh.vertices[i].pos.xyz);
+        glVertex3fv((mesh.vertices[i].pos - maxDirections[i] * 0.05f).xyz);
         glVertex3fv((mesh.vertices[i].pos + maxDirections[i] * 0.05f).xyz);
         //glVertex3fv((mesh.vertices[i].pos + maxDirections[i] * maxCurvatures[i] * 0.05f).xyz);
     }

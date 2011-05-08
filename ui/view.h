@@ -21,6 +21,8 @@ enum
     CAMERA_FIRST_PERSON,
 };
 
+class MeshSculpterTool;
+
 class View : public QGLWidget
 {
     Q_OBJECT
@@ -29,6 +31,9 @@ public:
     View(QWidget *parent);
     ~View();
 
+    void setBrushMode(int mode);
+    void setBrushRadius(float radius);
+    void setBrushWeight(float weight);
     void setMode(int mode);
     void setCamera(int camera);
     void setDocument(Document *doc);
@@ -58,6 +63,11 @@ private:
     bool drawWireframe;
     bool drawInterpolated;
     bool drawCurvature;
+
+    int brushMode;
+    float brushRadius;
+    float brushWeight;
+    MeshSculpterTool *brushTool;
 
     Camera *currentCamera;
     OrbitCamera orbitCamera;

@@ -27,6 +27,8 @@ public:
     bool operator != (const MeshInfo &other) const { return !(*this == other); }
 };
 
+enum { BRUSH_ADD_OR_SUBTRACT, BRUSH_SMOOTH };
+
 /**
  * MeshSculpterTool must derive from QObject to use the verticesChanged function.
  * However, it cannot use multiple inheritance (even if QObject is the first
@@ -42,6 +44,7 @@ class MeshSculpterTool : public Tool
 private:
     MetaMesh *mesh;
     AccelerationDataStructure *accel;
+    bool isRightButton;
 
     // Remember info about the mesh so we can tell when it has changed
     MeshInfo meshInfo;
@@ -54,6 +57,8 @@ private:
 
 public:
     float brushRadius;
+    float brushWeight;
+    int brushMode;
 
     MeshSculpterTool(View *view);
     ~MeshSculpterTool();

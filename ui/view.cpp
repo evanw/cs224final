@@ -9,7 +9,8 @@
 
 View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), oppositeSelectedBall(-1),
     mouseX(0), mouseY(0), mode(MODE_EDIT_MESH), mirrorChanges(false), drawWireframe(true), drawInterpolated(true),
-    drawCurvature(false), currentCamera(&firstPersonCamera), currentTool(NULL)
+    drawCurvature(false), brushMode(BRUSH_ADD_OR_SUBTRACT), brushRadius(0), brushWeight(0), brushTool(NULL),
+    currentCamera(&firstPersonCamera), currentTool(NULL)
 {
     resetCamera();
     setMouseTracking(true);
@@ -19,6 +20,27 @@ View::~View()
 {
     delete doc;
     clearTools();
+}
+
+void View::setBrushMode(int mode)
+{
+    brushMode = mode;
+    if (brushTool) brushTool->brushMode = brushMode;
+    update();
+}
+
+void View::setBrushRadius(float radius)
+{
+    brushRadius = radius;
+    if (brushTool) brushTool->brushRadius = brushRadius;
+    update();
+}
+
+void View::setBrushWeight(float weight)
+{
+    brushWeight = weight;
+    if (brushTool) brushTool->brushWeight = brushWeight;
+    update();
 }
 
 void View::setMode(int newMode)
@@ -216,9 +238,11 @@ void View::updateTools()
         break;
 
     case MODE_SCULPT_MESH:
-        MeshSculpterTool *sculpterTool = new MeshSculpterTool(this);
-        sculpterTool->brushRadius = 0.5f;
-        tools += sculpterTool;
+        brushTool = new MeshSculpterTool(this);
+        brushTool->brushMode = brushMode;
+        brushTool->brushRadius = brushRadius;
+        brushTool->brushWeight = brushWeight;
+        tools += brushTool;
         break;
     }
 
@@ -233,6 +257,7 @@ void View::clearTools()
     for (int i = 0; i < tools.count(); i++)
         delete tools[i];
     tools.clear();
+    brushTool = NULL;
 }
 
 void View::resetCamera()

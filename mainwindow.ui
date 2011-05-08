@@ -64,13 +64,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="drawCurvature">
-         <property name="text">
-          <string>Draw Curvature</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QGroupBox" name="Camera">
          <property name="title">
           <string>Camera</string>
@@ -96,23 +89,6 @@
        <item>
         <widget class="QPushButton" name="runEverything">
          <property name="text">
-          <string>Run Everything</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QWidget" name="space" native="true">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>40</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="generateMesh">
-         <property name="text">
           <string>Generate Mesh</string>
          </property>
         </widget>
@@ -125,31 +101,63 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="convexHull">
-         <property name="text">
-          <string>Convex Hull</string>
+        <widget class="QGroupBox" name="brushSettings">
+         <property name="title">
+          <string>Brush</string>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="evolveMesh">
-         <property name="text">
-          <string>Evolve Mesh</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="edgeFairing">
-         <property name="text">
-          <string>Edge Fairing</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="trianglesToQuads">
-         <property name="text">
-          <string>Triangles To Quads</string>
-         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QRadioButton" name="brushAddOrSubtract">
+            <property name="text">
+             <string>Add / Subtract</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="brushSmooth">
+            <property name="text">
+             <string>Smooth</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="brushRadiusLabel">
+            <property name="text">
+             <string>Radius</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widget" native="true">
+            <layout class="QGridLayout" name="gridLayout">
+             <property name="margin">
+              <number>0</number>
+             </property>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="brushRadius">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="brushWeightLabel">
+            <property name="text">
+             <string>Strength</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="brushWeight">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
@@ -176,7 +184,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -203,8 +211,27 @@
     <addaction name="actionEditMesh"/>
     <addaction name="actionSculptMesh"/>
    </widget>
+   <widget class="QMenu" name="menuMesh">
+    <property name="title">
+     <string>Mesh</string>
+    </property>
+    <addaction name="actionGenerateInitialMesh"/>
+    <addaction name="actionSubdivideMesh"/>
+    <addaction name="actionConvexHull"/>
+    <addaction name="actionEvolveMesh"/>
+    <addaction name="actionEdgeFairing"/>
+    <addaction name="actionTrianglesToQuads"/>
+   </widget>
+   <widget class="QMenu" name="menuOptions">
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <addaction name="actionDrawCurvature"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuMesh"/>
+   <addaction name="menuOptions"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="iconSize">
@@ -225,6 +252,7 @@
    <addaction name="actionNew"/>
    <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
+   <addaction name="actionSaveAs"/>
    <addaction name="separator"/>
    <addaction name="actionUndoToolbar"/>
    <addaction name="actionRedoToolbar"/>
@@ -396,6 +424,72 @@
     <string>Sculpt Mesh</string>
    </property>
   </action>
+  <action name="actionGenerateInitialMesh">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
+   </property>
+   <property name="text">
+    <string>Generate Initial Mesh</string>
+   </property>
+  </action>
+  <action name="actionSubdivideMesh">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
+   </property>
+   <property name="text">
+    <string>Subdivide Mesh</string>
+   </property>
+  </action>
+  <action name="actionConvexHull">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
+   </property>
+   <property name="text">
+    <string>Convex Hull</string>
+   </property>
+  </action>
+  <action name="actionEvolveMesh">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
+   </property>
+   <property name="text">
+    <string>Evolve Mesh</string>
+   </property>
+  </action>
+  <action name="actionEdgeFairing">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
+   </property>
+   <property name="text">
+    <string>Edge Fairing</string>
+   </property>
+  </action>
+  <action name="actionTrianglesToQuads">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
+   </property>
+   <property name="text">
+    <string>Triangles to Quads</string>
+   </property>
+  </action>
+  <action name="actionDrawCurvature">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
+   </property>
+   <property name="text">
+    <string>Draw Curvature</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -521,22 +615,6 @@
     <hint type="sourcelabel">
      <x>-1</x>
      <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>399</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>generateMesh</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>generateMesh()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>99</x>
-     <y>92</y>
     </hint>
     <hint type="destinationlabel">
      <x>399</x>
@@ -673,22 +751,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>convexHull</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>convexHull()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>99</x>
-     <y>252</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>399</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actionUndoToolbar</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
@@ -713,70 +775,6 @@
     <hint type="sourcelabel">
      <x>-1</x>
      <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>399</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>evolveMesh</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>evolveMesh()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>99</x>
-     <y>270</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>399</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>edgeFairing</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>edgeFairing()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>99</x>
-     <y>303</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>399</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>drawCurvature</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>view</receiver>
-   <slot>setCurvature(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>99</x>
-     <y>183</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>499</x>
-     <y>339</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>trianglesToQuads</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>trianglesToQuads()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>99</x>
-     <y>379</y>
     </hint>
     <hint type="destinationlabel">
      <x>399</x>
@@ -832,6 +830,198 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionGenerateInitialMesh</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>generateMesh()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSubdivideMesh</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>subdivideMesh()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionConvexHull</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>convexHull()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionEdgeFairing</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>edgeFairing()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionEvolveMesh</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>evolveMesh()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionTrianglesToQuads</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>trianglesToQuads()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionDrawCurvature</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>view</receiver>
+   <slot>setCurvature(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>509</x>
+     <y>336</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSculptMesh</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>modeChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>brushRadius</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>brushRadiusChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>110</x>
+     <y>411</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>brushWeight</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>brushWeightChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>110</x>
+     <y>469</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>brushAddOrSubtract</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>brushModeAddOrSubtract()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>108</x>
+     <y>329</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>brushSmooth</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>brushModeSmooth()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>108</x>
+     <y>348</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>modeChanged()</slot>
@@ -852,5 +1042,9 @@
   <slot>trianglesToQuads()</slot>
   <slot>cameraChanged()</slot>
   <slot>runEverything()</slot>
+  <slot>brushRadiusChanged(int)</slot>
+  <slot>brushWeightChanged(int)</slot>
+  <slot>brushModeAddOrSubtract()</slot>
+  <slot>brushModeSmooth()</slot>
  </slots>
 </ui>

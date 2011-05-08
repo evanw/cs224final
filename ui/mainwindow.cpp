@@ -7,6 +7,7 @@
 #include "convexhull3d.h"
 #include "edgefairing.h"
 #include "trianglestoquads.h"
+#include "meshsculpter.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
@@ -34,6 +35,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->drawWireframe->setChecked(true);
     ui->drawInterpolated->setChecked(true);
     ui->orbitCamera->setChecked(true);
+    ui->brushAddOrSubtract->setChecked(true);
+
+    ui->brushRadius->setRange(0, 100);
+    ui->brushWeight->setRange(0, 100);
+    ui->brushRadius->setValue(50);
+    ui->brushWeight->setValue(100);
 
     setWindowState(windowState() | Qt::WindowMaximized);
     fileNew();
@@ -50,6 +57,8 @@ void MainWindow::modeChanged()
     else if (ui->actionScaleJoints->isChecked()) ui->view->setMode(MODE_SCALE_JOINTS);
     else if (ui->actionEditMesh->isChecked()) ui->view->setMode(MODE_EDIT_MESH);
     else if (ui->actionSculptMesh->isChecked()) ui->view->setMode(MODE_SCULPT_MESH);
+
+    ui->brushSettings->setEnabled(ui->actionSculptMesh->isChecked());
 }
 
 void MainWindow::cameraChanged()
@@ -260,6 +269,30 @@ void MainWindow::trianglesToQuads()
     doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
     updateMode();
+}
+
+void MainWindow::brushModeAddOrSubtract()
+{
+    ui->view->setBrushMode(BRUSH_ADD_OR_SUBTRACT);
+}
+
+void MainWindow::brushModeSmooth()
+{
+    ui->view->setBrushMode(BRUSH_SMOOTH);
+}
+
+void MainWindow::brushRadiusChanged(int value)
+{
+    float brushRadius = (float)value / 100;
+    ui->view->setBrushRadius(brushRadius);
+    ui->brushRadiusLabel->setText(QString("Radius: %1").arg(brushRadius));
+}
+
+void MainWindow::brushWeightChanged(int value)
+{
+    float brushWeight = (float)value / 100;
+    ui->view->setBrushWeight(brushWeight / 4);
+    ui->brushWeightLabel->setText(QString("Strength: %1").arg(brushWeight));
 }
 
 void MainWindow::updateMode()
