@@ -28,3 +28,9 @@ void Document::changeMesh(const QVector<Vertex> &vertices, const QVector<Triangl
 {
     undoStack.push(new ChangeMeshCommand(this, vertices, triangles, quads));
 }
+
+void Document::changeVertices(const QVector<int> &vertexIndices, const QVector<Vertex> &newVertices)
+{
+    if (!vertexIndices.isEmpty())
+        undoStack.push(new ChangeVerticesCommand(this, vertexIndices, newVertices));
+}

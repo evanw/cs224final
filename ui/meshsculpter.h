@@ -27,14 +27,27 @@ public:
     bool operator != (const MeshInfo &other) const { return !(*this == other); }
 };
 
+/**
+ * MeshSculpterTool must derive from QObject to use the verticesChanged function.
+ * However, it cannot use multiple inheritance (even if QObject is the first
+ * superclass as the documentation says) because when trying to delete a
+ * MeshSculpterTool the allocator exits with the error "pointer being freed
+ * was not allocated". The solution is to make Tool inherit from QObject instead,
+ * which only uses single inheritance.
+ */
 class MeshSculpterTool : public Tool
 {
+    Q_OBJECT
+
 private:
     MetaMesh *mesh;
     AccelerationDataStructure *accel;
 
     // Remember info about the mesh so we can tell when it has changed
     MeshInfo meshInfo;
+
+    // List of vertices that will be added to the ChangeVerticesCommand on mouse up
+    QSet<MetaVertex *> verticesToCommit;
 
     void updateAccel();
     void stampBrush(const Vector3 &brushCenter, const Vector3 &brushNormal);
@@ -49,6 +62,9 @@ public:
     bool mousePressed(QMouseEvent *event);
     void mouseDragged(QMouseEvent *event);
     void mouseReleased(QMouseEvent *event);
+
+public slots:
+    void verticesChanged(const QVector<int> &vertexIndices);
 };
 
 #endif // MESHSCULPTER_H

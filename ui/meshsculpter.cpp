@@ -43,8 +43,13 @@ void MeshSculpterTool::updateAccel()
 
         mesh = new MetaMesh(view->doc->mesh);
         accel = new VoxelGrid(*mesh, VOXEL_SPACING);
+        QObject::connect(view->doc, SIGNAL(verticesChanged(QVector<int>)), this, SLOT(verticesChanged(QVector<int>)));
 
         meshInfo = newInfo;
+
+        // Also clear our array of vertices to commit because the
+        // pointers to the vertices are no longer valid
+        verticesToCommit.clear();
     }
 }
 
@@ -58,7 +63,7 @@ void MeshSculpterTool::stampBrush(const Vector3 &brushCenter, const Vector3 &bru
 
     // Move all vertices that are actually near the brush, and
     // update those in the acceleration data structure.
-    QSet<Quad *> movedQuads;
+    QSet<Quad *> quadsNeedingNormals;
     QSet<MetaVertex *> movedVertices;
     float radiusSquared = brushRadius * brushRadius;
     foreach (MetaVertex *vertex, brushVertices)
@@ -73,14 +78,14 @@ void MeshSculpterTool::stampBrush(const Vector3 &brushCenter, const Vector3 &bru
 
             // We'll need to recalculate normals for all neighboring quads
             foreach (Quad *quad, vertex->neighbors)
-                movedQuads += quad;
+                quadsNeedingNormals += quad;
         }
     }
     accel->updateVertices(movedVertices);
 
     // Update the normals for all vertices touching a moved quad
     QSet<MetaVertex *> verticesNeedingNormals;
-    foreach (Quad *quad, movedQuads)
+    foreach (Quad *quad, quadsNeedingNormals)
     {
         verticesNeedingNormals += mesh->vertices[quad->a.index];
         verticesNeedingNormals += mesh->vertices[quad->b.index];
@@ -90,10 +95,10 @@ void MeshSculpterTool::stampBrush(const Vector3 &brushCenter, const Vector3 &bru
     foreach (MetaVertex *vertex, verticesNeedingNormals)
     {
         foreach (Quad *quad, vertex->neighbors)
-            movedQuads += quad;
+            quadsNeedingNormals += quad;
         vertex->normal = Vector3();
     }
-    foreach (Quad *quad, movedQuads)
+    foreach (Quad *quad, quadsNeedingNormals)
     {
         MetaVertex *a = mesh->vertices[quad->a.index];
         MetaVertex *b = mesh->vertices[quad->b.index];
@@ -111,7 +116,10 @@ void MeshSculpterTool::stampBrush(const Vector3 &brushCenter, const Vector3 &bru
         if (verticesNeedingNormals.contains(d)) d->normal += normal;
     }
     foreach (MetaVertex *vertex, verticesNeedingNormals)
+    {
         vertex->normal.normalize();
+        verticesToCommit += vertex;
+    }
 
     // Commit the result to the GPU
     mesh->mesh.uploadToGPU();
@@ -175,6 +183,57 @@ void MeshSculpterTool::mouseDragged(QMouseEvent *event)
 
 void MeshSculpterTool::mouseReleased(QMouseEvent *)
 {
-    // TODO: undo
     updateAccel();
+
+    // Map vertex pointers to their indices
+    QHash<MetaVertex *, int> map;
+    for (int i = 0; i < mesh->vertices.count(); i++)
+        map[mesh->vertices[i]] = i;
+
+    // Generate the info for all vertices in verticesToCommit
+    QVector<int> vertexIndices;
+    QVector<Vertex> newVertices;
+    foreach (MetaVertex *vertex, verticesToCommit)
+    {
+        vertexIndices += map[vertex];
+
+        Vertex newVertex;
+        newVertex.pos = vertex->pos;
+        newVertex.normal = vertex->normal;
+        vertex->pos = vertex->prevPos;
+        vertex->normal = vertex->prevNormal;
+        newVertices += newVertex;
+    }
+
+    // Add the command to the undo stack
+    view->doc->getUndoStack().beginMacro("Change Vertices");
+    view->doc->changeVertices(vertexIndices, newVertices);
+    view->doc->getUndoStack().endMacro();
+
+    // Get ready for the next brush stroke
+    foreach (MetaVertex *vertex, verticesToCommit)
+    {
+        vertex->prevPos = vertex->pos;
+        vertex->prevNormal = vertex->normal;
+    }
+    verticesToCommit.clear();
+}
+
+void MeshSculpterTool::verticesChanged(const QVector<int> &vertexIndices)
+{
+    updateAccel();
+
+    // Update the previous per-vertex information
+    foreach (int index, vertexIndices)
+    {
+        MetaVertex *vertex = mesh->vertices[index];
+        vertex->prevPos = vertex->pos;
+        vertex->prevNormal = vertex->normal;
+    }
+
+    // Also update the acceleration data structure
+    QSet<MetaVertex *> changedVertices;
+    foreach (int index, vertexIndices)
+        changedVertices += mesh->vertices[index];
+    accel->updateVertices(changedVertices);
 }

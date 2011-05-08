@@ -80,4 +80,18 @@ public:
     void redo();
 };
 
+class ChangeVerticesCommand : public QUndoCommand
+{
+private:
+    Document *doc;
+    QVector<int> vertexIndices;
+    QVector<Vertex> oldVertices, newVertices;
+
+public:
+    ChangeVerticesCommand(Document *doc, const QVector<int> &vertexIndices, const QVector<Vertex> &newVertices);
+
+    void undo();
+    void redo();
+};
+
 #endif // COMMANDS_H

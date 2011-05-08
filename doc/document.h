@@ -24,11 +24,14 @@ public:
     void scaleBall(int index, const Vector3 &x, const Vector3 &y, const Vector3 &z);
     void deleteBall(int index);
     void changeMesh(const QVector<Vertex> &vertices, const QVector<Triangle> &triangles, const QVector<Quad> &quads);
+    void changeVertices(const QVector<int> &vertexIndices, const QVector<Vertex> &newVertices);
 
     void emitDocumentChanged() { emit documentChanged(); }
+    void emitVerticesChanged(const QVector<int> &vertexIndices) { emit verticesChanged(vertexIndices); }
 
 signals:
     void documentChanged();
+    void verticesChanged(const QVector<int> &vertexIndices);
 };
 
 #endif // DOCUMENT_H

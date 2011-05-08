@@ -10,9 +10,10 @@ public:
     Vector3 &pos;
     Vector3 &normal;
     Vector3 prevPos;
+    Vector3 prevNormal;
     QVector<Quad *> neighbors;
 
-    MetaVertex(Vertex &vertex) : accelData(0), pos(vertex.pos), normal(vertex.normal), prevPos(vertex.pos) {}
+    MetaVertex(Vertex &vertex) : accelData(0), pos(vertex.pos), normal(vertex.normal), prevPos(vertex.pos), prevNormal(vertex.normal) {}
 };
 
 class MetaMesh

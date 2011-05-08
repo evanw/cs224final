@@ -9,7 +9,7 @@ class View;
 class QMouseEvent;
 class QWheelEvent;
 
-class Tool
+class Tool : public QObject
 {
 protected:
     View *view;

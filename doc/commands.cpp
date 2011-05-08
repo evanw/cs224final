@@ -1,5 +1,6 @@
 #include "commands.h"
 #include "document.h"
+#include <assert.h>
 
 AddBallCommand::AddBallCommand(Document *doc, const Ball &ball) : ball(ball), doc(doc)
 {
@@ -129,4 +130,33 @@ void ChangeMeshCommand::redo()
     doc->mesh.quads = newQuads;
     doc->mesh.uploadToGPU();
     doc->emitDocumentChanged();
+}
+
+ChangeVerticesCommand::ChangeVerticesCommand(Document *doc, const QVector<int> &vertexIndices, const QVector<Vertex> &newVertices)
+    : doc(doc),
+      vertexIndices(vertexIndices),
+      newVertices(newVertices)
+{
+    assert(vertexIndices.count() == newVertices.count());
+
+    foreach (int index, vertexIndices)
+        oldVertices += doc->mesh.vertices[index];
+}
+
+void ChangeVerticesCommand::undo()
+{
+    for (int i = 0; i < vertexIndices.count(); i++)
+        doc->mesh.vertices[vertexIndices[i]] = oldVertices[i];
+    doc->emitDocumentChanged();
+    doc->emitVerticesChanged(vertexIndices);
+    doc->mesh.uploadToGPU();
+}
+
+void ChangeVerticesCommand::redo()
+{
+    for (int i = 0; i < vertexIndices.count(); i++)
+        doc->mesh.vertices[vertexIndices[i]] = newVertices[i];
+    doc->emitDocumentChanged();
+    doc->emitVerticesChanged(vertexIndices);
+    doc->mesh.uploadToGPU();
 }
