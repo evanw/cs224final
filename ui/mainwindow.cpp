@@ -42,6 +42,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->brushRadius->setValue(50);
     ui->brushWeight->setValue(100);
 
+#ifdef USE_FLOAT_RTT
+    ui->materialCurvature->setChecked(true);
+#else
+    // Hide the material picker if we don't have shaders
+    ui->materials->setVisible(false);
+#endif
+
     setWindowState(windowState() | Qt::WindowMaximized);
     fileNew();
 }
@@ -59,6 +66,7 @@ void MainWindow::modeChanged()
     else if (ui->actionSculptMesh->isChecked()) ui->view->setMode(MODE_SCULPT_MESH);
 
     ui->brushSettings->setEnabled(ui->actionSculptMesh->isChecked());
+    ui->materials->setEnabled(ui->actionSculptMesh->isChecked());
 }
 
 void MainWindow::cameraChanged()
@@ -293,6 +301,14 @@ void MainWindow::brushWeightChanged(int value)
     float brushWeight = (float)value / 100;
     ui->view->setBrushWeight(brushWeight / 4);
     ui->brushWeightLabel->setText(QString("Strength: %1").arg(brushWeight));
+}
+
+void MainWindow::materialChanged()
+{
+    if (ui->materialCurvature->isChecked()) ui->view->setMaterial(MATERIAL_CURVATURE);
+    else if (ui->materialMapleCandy->isChecked()) ui->view->setMaterial(MATERIAL_MAPLE_CANDY);
+    else if (ui->materialMetal->isChecked()) ui->view->setMaterial(MATERIAL_METAL);
+    else if (ui->materialRedWax->isChecked()) ui->view->setMaterial(MATERIAL_RED_WAX);
 }
 
 void MainWindow::updateMode()

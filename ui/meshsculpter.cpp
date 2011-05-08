@@ -203,6 +203,7 @@ bool MeshSculpterTool::mousePressed(QMouseEvent *event)
     if (accel->hitTest(tracer.getEye(), tracer.getRayForPixel(event->x(), event->y()), result))
     {
         stampBrush(result.hit, result.normal);
+        if (view->mirrorChanges) stampBrush(result.hit * Mesh::symmetryFlip, result.normal * Mesh::symmetryFlip);
         return true;
     }
 
@@ -217,7 +218,10 @@ void MeshSculpterTool::mouseDragged(QMouseEvent *event)
     Raytracer tracer;
     HitTest result;
     if (accel->hitTest(tracer.getEye(), tracer.getRayForPixel(event->x(), event->y()), result))
+    {
         stampBrush(result.hit, result.normal);
+        if (view->mirrorChanges) stampBrush(result.hit * Mesh::symmetryFlip, result.normal * Mesh::symmetryFlip);
+    }
 }
 
 void MeshSculpterTool::mouseReleased(QMouseEvent *)

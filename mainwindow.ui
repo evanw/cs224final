@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>600</height>
+    <height>611</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -106,6 +106,9 @@
           <string>Brush</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="spacing">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QRadioButton" name="brushAddOrSubtract">
             <property name="text">
@@ -117,6 +120,22 @@
            <widget class="QRadioButton" name="brushSmooth">
             <property name="text">
              <string>Smooth</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widget_2" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>10</height>
+             </size>
             </property>
            </widget>
           </item>
@@ -154,6 +173,43 @@
            <widget class="QSlider" name="brushWeight">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="materials">
+         <property name="title">
+          <string>Material</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QRadioButton" name="materialCurvature">
+            <property name="text">
+             <string>Curvature</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="materialMapleCandy">
+            <property name="text">
+             <string>Maple Candy</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="materialMetal">
+            <property name="text">
+             <string>Metal</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="materialRedWax">
+            <property name="text">
+             <string>Red Wax</string>
             </property>
            </widget>
           </item>
@@ -1052,6 +1108,70 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>materialCurvature</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>materialChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>108</x>
+     <y>494</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>305</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>materialMapleCandy</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>materialChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>108</x>
+     <y>513</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>305</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>materialMetal</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>materialChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>108</x>
+     <y>532</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>305</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>materialRedWax</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>materialChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>108</x>
+     <y>551</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>305</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>modeChanged()</slot>
@@ -1076,5 +1196,6 @@
   <slot>brushWeightChanged(int)</slot>
   <slot>brushModeAddOrSubtract()</slot>
   <slot>brushModeSmooth()</slot>
+  <slot>materialChanged()</slot>
  </slots>
 </ui>

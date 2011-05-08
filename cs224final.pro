@@ -11,6 +11,12 @@ release {
 }
 
 # DEFINES += ANIM_DEBUG
+DEFINES += USE_FLOAT_RTT
+
+# floating-point render targets are horribly broken on the cs department machines
+linux {
+    DEFINES -= USE_FLOAT_RTT
+}
 
 HEADERS += \
     util/vector.h \
@@ -71,7 +77,11 @@ RESOURCES += \
     resources.qrc
 
 OTHER_FILES += \
-    README
+    README \
+    shaders/normaldepth.vert \
+    shaders/normaldepth.frag \
+    shaders/finalcomposite.vert \
+    shaders/finalcomposite.frag
 
 
 

@@ -39,6 +39,7 @@ public slots:
     void brushModeSmooth();
     void brushRadiusChanged(int value);
     void brushWeightChanged(int value);
+    void materialChanged();
 
 private:
     Ui::MainWindow *ui;

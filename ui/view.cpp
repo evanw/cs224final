@@ -8,9 +8,9 @@
 #define CURSOR_SIZE 20
 
 View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), oppositeSelectedBall(-1),
-    mouseX(0), mouseY(0), mode(MODE_EDIT_MESH), mirrorChanges(false), drawWireframe(true), drawInterpolated(true),
-    drawCurvature(false), brushMode(BRUSH_ADD_OR_SUBTRACT), brushRadius(0), brushWeight(0), brushTool(NULL),
-    currentCamera(&firstPersonCamera), drawToolDebug(false), currentTool(NULL)
+    mouseX(0), mouseY(0), mode(MODE_EDIT_MESH), currentMaterial(0), mirrorChanges(false), drawWireframe(true),
+    drawInterpolated(true), drawCurvature(false), brushMode(BRUSH_ADD_OR_SUBTRACT), brushRadius(0), brushWeight(0),
+    brushTool(NULL), currentCamera(&firstPersonCamera), drawToolDebug(false), currentTool(NULL)
 {
     resetCamera();
     setMouseTracking(true);
@@ -20,6 +20,12 @@ View::~View()
 {
     delete doc;
     clearTools();
+}
+
+void View::setMaterial(int material)
+{
+    currentMaterial = material;
+    update();
 }
 
 void View::setBrushMode(int mode)
@@ -117,17 +123,31 @@ void View::initializeGL()
     glClearColor(0.875, 0.875, 0.875, 0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glPolygonOffset(1, 1);
+
+#ifdef USE_FLOAT_RTT
+    // load shaders
+    normalDepthShader.init(":/shaders/normaldepth.vert", ":/shaders/normaldepth.frag");
+    for (int i = 0; i < NUM_MATERIALS; i++)
+        finalCompositeShaders[i].init(":/shaders/finalcomposite.vert", ":/shaders/finalcomposite.frag", QString("#define MATERIAL %1").arg(i).toStdString());
+#endif
 }
 
 void View::resizeGL(int width, int height)
 {
     glViewport(0, 0, width, height);
+#ifdef USE_FLOAT_RTT
+    normalDepthTexture.init(GL_TEXTURE_2D, width, height, GL_RGBA, GL_RGBA32F_ARB, GL_FLOAT, GL_CLAMP_TO_EDGE, GL_NEAREST);
+#endif
 }
 
 void View::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     camera3D();
+
+    // Don't paint if we haven't gotten a resize yet
+    if (normalDepthTexture.getWidth() * normalDepthTexture.getHeight() == 0)
+        return;
 
     // position lights
     float position0[4] = { 0, 1, 0, 0 };
@@ -137,7 +157,27 @@ void View::paintGL()
 
     if (mode == MODE_SCULPT_MESH)
     {
+#ifdef USE_FLOAT_RTT
+        normalDepthTexture.startDrawingTo();
+        normalDepthShader.use();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         drawMesh(true);
+        normalDepthShader.unuse();
+        normalDepthTexture.stopDrawingTo();
+
+        camera2D();
+        glDisable(GL_DEPTH_TEST);
+        normalDepthTexture.bind(0);
+        finalCompositeShaders[currentMaterial].use();
+        finalCompositeShaders[currentMaterial].uniform("windowSize", width(), height());
+        drawFullscreenQuad();
+        finalCompositeShaders[currentMaterial].unuse();
+        normalDepthTexture.unbind(0);
+        glEnable(GL_DEPTH_TEST);
+        camera3D();
+#else
+        drawMesh(true);
+#endif
         drawGroundPlane();
     }
     else if (mode == MODE_EDIT_MESH)

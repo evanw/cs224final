@@ -15,7 +15,7 @@ private:
 public:
     ~Shader();
 
-    void load(const string &vertexPath, const string &fragmentPath);
+    void init(const string &vertexPath, const string &fragmentPath, const string &defines = "");
     void use();
     void unuse();
 

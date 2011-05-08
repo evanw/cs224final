@@ -6,6 +6,8 @@
 #include "camera.h"
 #include "document.h"
 #include "curvature.h"
+#include "shader.h"
+#include "texture.h"
 
 enum
 {
@@ -23,6 +25,16 @@ enum
 
 class MeshSculpterTool;
 
+enum
+{
+    MATERIAL_CURVATURE,
+    MATERIAL_MAPLE_CANDY,
+    MATERIAL_METAL,
+    MATERIAL_RED_WAX,
+
+    NUM_MATERIALS
+};
+
 class View : public QGLWidget
 {
     Q_OBJECT
@@ -31,6 +43,7 @@ public:
     View(QWidget *parent);
     ~View();
 
+    void setMaterial(int material);
     void setBrushMode(int mode);
     void setBrushRadius(float radius);
     void setBrushWeight(float weight);
@@ -58,6 +71,13 @@ private:
     int oppositeSelectedBall; // used by tools
     int mouseX, mouseY; // for highlighting the face of the selection cube
     int mode;
+
+#ifdef USE_FLOAT_RTT
+    Shader normalDepthShader;
+    Texture normalDepthTexture;
+    Shader finalCompositeShaders[NUM_MATERIALS];
+    int currentMaterial;
+#endif
 
     bool mirrorChanges;
     bool drawWireframe;
