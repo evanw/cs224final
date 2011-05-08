@@ -11,12 +11,12 @@ release {
 }
 
 # DEFINES += ANIM_DEBUG
-DEFINES += USE_FLOAT_RTT
 
-# floating-point render targets are horribly broken on the cs department machines
-linux {
-    DEFINES -= USE_FLOAT_RTT
-}
+# floating-point render targets are horribly broken on most
+# of the cs department machines so only compile this on a mac
+# macx {
+    DEFINES += USE_SHADER_MATERIALS
+# }
 
 HEADERS += \
     util/vector.h \

@@ -72,9 +72,10 @@ private:
     int mouseX, mouseY; // for highlighting the face of the selection cube
     int mode;
 
-#ifdef USE_FLOAT_RTT
+#ifdef USE_SHADER_MATERIALS
     Shader normalDepthShader;
     Texture normalDepthTexture;
+    Texture depthTexture;
     Shader finalCompositeShaders[NUM_MATERIALS];
     int currentMaterial;
 #endif

@@ -27,7 +27,12 @@ public:
     bool operator != (const MeshInfo &other) const { return !(*this == other); }
 };
 
-enum { BRUSH_ADD_OR_SUBTRACT, BRUSH_SMOOTH };
+enum
+{
+    BRUSH_ADD_OR_SUBTRACT,
+    BRUSH_SMOOTH,
+    BRUSH_GRAB,
+};
 
 /**
  * MeshSculpterTool must derive from QObject to use the verticesChanged function.
@@ -52,8 +57,15 @@ private:
     // List of vertices that will be added to the ChangeVerticesCommand on mouse up
     QSet<MetaVertex *> verticesToCommit;
 
+    Vector3 grabbedCenter;
+    Vector3 grabbedNormal;
+    QSet<MetaVertex *> grabbedVertices;
+
     void updateAccel();
+    void getVerticesInSphere(const Vector3 &center, float radius, QSet<MetaVertex *> &vertices);
     void stampBrush(const Vector3 &brushCenter, const Vector3 &brushNormal);
+    void moveGrabbedVertices(int x, int y);
+    void commitChanges(QSet<Quad *> &quadsNeedingNormals);
 
 public:
     float brushRadius;

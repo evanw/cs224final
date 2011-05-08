@@ -1,4 +1,5 @@
 uniform sampler2D texture;
+uniform sampler2D depthTexture;
 uniform vec2 windowSize;
 
 void main()
@@ -12,6 +13,7 @@ void main()
     {
         // color background differently
         gl_FragColor = vec4(0.5 * (1.0 - length(coord - 0.5)));
+        gl_FragDepth = 1.0;
         return;
     }
 
@@ -35,8 +37,8 @@ void main()
     // maple candy shader
     curvature = clamp(0.5 + curvature * 2.0, 0.0, 1.0);
     vec3 light = normalize(vec3(0.0, 1.0, 10.0));
-    vec3 ambient = vec3(0.1, 0.05, 0.0);
-    vec3 diffuse = mix(vec3(0.5), vec3(0.5, 0.3, 0.1), curvature);
+    vec3 ambient = vec3(0.2, 0.15, 0.1);
+    vec3 diffuse = mix(vec3(0.5), vec3(0.5, 0.3, 0.1), curvature) - ambient;
     vec3 specular = vec3(0.0);
     float shininess = 0.0;
 #elif MATERIAL == 2
@@ -64,4 +66,6 @@ void main()
         ambient +
         diffuse * max(0.0, cosAngle) +
         specular * pow(max(0.0, cosAngle), shininess);
+
+    gl_FragDepth = texture2D(depthTexture, coord).r;
 }

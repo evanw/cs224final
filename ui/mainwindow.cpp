@@ -42,7 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->brushRadius->setValue(50);
     ui->brushWeight->setValue(100);
 
-#ifdef USE_FLOAT_RTT
+#ifdef USE_SHADER_MATERIALS
     ui->materialCurvature->setChecked(true);
 #else
     // Hide the material picker if we don't have shaders
@@ -279,14 +279,11 @@ void MainWindow::trianglesToQuads()
     updateMode();
 }
 
-void MainWindow::brushModeAddOrSubtract()
+void MainWindow::brushModeChanged()
 {
-    ui->view->setBrushMode(BRUSH_ADD_OR_SUBTRACT);
-}
-
-void MainWindow::brushModeSmooth()
-{
-    ui->view->setBrushMode(BRUSH_SMOOTH);
+    if (ui->brushAddOrSubtract->isChecked()) ui->view->setBrushMode(BRUSH_ADD_OR_SUBTRACT);
+    else if (ui->brushSmooth->isChecked()) ui->view->setBrushMode(BRUSH_SMOOTH);
+    else if (ui->brushGrab->isChecked()) ui->view->setBrushMode(BRUSH_GRAB);
 }
 
 void MainWindow::brushRadiusChanged(int value)

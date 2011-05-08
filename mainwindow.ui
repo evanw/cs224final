@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>611</height>
+    <height>688</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -120,6 +120,13 @@
            <widget class="QRadioButton" name="brushSmooth">
             <property name="text">
              <string>Smooth</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="brushGrab">
+            <property name="text">
+             <string>Grab</string>
             </property>
            </widget>
           </item>
@@ -240,7 +247,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1064,7 +1071,7 @@
    <sender>brushAddOrSubtract</sender>
    <signal>toggled(bool)</signal>
    <receiver>MainWindow</receiver>
-   <slot>brushModeAddOrSubtract()</slot>
+   <slot>brushModeChanged()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>108</x>
@@ -1080,7 +1087,7 @@
    <sender>brushSmooth</sender>
    <signal>toggled(bool)</signal>
    <receiver>MainWindow</receiver>
-   <slot>brushModeSmooth()</slot>
+   <slot>brushModeChanged()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>108</x>
@@ -1172,6 +1179,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>brushGrab</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>brushModeChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>113</x>
+     <y>397</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>332</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>modeChanged()</slot>
@@ -1194,8 +1217,7 @@
   <slot>runEverything()</slot>
   <slot>brushRadiusChanged(int)</slot>
   <slot>brushWeightChanged(int)</slot>
-  <slot>brushModeAddOrSubtract()</slot>
-  <slot>brushModeSmooth()</slot>
   <slot>materialChanged()</slot>
+  <slot>brushModeChanged()</slot>
  </slots>
 </ui>
