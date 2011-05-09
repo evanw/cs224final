@@ -30,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     group->addAction(ui->actionScaleJoints);
     group->addAction(ui->actionEditMesh);
     group->addAction(ui->actionSculptMesh);
+    group->addAction(ui->actionAnimate);
 
     ui->mirrorChanges->setChecked(true);
     ui->drawWireframe->setChecked(true);
@@ -57,6 +58,7 @@ void MainWindow::modeChanged()
     else if (ui->actionScaleJoints->isChecked()) ui->view->setMode(MODE_SCALE_JOINTS);
     else if (ui->actionEditMesh->isChecked()) ui->view->setMode(MODE_EDIT_MESH);
     else if (ui->actionSculptMesh->isChecked()) ui->view->setMode(MODE_SCULPT_MESH);
+    else if (ui->actionAnimate->isChecked()) ui->view->setMode(MODE_ANIMATE);
 
     ui->brushSettings->setEnabled(ui->actionSculptMesh->isChecked());
 }
@@ -301,12 +303,13 @@ void MainWindow::updateMode()
     if (mesh.balls.isEmpty() || mesh.triangles.count() + mesh.quads.count() > 0)
     {
         // try to keep the currently checked action
-        QAction *checked = ui->actionSculptMesh->isChecked() ? ui->actionSculptMesh : ui->actionEditMesh;
+        QAction *checked = ui->actionSculptMesh->isChecked() ? ui->actionSculptMesh : ui->actionAnimate->isChecked() ? ui->actionAnimate : ui->actionEditMesh;
 
         ui->actionAddJoints->setEnabled(false);
         ui->actionScaleJoints->setEnabled(false);
         ui->actionEditMesh->setEnabled(true);
         ui->actionSculptMesh->setEnabled(true);
+        ui->actionAnimate->setEnabled(true);
 
         checked->setChecked(true);
     }
@@ -319,6 +322,7 @@ void MainWindow::updateMode()
         ui->actionScaleJoints->setEnabled(true);
         ui->actionEditMesh->setEnabled(false);
         ui->actionSculptMesh->setEnabled(false);
+        ui->actionAnimate->setEnabled(false);
 
         checked->setChecked(true);
     }

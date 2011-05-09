@@ -184,7 +184,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -210,6 +210,7 @@
     <addaction name="actionScaleJoints"/>
     <addaction name="actionEditMesh"/>
     <addaction name="actionSculptMesh"/>
+    <addaction name="actionAnimate"/>
    </widget>
    <widget class="QMenu" name="menuMesh">
     <property name="title">
@@ -262,6 +263,7 @@
    <addaction name="actionScaleJoints"/>
    <addaction name="actionEditMesh"/>
    <addaction name="actionSculptMesh"/>
+   <addaction name="actionAnimate"/>
   </widget>
   <action name="actionNew">
    <property name="icon">
@@ -501,6 +503,18 @@
    </property>
    <property name="text">
     <string>Debug Drawing</string>
+   </property>
+  </action>
+  <action name="actionAnimate">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
+   </property>
+   <property name="text">
+    <string>Animate</string>
    </property>
   </action>
  </widget>
@@ -1049,6 +1063,22 @@
     <hint type="destinationlabel">
      <x>509</x>
      <y>336</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionAnimate</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>modeChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
     </hint>
    </hints>
   </connection>
