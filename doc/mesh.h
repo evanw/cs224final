@@ -19,7 +19,7 @@ struct Ball
     // local coordinate frame of ellipsoid (includes scale factors)
     Vector3 ex, ey, ez;
 
-    // rotation quaternion and translation vector
+    // rotation quaternion and translation vector (relative to parent)
     QQuaternion rotation;
     Vector3 translation;
 
@@ -115,6 +115,7 @@ public:
 
     void updateChildIndices();
     void updateNormals();
+    void updateRelativePositions();
     void uploadToGPU();
 
     int getOppositeBall(int index) const;

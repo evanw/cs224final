@@ -2,6 +2,7 @@
 #define JOINTROTATION_H
 
 #include "tools.h"
+#include <QMap>
 
 
 /**
@@ -13,11 +14,13 @@ class JointRotationTool : public Tool
 
 private:
     void updateVertices();
-    void calculateAbsoluteRotations();
+    void calculateAbsoluteTransforms();
+    void calcTransform(Ball *ball, QMatrix4x4 parentTransform);
 
     // copy of the base mesh from when this tool was instatiated
     Mesh *baseMesh;
     QQuaternion originalRotation;
+    QMap<Ball *, QMatrix4x4> absoluteTransforms;
 
 public:
     JointRotationTool(View *view);
