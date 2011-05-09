@@ -110,24 +110,40 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QRadioButton" name="brushAddOrSubtract">
-            <property name="text">
-             <string>Add / Subtract</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="brushSmooth">
-            <property name="text">
-             <string>Smooth</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="brushGrab">
-            <property name="text">
-             <string>Grab</string>
-            </property>
+           <widget class="QWidget" name="widget_3" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QRadioButton" name="brushAddOrSubtract">
+               <property name="text">
+                <string>Add / Subtract</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="brushSmooth">
+               <property name="text">
+                <string>Smooth</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="brushGrab">
+               <property name="text">
+                <string>Grab</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="brushSnake">
+               <property name="text">
+                <string>Snake</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>
@@ -247,7 +263,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1206,6 +1222,22 @@
     <hint type="destinationlabel">
      <x>399</x>
      <y>332</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>brushSnake</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>brushModeChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>109</x>
+     <y>388</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>343</y>
     </hint>
    </hints>
   </connection>

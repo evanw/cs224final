@@ -30,6 +30,14 @@ bool MeshInfo::operator == (const MeshInfo &other) const
             quadCount == other.quadCount;
 }
 
+Vector3 MeshSculpterTool::interpolateAlongSnake(float t)
+{
+    t = max(0, min(1, t)) * snakePositions.count();
+    int lo = max(0, min(t, snakePositions.count() - 1));
+    int hi = max(0, min(lo + 1, snakePositions.count() - 1));
+    return Vector3::lerp(snakePositions[lo], snakePositions[hi], t - lo);
+}
+
 void MeshSculpterTool::updateAccel()
 {
     MeshInfo newInfo(view->doc->mesh);
@@ -154,7 +162,6 @@ void MeshSculpterTool::moveGrabbedVertices(int x, int y)
     Vector3 hit = origin + ray * t;
     Vector3 delta = hit - grabbedCenter;
     Vector3 toCenter = (grabbedCenter - origin).unit();
-    Vector3 toFlippedCenter = (grabbedCenter - origin).unit();
 
     // Move all vertices that are actually near the brush, and
     // update those in the acceleration data structure.
@@ -184,7 +191,60 @@ void MeshSculpterTool::moveGrabbedVertices(int x, int y)
             a = vertex->prevPos + delta * percent;
             b = vertex->prevPos + delta * Mesh::symmetryFlip * mirroredPercent;
         }
-        vertex->pos = Vector3::lerp(a, b, mirroredPercent / (percent + mirroredPercent));
+        if (percent + mirroredPercent > 1.0e-4f)
+            vertex->pos = Vector3::lerp(a, b, mirroredPercent / (percent + mirroredPercent));
+
+        // We'll need to recalculate normals for all neighboring quads
+        foreach (Quad *quad, vertex->neighbors)
+            quadsNeedingNormals += quad;
+    }
+    accel->updateVertices(grabbedVertices);
+
+    // Update normals and upload the result to the GPU
+    commitChanges(quadsNeedingNormals);
+}
+
+void MeshSculpterTool::moveSnake(int x, int y)
+{
+    Raytracer tracer;
+    Vector3 origin = tracer.getEye();
+    Vector3 ray = tracer.getRayForPixel(x, y);
+    float t = grabbedNormal.dot(grabbedCenter - origin) / grabbedNormal.dot(ray);
+    Vector3 hit = origin + ray * t;
+
+    if (isRightButton)
+    {
+        // Move the hit point toward the camera
+        float multiplier = (float)snakePositions.count() / (100 + snakePositions.count());
+        hit += (origin - hit) * multiplier;
+    }
+
+    // Set the hit point as the head of the snake
+    snakePositions += hit;
+
+    // Move all vertices that are actually near the brush, and
+    // update those in the acceleration data structure.
+    QSet<Quad *> quadsNeedingNormals;
+    foreach (MetaVertex *vertex, grabbedVertices)
+    {
+        float lengthSquared = (vertex->prevPos - grabbedCenter).lengthSquared();
+        float percent = max(0, 1 - sqrtf(lengthSquared) / brushRadius);
+        percent = 0.5 - 0.5 * cosf(percent * M_PI);
+        float mirroredPercent = 0;
+
+        if (view->mirrorChanges)
+        {
+            float mirroredLengthSquared = (vertex->prevPos - grabbedCenter * Mesh::symmetryFlip).lengthSquared();
+            mirroredPercent = max(0, 1 - sqrtf(mirroredLengthSquared) / brushRadius);
+            mirroredPercent = 0.5 - 0.5 * cosf(mirroredPercent * M_PI);
+        }
+
+        if (percent + mirroredPercent > 1.0e-4f)
+        {
+            Vector3 a = vertex->prevPos + (interpolateAlongSnake(percent) - grabbedCenter) * percent;
+            Vector3 b = vertex->prevPos + (interpolateAlongSnake(mirroredPercent) - grabbedCenter) * Mesh::symmetryFlip * mirroredPercent;
+            vertex->pos = Vector3::lerp(a, b, mirroredPercent / (percent + mirroredPercent));
+        }
 
         // We'll need to recalculate normals for all neighboring quads
         foreach (Quad *quad, vertex->neighbors)
@@ -279,7 +339,7 @@ bool MeshSculpterTool::mousePressed(QMouseEvent *event)
     HitTest result;
     if (accel->hitTest(tracer.getEye(), tracer.getRayForPixel(event->x(), event->y()), result))
     {
-        if (brushMode == BRUSH_GRAB)
+        if (brushMode == BRUSH_GRAB || brushMode == BRUSH_SNAKE)
         {
             grabbedCenter = result.hit;
             grabbedNormal = tracer.getRayForPixel(view->width() / 2, view->height() / 2);
@@ -290,6 +350,7 @@ bool MeshSculpterTool::mousePressed(QMouseEvent *event)
                 getVerticesInSphere(grabbedCenter * Mesh::symmetryFlip, brushRadius, mirroredVertices);
                 grabbedVertices += mirroredVertices;
             }
+            snakePositions.clear();
         }
         else
         {
@@ -312,6 +373,10 @@ void MeshSculpterTool::mouseDragged(QMouseEvent *event)
     if (brushMode == BRUSH_GRAB)
     {
         moveGrabbedVertices(event->x(), event->y());
+    }
+    else if (brushMode == BRUSH_SNAKE)
+    {
+        moveSnake(event->x(), event->y());
     }
     else if (accel->hitTest(tracer.getEye(), tracer.getRayForPixel(event->x(), event->y()), result))
     {

@@ -286,11 +286,13 @@ void MainWindow::brushModeChanged()
     if (ui->brushAddOrSubtract->isChecked()) ui->view->setBrushMode(BRUSH_ADD_OR_SUBTRACT);
     else if (ui->brushSmooth->isChecked()) ui->view->setBrushMode(BRUSH_SMOOTH);
     else if (ui->brushGrab->isChecked()) ui->view->setBrushMode(BRUSH_GRAB);
+    else if (ui->brushSnake->isChecked()) ui->view->setBrushMode(BRUSH_SNAKE);
 }
 
 void MainWindow::brushRadiusChanged(int value)
 {
     float brushRadius = (float)value / 100;
+    brushRadius = brushRadius * brushRadius * 4;
     ui->view->setBrushRadius(brushRadius);
     ui->brushRadiusLabel->setText(QString("Radius: %1").arg(brushRadius));
 }
