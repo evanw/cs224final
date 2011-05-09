@@ -212,9 +212,12 @@ void MeshSculpterTool::moveSnake(int x, int y)
     float t = grabbedNormal.dot(grabbedCenter - origin) / grabbedNormal.dot(ray);
     Vector3 hit = origin + ray * t;
 
-    // Move the hit point toward the camera
-    float multiplier = (float)snakePositions.count() / (100 + snakePositions.count());
-    hit += (origin - hit) * multiplier;
+    if (isRightButton)
+    {
+        // Move the hit point toward the camera
+        float multiplier = (float)snakePositions.count() / (100 + snakePositions.count());
+        hit += (origin - hit) * multiplier;
+    }
 
     // Set the hit point as the head of the snake
     snakePositions += hit;
