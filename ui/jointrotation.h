@@ -2,7 +2,7 @@
 #define JOINTROTATION_H
 
 #include "tools.h"
-#include <QMap>
+#include <QHash>
 
 
 /**
@@ -20,7 +20,7 @@ private:
     // copy of the base mesh from when this tool was instatiated
     Mesh *baseMesh;
     QQuaternion originalRotation;
-    QMap<Ball *, QMatrix4x4> absoluteTransforms;
+    QHash<Ball *, QMatrix4x4> absoluteTransforms;
 
 public:
     JointRotationTool(View *view);
