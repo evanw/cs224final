@@ -2,14 +2,14 @@
 
 
 void averageJointWeights(const CatmullVertex &v1, const CatmullVertex &v2,
-                         int dstIndices[], float dstWeights[]) {
+                         int *dstIndices, float *dstWeights) {
     if (v1.jointIndices[0] == v2.jointIndices[0]) {
         std::copy(v1.jointIndices, v1.jointIndices + 2, dstIndices);
         std::copy(v1.jointWeights, v1.jointWeights + 2, dstWeights);
     } else {
         dstIndices[0] = v1.jointIndices[0];
         dstIndices[1] = v2.jointIndices[0];
-        dstWeights[0] = dstWeights[1] = 0.5;
+        dstWeights[0] = dstWeights[1] = 0.5f;
     }
 }
 

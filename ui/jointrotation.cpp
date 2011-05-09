@@ -24,6 +24,10 @@ JointRotationTool::~JointRotationTool()
 
 bool JointRotationTool::mousePressed(QMouseEvent *event)
 {
+    // TODO: When do I create the base mesh?
+    //delete baseMesh;
+    //baseMesh = view->doc->mesh.copy();
+
     view->selectedBall = getSelection(event->x(), event->y());
     if (view->selectedBall != -1) {
         Ball &ball = view->doc->mesh.balls[view->selectedBall];
@@ -39,7 +43,8 @@ void JointRotationTool::mouseDragged(QMouseEvent *event)
 {
     if (view->selectedBall != -1) {
         Ball &ball = view->doc->mesh.balls[view->selectedBall];
-        ball.rotation.setX(ball.rotation.x() + 1);
+        ball.rotation *= QQuaternion(.01, 1, 0, 0);
+        ball.rotation.normalize();
     }
 }
 
@@ -51,14 +56,16 @@ void JointRotationTool::mouseReleased(QMouseEvent *event)
         QQuaternion newRotation = ball.rotation;
         ball.rotation = originalRotation;
 
-        calculateAbsoluteRotations();
-        updateVertices();
+        // DEBUG
+        //updateVertices();
 
         if (ball.rotation != newRotation) {
-            view->doc->getUndoStack().beginMacro("Rotate bone");
+            //view->doc->getUndoStack().beginMacro("Rotate bone");
             // TODO: Use an undo command here
             ball.rotation = newRotation;
-            view->doc->getUndoStack().endMacro();
+            calculateAbsoluteRotations();
+            updateVertices();
+            //view->doc->getUndoStack().endMacro();
         }
     }
 }
@@ -76,13 +83,19 @@ void JointRotationTool::updateVertices()
         Vertex &vert = view->doc->mesh.vertices[i];
         const Vertex &baseVert = baseMesh->vertices[i];
 
+        std::cout << "i0: " << vert.jointIndices[0] << std::endl;
+        std::cout << "i1: " << vert.jointIndices[1] << std::endl;
+
         // calculate affine combination of rotated positions
         vert.pos.x = vert.pos.y = vert.pos.z = 0;
         for (int j = 0; j < 2; ++j) {
             int ijoint = vert.jointIndices[j];
             if (ijoint != -1) {
                 float weight = vert.jointWeights[j];
-                vert.pos += weight * getRotated(baseVert.pos, view->doc->mesh.balls[ijoint].rotation);
+                std::cout << "weight: " << weight << std::endl;
+                std::cout << "index: " << ijoint << std::endl;
+                const Ball &joint = view->doc->mesh.balls[ijoint];
+                vert.pos += weight * (joint.center + getRotated(baseVert.pos - joint.center, joint.rotation));
             }
         }
     }
