@@ -32,6 +32,7 @@ enum
     BRUSH_ADD_OR_SUBTRACT,
     BRUSH_SMOOTH,
     BRUSH_GRAB,
+    BRUSH_SNAKE,
 };
 
 /**
@@ -60,11 +61,14 @@ private:
     Vector3 grabbedCenter;
     Vector3 grabbedNormal;
     QSet<MetaVertex *> grabbedVertices;
+    QVector<Vector3> snakePositions;
 
+    Vector3 interpolateAlongSnake(float t);
     void updateAccel();
     void getVerticesInSphere(const Vector3 &center, float radius, QSet<MetaVertex *> &vertices);
     void stampBrush(const Vector3 &brushCenter, const Vector3 &brushNormal);
     void moveGrabbedVertices(int x, int y);
+    void moveSnake(int x, int y);
     void commitChanges(QSet<Quad *> &quadsNeedingNormals);
 
 public:
