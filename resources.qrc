@@ -9,5 +9,9 @@
         <file>img/edit-delete.png</file>
         <file>img/image-missing.png</file>
         <file>img/process-stop.png</file>
+        <file>shaders/finalcomposite.frag</file>
+        <file>shaders/finalcomposite.vert</file>
+        <file>shaders/normaldepth.frag</file>
+        <file>shaders/normaldepth.vert</file>
     </qresource>
 </RCC>

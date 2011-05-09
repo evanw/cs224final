@@ -2,14 +2,19 @@
 #include "geometry.h"
 #include "curvature.h"
 #include "meshsculpter.h"
+#include "jointrotation.h"
 #include <QWheelEvent>
 
 #define PLANE_SIZE 10
 #define CURSOR_SIZE 20
 
 View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), oppositeSelectedBall(-1),
-    mouseX(0), mouseY(0), mode(MODE_EDIT_MESH), mirrorChanges(false), drawWireframe(true), drawInterpolated(true),
-    drawCurvature(false), brushMode(BRUSH_ADD_OR_SUBTRACT), brushRadius(0), brushWeight(0), brushTool(NULL),
+    mouseX(0), mouseY(0), mode(MODE_EDIT_MESH),
+#ifdef USE_SHADER_MATERIALS
+    currentMaterial(0),
+#endif
+    mirrorChanges(false), drawWireframe(true), drawInterpolated(true), drawCurvature(false),
+    brushMode(BRUSH_ADD_OR_SUBTRACT), brushRadius(0), brushWeight(0), brushTool(NULL),
     currentCamera(&firstPersonCamera), drawToolDebug(false), currentTool(NULL)
 {
     resetCamera();
@@ -20,6 +25,14 @@ View::~View()
 {
     delete doc;
     clearTools();
+}
+
+void View::setMaterial(int material)
+{
+#ifdef USE_SHADER_MATERIALS
+    currentMaterial = material;
+    update();
+#endif
 }
 
 void View::setBrushMode(int mode)
@@ -117,17 +130,34 @@ void View::initializeGL()
     glClearColor(0.875, 0.875, 0.875, 0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glPolygonOffset(1, 1);
+
+    // load shaders
+#ifdef USE_SHADER_MATERIALS
+    normalDepthShader.init(":/shaders/normaldepth.vert", ":/shaders/normaldepth.frag");
+    for (int i = 0; i < NUM_MATERIALS; i++)
+        finalCompositeShaders[i].init(":/shaders/finalcomposite.vert", ":/shaders/finalcomposite.frag", QString("#define MATERIAL %1").arg(i).toStdString());
+#endif
 }
 
 void View::resizeGL(int width, int height)
 {
     glViewport(0, 0, width, height);
+#ifdef USE_SHADER_MATERIALS
+    normalDepthTexture.init(GL_TEXTURE_2D, width, height, GL_RGBA, GL_RGBA32F_ARB, GL_FLOAT, GL_CLAMP_TO_EDGE, GL_NEAREST);
+    depthTexture.init(GL_TEXTURE_2D, width, height, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16_ARB, GL_UNSIGNED_SHORT, GL_CLAMP_TO_EDGE, GL_NEAREST);
+#endif
 }
 
 void View::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     camera3D();
+
+    // Don't paint if we haven't gotten a resize yet
+#ifdef USE_SHADER_MATERIALS
+    if (normalDepthTexture.getWidth() * normalDepthTexture.getHeight() == 0)
+        return;
+#endif
 
     // position lights
     float position0[4] = { 0, 1, 0, 0 };
@@ -137,10 +167,40 @@ void View::paintGL()
 
     if (mode == MODE_SCULPT_MESH)
     {
+#ifdef USE_SHADER_MATERIALS
+        normalDepthTexture.startDrawingTo(depthTexture);
+        normalDepthShader.use();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         drawMesh(true);
+        normalDepthShader.unuse();
+        normalDepthTexture.stopDrawingTo();
+
+        camera2D();
+        glDepthFunc(GL_ALWAYS);
+        normalDepthTexture.bind(0);
+        depthTexture.bind(1);
+        finalCompositeShaders[currentMaterial].use();
+        finalCompositeShaders[currentMaterial].uniform("windowSize", width(), height());
+        finalCompositeShaders[currentMaterial].texture("depthTexture", 1);
+        drawFullscreenQuad();
+        finalCompositeShaders[currentMaterial].unuse();
+        depthTexture.unbind(1);
+        normalDepthTexture.unbind(0);
+        glDepthFunc(GL_LESS);
+        camera3D();
+#else
+        drawMesh(true);
+#endif
         drawGroundPlane();
     }
     else if (mode == MODE_EDIT_MESH)
+    {
+        drawMesh(false);
+        drawGroundPlane();
+        drawSkeleton(true);
+        tools[0]->drawDebug(0, 0);
+    }
+    else if (mode == MODE_ANIMATE)
     {
         drawMesh(false);
         drawGroundPlane();
@@ -244,6 +304,10 @@ void View::updateTools()
         brushTool->brushRadius = brushRadius;
         brushTool->brushWeight = brushWeight;
         tools += brushTool;
+        break;
+
+    case MODE_ANIMATE:
+        tools += new JointRotationTool(this);
         break;
     }
 

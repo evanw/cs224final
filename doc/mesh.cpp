@@ -391,3 +391,28 @@ void Mesh::drawWireframe() const
         }
     }
 }
+
+
+Mesh * Mesh::copy() const
+{
+    Mesh *copy = new Mesh();
+    copy->subdivisionLevel = subdivisionLevel;
+    foreach (const Ball &ball, balls)
+    {
+        copy->balls += ball;
+    }
+    foreach (const Vertex &vert, vertices)
+    {
+        copy->vertices += vert;
+    }
+    foreach (const Triangle &tri, triangles)
+    {
+        copy->triangles += tri;
+    }
+    foreach (const Quad &quad, quads)
+    {
+        copy->quads += quad;
+    }
+
+    return copy;
+}

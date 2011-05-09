@@ -21,6 +21,7 @@ public:
     void unbind(int unit);
 
     void startDrawingTo();
+    void startDrawingTo(const Texture &depthTexture);
     void stopDrawingTo();
 };
 

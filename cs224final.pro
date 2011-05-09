@@ -12,6 +12,12 @@ release {
 
 # DEFINES += ANIM_DEBUG
 
+# floating-point render targets are horribly broken on most
+# of the cs department machines so only compile this on a mac
+macx {
+    DEFINES += USE_SHADER_MATERIALS
+}
+
 HEADERS += \
     util/vector.h \
     ui/mainwindow.h \
@@ -37,7 +43,8 @@ HEADERS += \
     util/texture.h \
     ui/meshsculpter.h \
     util/metamesh.h \
-    util/meshacceleration.h
+    util/meshacceleration.h \
+    ui/jointrotation.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -65,13 +72,18 @@ SOURCES += \
     util/texture.cpp \
     ui/meshsculpter.cpp \
     util/metamesh.cpp \
-    util/meshacceleration.cpp
+    util/meshacceleration.cpp \
+    ui/jointrotation.cpp
 
 RESOURCES += \
     resources.qrc
 
 OTHER_FILES += \
-    README
+    README \
+    shaders/normaldepth.vert \
+    shaders/normaldepth.frag \
+    shaders/finalcomposite.vert \
+    shaders/finalcomposite.frag
 
 
 

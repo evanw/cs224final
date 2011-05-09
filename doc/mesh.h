@@ -124,6 +124,8 @@ public:
     void drawKeyBalls(float alpha = 1) const;
     void drawInBetweenBalls() const;
     void drawBones() const;
+    // returns a new copy, must be deleted
+    Mesh *copy() const;
 
     bool loadFromOBJ(const std::string &file);
     bool saveToOBJ(const std::string &file);

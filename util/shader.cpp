@@ -35,13 +35,19 @@ Shader::~Shader()
     glDeleteShader(fragmentShader);
 }
 
-void Shader::load(const string &vertexPath, const string &fragmentPath)
+void Shader::init(const string &vertexPath, const string &fragmentPath, const string &defines)
 {
     int length;
     char buffer[512];
     const char *source;
     string vertexSource = readFile(vertexPath);
     string fragmentSource = readFile(fragmentPath);
+
+    // only change the line numbers when necessary
+    string prefix = defines;
+    if (!defines.empty() && defines[defines.size() - 1] != '\n') prefix += "\n";
+    vertexSource = prefix + vertexSource;
+    fragmentSource = prefix + fragmentSource;
 
     source = vertexSource.c_str();
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
