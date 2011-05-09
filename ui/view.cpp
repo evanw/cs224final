@@ -198,7 +198,6 @@ void View::paintGL()
         drawMesh(false);
         drawGroundPlane();
         drawSkeleton(true);
-        tools[0]->drawDebug(0, 0);
     }
     else if (mode == MODE_ANIMATE)
     {

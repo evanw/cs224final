@@ -12,10 +12,12 @@ class JointRotationTool : public Tool
     Q_OBJECT
 
 private:
-    void updateAccel();
+    void updateVertices();
+    void calculateAbsoluteRotations();
 
     // copy of the base mesh from when this tool was instatiated
     Mesh *baseMesh;
+    QQuaternion originalRotation;
 
 public:
     JointRotationTool(View *view);
