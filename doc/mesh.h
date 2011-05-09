@@ -4,6 +4,7 @@
 #include <QVector>
 #include <string>
 #include <QQuaternion>
+#include <QHash>
 #include "vector.h"
 
 #define BALL_DETAIL 16
@@ -42,22 +43,12 @@ struct Vertex
 {
     Vector3 pos;
     Vector3 normal;
-    float jointWeights[2];
-    int jointIndices[2];
+    QHash<int, float> jointWeights;
 
-    Vertex() {
-        jointWeights[0] = jointWeights[1] = 0;
-        jointIndices[0] = jointIndices[1] = -1;
-    }
-    Vertex(const Vector3 &pos) : pos(pos) {
-        jointWeights[0] = jointWeights[1] = 0;
-        jointIndices[0] = jointIndices[1] = -1;
-    }
+    Vertex() {}
+    Vertex(const Vector3 &pos) : pos(pos) {}
     Vertex(const Vector3 &pos, int jointIndex) : pos(pos) {
-        jointWeights[0] = 1;
-        jointWeights[1] = 0;
-        jointIndices[0] = jointIndex;
-        jointIndices[1] = -1;
+        jointWeights[jointIndex] = 1;
     }
 
     void draw() const;

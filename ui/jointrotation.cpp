@@ -11,30 +11,6 @@ static Vector3 getRotated(const Vector3 &vec, const QQuaternion &quat)
     return Vector3(res.x(), res.y(), res.z());
 }
 
-// Convert to Matrix
-/* QMatrix4x4 getMatrix(const QQuaternion &quat) const
-{
-
-
-        float x2 = x * x;
-        float y2 = y * y;
-        float z2 = z * z;
-        float xy = x * y;
-        float xz = x * z;
-        float yz = y * z;
-        float wx = w * x;
-        float wy = w * y;
-        float wz = w * z;
-
-        // This calculation would be a lot more complicated for non-unit length quaternions
-        // Note: The constructor of Matrix4 expects the Matrix in column-major format like expected by
-        //   OpenGL
-        return Matrix4( 1.0f - 2.0f * (y2 + z2), 2.0f * (xy - wz), 2.0f * (xz + wy), 0.0f,
-                        2.0f * (xy + wz), 1.0f - 2.0f * (x2 + z2), 2.0f * (yz - wx), 0.0f,
-                        2.0f * (xz - wy), 2.0f * (yz + wx), 1.0f - 2.0f * (x2 + y2), 0.0f,
-                        0.0f, 0.0f, 0.0f, 1.0f)
-} */
-
 
 JointRotationTool::JointRotationTool(View *view) : Tool(view), baseMesh(view->doc->mesh.copy())
 {
@@ -132,14 +108,13 @@ void JointRotationTool::updateVertices()
 
         // calculate affine combination of rotated positions
         QVector3D pos;
-        for (int j = 0; j < 2; ++j) {
-            int ijoint = vert.jointIndices[j];
-            if (ijoint != -1) {
-                float weight = vert.jointWeights[j];
-                Ball *joint = &view->doc->mesh.balls[ijoint];
-                Vector3 relPos = baseVert.pos - joint->center;
-                pos += weight * (absoluteTransforms[joint] * QVector3D(relPos.x, relPos.y, relPos.z));
-            }
+        QHashIterator<int, float> it(vert.jointWeights);
+        while (it.hasNext()) {
+            it.next();
+            Ball *joint = &view->doc->mesh.balls[it.key()];
+            Vector3 relPos = baseVert.pos - joint->center;
+            QVector3D qRelPos(relPos.x, relPos.y, relPos.z);
+            pos += it.value() * (absoluteTransforms[joint] * qRelPos);
         }
         vert.pos = Vector3(pos.x(), pos.y(), pos.z());
     }
