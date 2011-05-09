@@ -112,7 +112,6 @@ CatmullMesh::CatmullMesh(const Mesh &m) {
 
             // set the weights for animation
             averageJointWeights(vertices[it.key().first], vertices[it.key().second], edge.jointIndices, edge.jointWeights);
-
         } else {
             // edge point is average of edge endpoints and adjacent face points
             edges[it.key()].pos = (vertices[it.key().first].pos + vertices[it.key().second].pos +
@@ -197,8 +196,13 @@ bool CatmullMesh::convertToMesh(Mesh &m) {
     QMap<QPair<int, int>, int> edgeIndices;
     QMap<QPair<int, int>, CatmullEdge>::const_iterator it;
     for (it = edges.begin(); it != edges.end(); ++it) {
+        const CatmullEdge &edge = it.value();
         edgeIndices[it.key()] = m.vertices.size();
-        m.vertices += it.value().pos;
+        Vertex v;
+        v.pos = edge.pos;
+        std::copy(edge.jointIndices, edge.jointIndices + 2, v.jointIndices);
+        std::copy(edge.jointWeights, edge.jointWeights + 2, v.jointWeights);
+        m.vertices += v;
     }
 
     int faceOffset = m.vertices.size();

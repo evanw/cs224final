@@ -43,7 +43,7 @@ void JointRotationTool::mouseDragged(QMouseEvent *event)
 {
     if (view->selectedBall != -1) {
         Ball &ball = view->doc->mesh.balls[view->selectedBall];
-        ball.rotation *= QQuaternion(.01, 1, 0, 0);
+        ball.rotation *= QQuaternion(1, .01, 0, 0);
         ball.rotation.normalize();
     }
 }
@@ -55,9 +55,6 @@ void JointRotationTool::mouseReleased(QMouseEvent *event)
         Ball &ball = view->doc->mesh.balls[view->selectedBall];
         QQuaternion newRotation = ball.rotation;
         ball.rotation = originalRotation;
-
-        // DEBUG
-        //updateVertices();
 
         if (ball.rotation != newRotation) {
             //view->doc->getUndoStack().beginMacro("Rotate bone");
@@ -83,17 +80,12 @@ void JointRotationTool::updateVertices()
         Vertex &vert = view->doc->mesh.vertices[i];
         const Vertex &baseVert = baseMesh->vertices[i];
 
-        std::cout << "i0: " << vert.jointIndices[0] << std::endl;
-        std::cout << "i1: " << vert.jointIndices[1] << std::endl;
-
         // calculate affine combination of rotated positions
         vert.pos.x = vert.pos.y = vert.pos.z = 0;
         for (int j = 0; j < 2; ++j) {
             int ijoint = vert.jointIndices[j];
             if (ijoint != -1) {
                 float weight = vert.jointWeights[j];
-                std::cout << "weight: " << weight << std::endl;
-                std::cout << "index: " << ijoint << std::endl;
                 const Ball &joint = view->doc->mesh.balls[ijoint];
                 vert.pos += weight * (joint.center + getRotated(baseVert.pos - joint.center, joint.rotation));
             }

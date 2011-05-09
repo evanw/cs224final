@@ -239,7 +239,7 @@ static void makeElbow(Mesh &mesh, int ballIndex, ResultQuad &result)
         int i = mesh.vertices.count() - 4;
         Vector3 offset = ball.center + (ball.center - child.center).unit() * ball.maxRadius();
         for (int j = 0; j < 4; j++) {
-            mesh.vertices += Vertex(offset + (last.v[j] - child.center) * scale, ballIndex);
+            mesh.vertices += Vertex(offset + (last.v[j] - child.center) * scale, childIndex);
         }
         mesh.quads += Quad(i, i + 4, i + 5, i + 1);
         mesh.quads += Quad(i + 1, i + 5, i + 6, i + 2);
