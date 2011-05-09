@@ -184,7 +184,8 @@ void MeshSculpterTool::moveGrabbedVertices(int x, int y)
             a = vertex->prevPos + delta * percent;
             b = vertex->prevPos + delta * Mesh::symmetryFlip * mirroredPercent;
         }
-        vertex->pos = Vector3::lerp(a, b, mirroredPercent / (percent + mirroredPercent));
+        if (percent + mirroredPercent > 1.0e-4f)
+            vertex->pos = Vector3::lerp(a, b, mirroredPercent / (percent + mirroredPercent));
 
         // We'll need to recalculate normals for all neighboring quads
         foreach (Quad *quad, vertex->neighbors)
