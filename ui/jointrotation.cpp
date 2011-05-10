@@ -4,6 +4,12 @@
 #include <QMouseEvent>
 #include <QQuaternion>
 
+// Define ANIMATION_UNDO to integrate animation with undo. Doing undo while posing
+// results in pinching when you rotate somewhere and rotate back. This is mostly
+// a result of adding posing as an afterthought at the end of the project. I'm
+// disabling undo for animation at the moment for a better final project demo.
+// #define ANIMATION_UNDO
+
 static Vector3 getRotated(const Vector3 &vec, const QQuaternion &quat)
 {
     QVector3D qvec(vec.x, vec.y, vec.z);
@@ -59,8 +65,10 @@ void JointRotationTool::updateBaseMesh()
 
 bool JointRotationTool::mousePressed(QMouseEvent *event)
 {
+#ifdef ANIMATION_UNDO
     // Reset the base mesh
     meshInfo.reset();
+#endif
     updateBaseMesh();
 
     view->selectedBall = getSelection(event->x(), event->y());
@@ -96,14 +104,16 @@ void JointRotationTool::mouseDragged(QMouseEvent *event)
 
 void JointRotationTool::mouseReleased(QMouseEvent *)
 {
+#ifdef ANIMATION_UNDO
     // Doing undo here results in pinching when you rotate somewhere and rotate back
-    // This is the leasy hacky option but doesn't work well :(
+    // This is the least hacky option but doesn't work well :(
 
     Mesh temp = view->doc->mesh;
     view->doc->mesh = *baseMesh;
     view->doc->getUndoStack().beginMacro("Rotate Joint");
     view->doc->changeMesh(temp.balls, temp.vertices, temp.triangles, temp.quads);
     view->doc->getUndoStack().endMacro();
+#endif
 }
 
 
