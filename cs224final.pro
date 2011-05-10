@@ -44,7 +44,8 @@ HEADERS += \
     ui/meshsculpter.h \
     util/metamesh.h \
     util/meshacceleration.h \
-    ui/jointrotation.h
+    ui/jointrotation.h \
+    util/meshinfo.h
 
 SOURCES += \
     ui/mainwindow.cpp \
@@ -73,7 +74,8 @@ SOURCES += \
     ui/meshsculpter.cpp \
     util/metamesh.cpp \
     util/meshacceleration.cpp \
-    ui/jointrotation.cpp
+    ui/jointrotation.cpp \
+    util/meshinfo.cpp
 
 RESOURCES += \
     resources.qrc

@@ -199,7 +199,7 @@ void View::paintGL()
         drawGroundPlane();
         drawSkeleton(true);
     }
-    else if (mode == MODE_ANIMATE)
+    else if (mode == MODE_ANIMATE_MESH)
     {
         drawMesh(false);
         drawGroundPlane();
@@ -305,7 +305,7 @@ void View::updateTools()
         tools += brushTool;
         break;
 
-    case MODE_ANIMATE:
+    case MODE_ANIMATE_MESH:
         tools += new JointRotationTool(this);
         break;
     }

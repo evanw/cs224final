@@ -65,7 +65,7 @@ void MainWindow::modeChanged()
     else if (ui->actionScaleJoints->isChecked()) ui->view->setMode(MODE_SCALE_JOINTS);
     else if (ui->actionEditMesh->isChecked()) ui->view->setMode(MODE_EDIT_MESH);
     else if (ui->actionSculptMesh->isChecked()) ui->view->setMode(MODE_SCULPT_MESH);
-    else if (ui->actionAnimate->isChecked()) ui->view->setMode(MODE_ANIMATE);
+    else if (ui->actionAnimate->isChecked()) ui->view->setMode(MODE_ANIMATE_MESH);
 
     ui->brushSettings->setEnabled(ui->actionSculptMesh->isChecked());
     ui->materials->setEnabled(ui->actionSculptMesh->isChecked());

@@ -1,8 +1,8 @@
 #include "jointrotation.h"
+#include "commands.h"
 #include "view.h"
 #include <QMouseEvent>
 #include <QQuaternion>
-#include <QMatrix4x4>
 
 static Vector3 getRotated(const Vector3 &vec, const QQuaternion &quat)
 {
@@ -11,30 +11,62 @@ static Vector3 getRotated(const Vector3 &vec, const QQuaternion &quat)
     return Vector3(res.x(), res.y(), res.z());
 }
 
-
-JointRotationTool::JointRotationTool(View *view) : Tool(view), baseMesh(view->doc->mesh.copy())
+JointRotationTool::JointRotationTool(View *view) : Tool(view), baseMesh(NULL)
 {
-    view->doc->mesh.updateChildIndices();
-    view->doc->mesh.updateRelativePositions();
+    updateBaseMesh();
+    calculateRelativePositions();
 }
-
 
 JointRotationTool::~JointRotationTool()
 {
     delete baseMesh;
 }
 
+QList<int> JointRotationTool::findRoots()
+{
+    QList<int> roots;
+    for (int i = 0; i < view->doc->mesh.balls.size(); ++i) {
+        Ball &ball = view->doc->mesh.balls[i];
+        if (ball.parentIndex == -1) {
+            roots += i;
+        }
+    }
+    return roots;
+}
+
+void JointRotationTool::updateBaseMesh()
+{
+    MeshInfo newInfo(view->doc->mesh);
+
+    // If the mesh was changed, remake the base mesh because the sizes could have changed
+    if (newInfo != meshInfo)
+    {
+        delete baseMesh;
+        baseMesh = view->doc->mesh.copy();
+        baseMesh->updateChildIndices();
+
+        // update the local and absolute transforms
+        int n = baseMesh->vertices.count();
+        relativeRotations.resize(n);
+        relativeTranslations.resize(n);
+        absoluteRotations.resize(n);
+        absoluteTranslations.resize(n);
+        calculateAbsoluteTransforms();
+
+        meshInfo = newInfo;
+    }
+}
 
 bool JointRotationTool::mousePressed(QMouseEvent *event)
 {
-    // TODO: When do I create the base mesh and make sure children indices are updated?
-    //delete baseMesh;
-    //baseMesh = view->doc->mesh.copy();
+    updateBaseMesh();
 
     view->selectedBall = getSelection(event->x(), event->y());
     if (view->selectedBall != -1) {
-        Ball &ball = view->doc->mesh.balls[view->selectedBall];
-        originalRotation = ball.rotation;
+        originalRotation = relativeRotations[view->selectedBall];
+
+        oldX = event->x();
+        oldY = event->y();
         return true;
     }
 
@@ -44,28 +76,51 @@ bool JointRotationTool::mousePressed(QMouseEvent *event)
 
 void JointRotationTool::mouseDragged(QMouseEvent *event)
 {
+    updateBaseMesh();
+
     if (view->selectedBall != -1) {
-        Ball &ball = view->doc->mesh.balls[view->selectedBall];
-        ball.rotation *= QQuaternion(1, .01, 0, 0);
-        ball.rotation.normalize();
+        QQuaternion &rotation = relativeRotations[view->selectedBall];
+        rotation *= QQuaternion(1, (event->y() - oldY) * 0.01f, 0, 0);
+        rotation.normalize();
+
+        calculateAbsoluteTransforms();
+        updateVertices();
+
+        oldX = event->x();
+        oldY = event->y();
     }
 }
 
 
-void JointRotationTool::mouseReleased(QMouseEvent *event)
+void JointRotationTool::mouseReleased(QMouseEvent *)
 {
-    if (view->selectedBall != -1) {
-        Ball &ball = view->doc->mesh.balls[view->selectedBall];
-        QQuaternion newRotation = ball.rotation;
-        ball.rotation = originalRotation;
+    updateBaseMesh();
 
-        if (ball.rotation != newRotation) {
-            //view->doc->getUndoStack().beginMacro("Rotate bone");
-            // TODO: Use an undo command here
-            ball.rotation = newRotation;
-            calculateAbsoluteTransforms();
-            updateVertices();
-            //view->doc->getUndoStack().endMacro();
+    for (int i = 0; i < baseMesh->balls.count(); i++)
+    {
+        // MoveBallCommand();
+        // ChangeVerticesCommand();
+    }
+
+    // view->doc->getUndoStack().beginMacro("Rotate Joint");
+    // view->doc->getUndoStack().endMacro();
+}
+
+
+void JointRotationTool::calculateRelativePositions()
+{
+    // calculate the offsets of the parents to the parents-of-parents
+    for (int i = 0; i < baseMesh->balls.size(); ++i) {
+        Ball &ball = baseMesh->balls[i];
+        if (ball.parentIndex == -1) {
+            relativeTranslations[i] = ball.center;
+        } else {
+            Ball &parent = baseMesh->balls[ball.parentIndex];
+            if (parent.parentIndex == -1) {
+                relativeTranslations[i] = parent.center;
+            } else {
+                relativeTranslations[i] = parent.center - baseMesh->balls[parent.parentIndex].center;
+            }
         }
     }
 }
@@ -73,64 +128,59 @@ void JointRotationTool::mouseReleased(QMouseEvent *event)
 
 void JointRotationTool::calculateAbsoluteTransforms()
 {
-    QList<Ball *> roots;
-    // get all the roots
-    for (int i = 0; i < view->doc->mesh.balls.size(); ++i) {
-        Ball &ball = view->doc->mesh.balls[i];
-        if (ball.parentIndex == -1) {
-            roots += &ball;
-        }
-    }
-
-    for (int i = 0; i < roots.size(); ++i) {
-        calcTransform(roots[i], QMatrix4x4());
+    foreach (int i, findRoots()) {
+        calcTransform(i, QQuaternion(), Vector3());
     }
 }
 
 // recursively calculate absolute rotations for 'ball' and its children
-void JointRotationTool::calcTransform(Ball *ball, QMatrix4x4 currTransform)
+void JointRotationTool::calcTransform(int i, const QQuaternion &parentRotation, const Vector3 &parentTranslation)
 {
-    currTransform.translate(ball->translation.x, ball->translation.y, ball->translation.z);
-    currTransform.rotate(ball->rotation);
-    absoluteTransforms[ball] = currTransform;
+    absoluteTranslations[i] = parentTranslation + getRotated(relativeTranslations[i], parentRotation);
+    absoluteRotations[i] = parentRotation * relativeRotations[i];
 
-    for (int i = 0; i < ball->childrenIndices.size(); ++i) {
-        calcTransform(&view->doc->mesh.balls[ball->childrenIndices[i]], currTransform);
+    foreach (int j, baseMesh->balls[i].childrenIndices) {
+        calcTransform(j, absoluteRotations[i], absoluteTranslations[i]);
     }
 }
 
 
+void JointRotationTool::updateBallCenter(int index)
+{
+    Ball &ball = view->doc->mesh.balls[index];
+    Ball &baseBall = baseMesh->balls[index];
+
+    if (ball.parentIndex != -1)
+    {
+        Ball &baseParent = baseMesh->balls[ball.parentIndex];
+        Vector3 relPos = baseBall.center - baseParent.center;
+        ball.center = absoluteTranslations[index] + getRotated(relPos, absoluteRotations[index]);
+    }
+    else ball.center = baseBall.center;
+
+    foreach (int i, baseBall.childrenIndices)
+        updateBallCenter(i);
+}
+
 void JointRotationTool::updateVertices()
 {
-    for (int i = 0; i < view->doc->mesh.vertices.size(); ++i) {
+    for (int i = 0; i < baseMesh->vertices.count(); i++) {
         Vertex &vert = view->doc->mesh.vertices[i];
         const Vertex &baseVert = baseMesh->vertices[i];
 
         // calculate affine combination of rotated positions
-        QVector3D pos;
+        vert.pos = Vector3();
         QHashIterator<int, float> it(vert.jointWeights);
         while (it.hasNext()) {
             it.next();
-            Ball *joint = &view->doc->mesh.balls[it.key()];
-            Vector3 relPos = baseVert.pos - joint->center;
-            QVector3D qRelPos(relPos.x, relPos.y, relPos.z);
-            pos += it.value() * (absoluteTransforms[joint] * qRelPos);
+            Ball &joint = baseMesh->balls[it.key()];
+            Vector3 relPos = baseVert.pos - (joint.parentIndex == -1 ? joint.center : baseMesh->balls[joint.parentIndex].center);
+            vert.pos += it.value() * (absoluteTranslations[it.key()] + getRotated(relPos, absoluteRotations[it.key()]));
         }
-        vert.pos = Vector3(pos.x(), pos.y(), pos.z());
     }
 
+    foreach (int i, findRoots())
+        updateBallCenter(i);
+
     view->doc->mesh.updateNormals();
-}
-
-
-void JointRotationTool::drawDebug(int, int)
-{
-    // draw initial mesh
-    glColor3f(0.25f, 0.25f, 0.85f);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    baseMesh->drawFill();
-    glDisable(GL_POLYGON_OFFSET_FILL);
-    glDisable(GL_LIGHTING);
-    glColor3f(0, 0, 0);
 }

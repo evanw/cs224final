@@ -2,31 +2,42 @@
 #define JOINTROTATION_H
 
 #include "tools.h"
-#include <QHash>
-
+#include "meshinfo.h"
+#include <QQuaternion>
 
 /**
  Tool to rotate joints in a mesh
   */
 class JointRotationTool : public Tool
 {
-    Q_OBJECT
-
 private:
+    QList<int> findRoots();
+    void updateBaseMesh();
     void updateVertices();
+    void calculateRelativePositions();
     void calculateAbsoluteTransforms();
-    void calcTransform(Ball *ball, QMatrix4x4 parentTransform);
+    void calcTransform(int index, const QQuaternion &parentRotation, const Vector3 &parentTranslation);
+    void updateBallCenter(int index);
+
+    // rotation quaternion and translation vector (relative to parent)
+    QVector<QQuaternion> relativeRotations;
+    QVector<Vector3> relativeTranslations;
+    QVector<QQuaternion> absoluteRotations;
+    QVector<Vector3> absoluteTranslations;
+
+    // Remember info about the mesh so we can tell when it has changed
+    MeshInfo meshInfo;
 
     // copy of the base mesh from when this tool was instatiated
     Mesh *baseMesh;
     QQuaternion originalRotation;
-    QHash<Ball *, QMatrix4x4> absoluteTransforms;
+
+    int oldX, oldY;
 
 public:
     JointRotationTool(View *view);
     ~JointRotationTool();
 
-    void drawDebug(int x, int y);
     bool mousePressed(QMouseEvent *event);
     void mouseDragged(QMouseEvent *event);
     void mouseReleased(QMouseEvent *event);

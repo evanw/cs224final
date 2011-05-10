@@ -125,18 +125,6 @@ void Mesh::updateNormals()
     }
 }
 
-void Mesh::updateRelativePositions()
-{
-    for (int i = 0; i < balls.size(); ++i) {
-        Ball &ball = balls[i];
-        if (ball.parentIndex == -1) {
-            ball.translation = ball.center;
-        } else {
-            ball.translation = ball.center - balls[ball.parentIndex].center;
-        }
-    }
-}
-
 void Mesh::uploadToGPU()
 {
 #if ENABLE_GPU_UPLOAD
