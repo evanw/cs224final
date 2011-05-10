@@ -7,13 +7,14 @@ class MetaVertex
 {
 public:
     int accelData;
+    Vertex &wrappedVertex;
     Vector3 &pos;
     Vector3 &normal;
     Vector3 prevPos;
     Vector3 prevNormal;
     QVector<Quad *> neighbors;
 
-    MetaVertex(Vertex &vertex) : accelData(0), pos(vertex.pos), normal(vertex.normal), prevPos(vertex.pos), prevNormal(vertex.normal) {}
+    MetaVertex(Vertex &vertex) : accelData(0), wrappedVertex(vertex), pos(vertex.pos), normal(vertex.normal), prevPos(vertex.pos), prevNormal(vertex.normal) {}
 };
 
 class MetaMesh

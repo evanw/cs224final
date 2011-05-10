@@ -379,9 +379,7 @@ void MeshSculpterTool::mouseReleased(QMouseEvent *)
     {
         vertexIndices += map[vertex];
 
-        Vertex newVertex;
-        newVertex.pos = vertex->pos;
-        newVertex.normal = vertex->normal;
+        Vertex newVertex = vertex->wrappedVertex;
         vertex->pos = vertex->prevPos;
         vertex->normal = vertex->prevNormal;
         newVertices += newVertex;
