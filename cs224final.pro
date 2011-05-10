@@ -75,7 +75,8 @@ SOURCES += \
     util/metamesh.cpp \
     util/meshacceleration.cpp \
     ui/jointrotation.cpp \
-    util/meshinfo.cpp
+    util/meshinfo.cpp \
+    util/vector.cpp
 
 RESOURCES += \
     resources.qrc

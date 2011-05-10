@@ -67,6 +67,9 @@ public:
     float toAngle() const { return atan2f(y, x); }
     static Vector2 fromAngle(float theta) { return Vector2(cosf(theta), sinf(theta)); }
     static Vector2 uniform() { return fromAngle(frand() * M_2PI); }
+
+    static const Vector2 X;
+    static const Vector2 Y;
 };
 
 class Vector3
@@ -126,6 +129,10 @@ public:
     Vector2 toAngles() const { return Vector2(atan2f(z, x), asinf(y / length())); }
     static Vector3 fromAngles(float theta, float phi) { return Vector3(cosf(theta) * cosf(phi), sinf(phi), sinf(theta) * cosf(phi)); }
     static Vector3 uniform() { return fromAngles(frand() * M_2PI, asinf(frand() * 2 - 1)); }
+
+    static const Vector3 X;
+    static const Vector3 Y;
+    static const Vector3 Z;
 };
 
 inline std::ostream &operator << (std::ostream &out, const Vector2 &v) { return out << "<" << v.x << ", " << v.y << ">"; }

@@ -193,13 +193,7 @@ void View::paintGL()
 #endif
         drawGroundPlane();
     }
-    else if (mode == MODE_VIEW_MESH)
-    {
-        drawMesh(false);
-        drawGroundPlane();
-        drawSkeleton(true);
-    }
-    else if (mode == MODE_ANIMATE_MESH)
+    else if (mode == MODE_VIEW_MESH || mode == MODE_ANIMATE_MESH)
     {
         drawMesh(false);
         drawGroundPlane();
@@ -420,90 +414,90 @@ void View::drawSkeleton(bool drawTransparent) const
         if (drawInterpolated) doc->mesh.drawInBetweenBalls();
         else doc->mesh.drawBones();
         glDisable(GL_LIGHTING);
+    }
 
-        // draw box around selected ball
-        if (selectedBall != -1)
+    // draw box around selected ball
+    if (selectedBall != -1)
+    {
+        const Ball &selection = doc->mesh.balls[selectedBall];
+        float radius = selection.maxRadius();
+
+        // enable line drawing
+        glDepthMask(GL_FALSE);
+        glEnable(GL_BLEND);
+
+        if (mode == MODE_ADD_JOINTS || mode == MODE_ANIMATE_MESH)
         {
-            const Ball &selection = doc->mesh.balls[selectedBall];
-            float radius = selection.maxRadius();
+            glDisable(GL_DEPTH_TEST);
+            glColor4f(0, 0, 0, 0.25);
+            drawWireCube(selection.center - radius, selection.center + radius);
+            glEnable(GL_DEPTH_TEST);
+            glColor3f(0, 0, 0);
+            drawWireCube(selection.center - radius, selection.center + radius);
 
-            // enable line drawing
-            glDepthMask(GL_FALSE);
-            glEnable(GL_BLEND);
-
-            if (mode == MODE_ADD_JOINTS)
+            // find the currently selected cube face and display the cursor
+            Raytracer tracer;
+            Vector3 ray = tracer.getRayForPixel(mouseX, mouseY);
+            HitTest result;
+            if (Raytracer::hitTestCube(selection.center - radius, selection.center + radius, currentCamera->eye, ray, result))
             {
-                glDisable(GL_DEPTH_TEST);
-                glColor4f(0, 0, 0, 0.25);
-                drawWireCube(selection.center - radius, selection.center + radius);
-                glEnable(GL_DEPTH_TEST);
+                float size = (result.hit - currentCamera->eye).length() * CURSOR_SIZE / height();
+                Vector2 angles = result.normal.toAngles();
                 glColor3f(0, 0, 0);
-                drawWireCube(selection.center - radius, selection.center + radius);
-
-                // find the currently selected cube face and display the cursor
-                Raytracer tracer;
-                Vector3 ray = tracer.getRayForPixel(mouseX, mouseY);
-                HitTest result;
-                if (Raytracer::hitTestCube(selection.center - radius, selection.center + radius, currentCamera->eye, ray, result))
-                {
-                    float size = (result.hit - currentCamera->eye).length() * CURSOR_SIZE / height();
-                    Vector2 angles = result.normal.toAngles();
-                    glColor3f(0, 0, 0);
-                    glDisable(GL_DEPTH_TEST);
-                    glPushMatrix();
-                    glTranslatef(result.hit.x, result.hit.y, result.hit.z);
-                    glRotatef(90 - angles.x * 180 / M_PI, 0, 1, 0);
-                    glRotatef(-angles.y * 180 / M_PI, 1, 0, 0);
-                    glScalef(size, size, size);
-                    drawMoveCursor();
-                    glPopMatrix();
-                    glEnable(GL_DEPTH_TEST);
-                }
-            }
-            else if (mode == MODE_SCALE_JOINTS)
-            {
-                // display the cursor
-                Raytracer tracer;
-                Vector3 ray = tracer.getRayForPixel(mouseX, mouseY);
-                HitTest result;
-                if (Raytracer::hitTestSphere(selection.center, radius, currentCamera->eye, ray, result))
-                {
-                    camera2D();
-                    glColor3f(0, 0, 0);
-                    glDisable(GL_DEPTH_TEST);
-                    glTranslatef(mouseX, mouseY, 0);
-                    glScalef(CURSOR_SIZE, CURSOR_SIZE, 0);
-                    drawScaleCursor();
-                    glEnable(GL_DEPTH_TEST);
-                    camera3D();
-                }
-
-                Vector3 delta = currentCamera->eye - selection.center;
-                Vector2 angles = delta.toAngles();
-
-                // adjust the radius to the profile of the ball as seen from the camera
-                radius = radius / sinf(acosf(radius / delta.length()));
-
-                // draw a circle around the selected ball
-                radius *= 1.1;
+                glDisable(GL_DEPTH_TEST);
                 glPushMatrix();
-                glTranslatef(selection.center.x, selection.center.y, selection.center.z);
+                glTranslatef(result.hit.x, result.hit.y, result.hit.z);
                 glRotatef(90 - angles.x * 180 / M_PI, 0, 1, 0);
                 glRotatef(-angles.y * 180 / M_PI, 1, 0, 0);
-                glScalef(radius, radius, radius);
-                glDisable(GL_DEPTH_TEST);
-                glColor4f(0, 0, 0, 0.25);
-                drawWireDisk();
-                glEnable(GL_DEPTH_TEST);
-                glColor3f(0, 0, 0);
-                drawWireDisk();
+                glScalef(size, size, size);
+                drawMoveCursor();
                 glPopMatrix();
+                glEnable(GL_DEPTH_TEST);
+            }
+        }
+        else if (mode == MODE_SCALE_JOINTS)
+        {
+            // display the cursor
+            Raytracer tracer;
+            Vector3 ray = tracer.getRayForPixel(mouseX, mouseY);
+            HitTest result;
+            if (Raytracer::hitTestSphere(selection.center, radius, currentCamera->eye, ray, result))
+            {
+                camera2D();
+                glColor3f(0, 0, 0);
+                glDisable(GL_DEPTH_TEST);
+                glTranslatef(mouseX, mouseY, 0);
+                glScalef(CURSOR_SIZE, CURSOR_SIZE, 0);
+                drawScaleCursor();
+                glEnable(GL_DEPTH_TEST);
+                camera3D();
             }
 
-            // disable line drawing
-            glDisable(GL_BLEND);
-            glDepthMask(GL_TRUE);
+            Vector3 delta = currentCamera->eye - selection.center;
+            Vector2 angles = delta.toAngles();
+
+            // adjust the radius to the profile of the ball as seen from the camera
+            radius = radius / sinf(acosf(radius / delta.length()));
+
+            // draw a circle around the selected ball
+            radius *= 1.1;
+            glPushMatrix();
+            glTranslatef(selection.center.x, selection.center.y, selection.center.z);
+            glRotatef(90 - angles.x * 180 / M_PI, 0, 1, 0);
+            glRotatef(-angles.y * 180 / M_PI, 1, 0, 0);
+            glScalef(radius, radius, radius);
+            glDisable(GL_DEPTH_TEST);
+            glColor4f(0, 0, 0, 0.25);
+            drawWireDisk();
+            glEnable(GL_DEPTH_TEST);
+            glColor3f(0, 0, 0);
+            drawWireDisk();
+            glPopMatrix();
         }
+
+        // disable line drawing
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
     }
 }
 

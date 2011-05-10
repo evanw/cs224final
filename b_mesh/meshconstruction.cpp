@@ -21,18 +21,13 @@ struct ResultQuad
     void setIndices(int a, int b, int c, int d) { i0 = a; i1 = b; i2 = c; i3 = d; }
 };
 
-// world vectors
-Vector3 X(1,0,0);
-Vector3 Y(0,1,0);
-Vector3 Z(0,0,1);
-
 void sweep(Mesh &m, int ballIndex, ResultQuad &result);
 
 static Vector3 rotate(const Vector3 &p, const Vector3 &v, float radians)
 {
     Vector3 temp = Vector3(p);
 
-    Vector3 axisX = ((fabsf(v.dot(X)) < 0.75) ? X : Y).cross(v).unit();
+    Vector3 axisX = ((fabsf(v.dot(Vector3::X)) < 0.75) ? Vector3::X : Vector3::Y).cross(v).unit();
     Vector3 axisY = v.cross(axisX);
 
     float x = temp.dot(axisX);
@@ -52,7 +47,7 @@ static void makeStartOfSweep(Mesh &mesh, int ballIndex, Vector3 &v0, Vector3 &v1
     Vector3 boneDirection = parent.center - ball.center;
     Vector3 x,y,z;
     x = -boneDirection.unit();
-    y = (fabsf(x.dot(Y)) < 0.5 ? Y : X).cross(x).unit();
+    y = (fabsf(x.dot(Vector3::Y)) < 0.5 ? Vector3::Y : Vector3::X).cross(x).unit();
     z = x.cross(y).unit();
 
     float r = ball.maxRadius();
@@ -76,9 +71,9 @@ static void makeCap(Mesh &mesh, int ballIndex, ResultQuad &result)
     {
         float r = ball.maxRadius();
         Vector3 x,y,z;
-        x = X*r;
-        y = Y*r;
-        z = Z*r;
+        x = Vector3::X*r;
+        y = Vector3::Y*r;
+        z = Vector3::Z*r;
 
         Vector3 v0, v1, v2, v3, v4, v5, v6, v7;
         v0 = ball.center;

@@ -12,6 +12,8 @@ class QWheelEvent;
 class Tool : public QObject
 {
 protected:
+    enum { METHOD_SPHERE, METHOD_CUBE };
+
     View *view;
 
     Ball &getSelectedBall();

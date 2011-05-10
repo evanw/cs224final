@@ -7,8 +7,6 @@
 // 1 = cursor doesn't move when dragging camera parameters
 #define KEEP_CURSOR_STILL 1
 
-enum { METHOD_SPHERE, METHOD_CUBE };
-
 Ball &Tool::getSelectedBall()
 {
     return view->doc->mesh.balls[view->selectedBall];

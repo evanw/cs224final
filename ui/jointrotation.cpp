@@ -71,16 +71,24 @@ bool JointRotationTool::mousePressed(QMouseEvent *event)
 #endif
     updateBaseMesh();
 
-    view->selectedBall = getSelection(event->x(), event->y());
-    if (view->selectedBall != -1) {
-        originalRotation = relativeRotations[view->selectedBall];
+    oldX = event->x();
+    oldY = event->y();
 
-        oldX = event->x();
-        oldY = event->y();
-        return true;
+    HitTest result;
+    if (view->selectedBall == -1 || !hitTestSelection(event->x(), event->y(), result, METHOD_CUBE))
+    {
+        view->selectedBall = getSelection(event->x(), event->y());
+        if (view->selectedBall == -1) return false;
+        hitTestSelection(event->x(), event->y(), result, METHOD_CUBE);
     }
 
-    return false;
+    originalRotation = relativeRotations[view->selectedBall];
+    Ball &ball = view->doc->mesh.balls[view->selectedBall];
+    Vector3 center = ball.parentIndex == -1 ? ball.center : view->doc->mesh.balls[ball.parentIndex].center;
+    projectedCenter = center + result.normal * result.normal.dot(result.hit - center);
+    planeNormal = result.normal;
+    originalAngle = getAngleOnPlane(event->x(), event->y());
+    return true;
 }
 
 
@@ -88,9 +96,12 @@ void JointRotationTool::mouseDragged(QMouseEvent *event)
 {
     updateBaseMesh();
 
-    if (view->selectedBall != -1) {
+    if (view->selectedBall != -1)
+    {
+        float deltaAngle = getAngleOnPlane(event->x(), event->y()) - originalAngle;
+
         QQuaternion &rotation = relativeRotations[view->selectedBall];
-        rotation *= QQuaternion(1, (event->y() - oldY) * 0.01f, 0, 0);
+        rotation = QQuaternion::fromAxisAndAngle(planeNormal.x, planeNormal.y, planeNormal.z, deltaAngle) * originalRotation;
         rotation.normalize();
 
         calculateAbsoluteTransforms();
@@ -171,6 +182,19 @@ void JointRotationTool::updateBallCenter(int index)
 
     foreach (int i, baseBall.childrenIndices)
         updateBallCenter(i);
+}
+
+float JointRotationTool::getAngleOnPlane(int x, int y)
+{
+    view->camera3D();
+    Raytracer tracer;
+    Vector3 origin = tracer.getEye();
+    Vector3 ray = tracer.getRayForPixel(x, y);
+    float t = planeNormal.dot(projectedCenter - origin) / planeNormal.dot(ray);
+    Vector3 delta = origin + ray * t - projectedCenter;
+    Vector3 axisX = ((fabsf(planeNormal.dot(Vector3::X)) < 0.75) ? Vector3::X : Vector3::Y).cross(planeNormal).unit();
+    Vector3 axisY = planeNormal.cross(axisX).unit();
+    return atan2f(delta.dot(axisY), delta.dot(axisX)) * 180 / M_PI;
 }
 
 void JointRotationTool::updateVertices()
