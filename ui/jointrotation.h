@@ -14,7 +14,7 @@ private:
     QList<int> findRoots();
     void updateBaseMesh();
     void updateVertices();
-    void calculateRelativePositions();
+    void calculateRelativeTransforms();
     void calculateAbsoluteTransforms();
     void calcTransform(int index, const QQuaternion &parentRotation, const Vector3 &parentTranslation);
     void updateBallCenter(int index);

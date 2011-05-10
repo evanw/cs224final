@@ -287,7 +287,7 @@
     <addaction name="separator"/>
     <addaction name="actionAddJoints"/>
     <addaction name="actionScaleJoints"/>
-    <addaction name="actionEditMesh"/>
+    <addaction name="actionViewMesh"/>
     <addaction name="actionSculptMesh"/>
     <addaction name="actionAnimate"/>
    </widget>
@@ -340,7 +340,7 @@
    <addaction name="separator"/>
    <addaction name="actionAddJoints"/>
    <addaction name="actionScaleJoints"/>
-   <addaction name="actionEditMesh"/>
+   <addaction name="actionViewMesh"/>
    <addaction name="actionSculptMesh"/>
    <addaction name="actionAnimate"/>
   </widget>
@@ -464,7 +464,7 @@
     <string>Scale Joints</string>
    </property>
   </action>
-  <action name="actionEditMesh">
+  <action name="actionViewMesh">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -473,7 +473,10 @@
      <normaloff>:/img/image-missing.png</normaloff>:/img/image-missing.png</iconset>
    </property>
    <property name="text">
-    <string>Edit Mesh</string>
+    <string>View Mesh</string>
+   </property>
+   <property name="toolTip">
+    <string>View Mesh</string>
    </property>
   </action>
   <action name="actionUndoToolbar">
@@ -826,7 +829,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionEditMesh</sender>
+   <sender>actionViewMesh</sender>
    <signal>toggled(bool)</signal>
    <receiver>MainWindow</receiver>
    <slot>modeChanged()</slot>

@@ -69,12 +69,13 @@ class ChangeMeshCommand : public QUndoCommand
 {
 private:
     Document *doc;
+    QVector<Ball> oldBalls, newBalls;
     QVector<Vertex> oldVertices, newVertices;
     QVector<Triangle> oldTriangles, newTriangles;
     QVector<Quad> oldQuads, newQuads;
 
 public:
-    ChangeMeshCommand(Document *doc, const QVector<Vertex> &newVertices, const QVector<Triangle> &newTriangles, const QVector<Quad> &newQuads);
+    ChangeMeshCommand(Document *doc, const QVector<Ball> &balls, const QVector<Vertex> &newVertices, const QVector<Triangle> &newTriangles, const QVector<Quad> &newQuads);
 
     void undo();
     void redo();

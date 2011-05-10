@@ -14,7 +14,6 @@ static Vector3 getRotated(const Vector3 &vec, const QQuaternion &quat)
 JointRotationTool::JointRotationTool(View *view) : Tool(view), baseMesh(NULL)
 {
     updateBaseMesh();
-    calculateRelativePositions();
 }
 
 JointRotationTool::~JointRotationTool()
@@ -51,6 +50,7 @@ void JointRotationTool::updateBaseMesh()
         relativeTranslations.resize(n);
         absoluteRotations.resize(n);
         absoluteTranslations.resize(n);
+        calculateRelativeTransforms();
         calculateAbsoluteTransforms();
 
         meshInfo = newInfo;
@@ -59,6 +59,8 @@ void JointRotationTool::updateBaseMesh()
 
 bool JointRotationTool::mousePressed(QMouseEvent *event)
 {
+    // Reset the base mesh
+    meshInfo.reset();
     updateBaseMesh();
 
     view->selectedBall = getSelection(event->x(), event->y());
@@ -94,20 +96,18 @@ void JointRotationTool::mouseDragged(QMouseEvent *event)
 
 void JointRotationTool::mouseReleased(QMouseEvent *)
 {
-    updateBaseMesh();
+    // Doing undo here results in pinching when you rotate somewhere and rotate back
+    // This is the leasy hacky option but doesn't work well :(
 
-    for (int i = 0; i < baseMesh->balls.count(); i++)
-    {
-        // MoveBallCommand();
-        // ChangeVerticesCommand();
-    }
-
-    // view->doc->getUndoStack().beginMacro("Rotate Joint");
-    // view->doc->getUndoStack().endMacro();
+    Mesh temp = view->doc->mesh;
+    view->doc->mesh = *baseMesh;
+    view->doc->getUndoStack().beginMacro("Rotate Joint");
+    view->doc->changeMesh(temp.balls, temp.vertices, temp.triangles, temp.quads);
+    view->doc->getUndoStack().endMacro();
 }
 
 
-void JointRotationTool::calculateRelativePositions()
+void JointRotationTool::calculateRelativeTransforms()
 {
     // calculate the offsets of the parents to the parents-of-parents
     for (int i = 0; i < baseMesh->balls.size(); ++i) {
@@ -122,6 +122,7 @@ void JointRotationTool::calculateRelativePositions()
                 relativeTranslations[i] = parent.center - baseMesh->balls[parent.parentIndex].center;
             }
         }
+        relativeRotations[i] = QQuaternion();
     }
 }
 

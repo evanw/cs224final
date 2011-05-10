@@ -24,9 +24,9 @@ void Document::deleteBall(int index)
     undoStack.push(new DeleteBallCommand(this, index));
 }
 
-void Document::changeMesh(const QVector<Vertex> &vertices, const QVector<Triangle> &triangles, const QVector<Quad> &quads)
+void Document::changeMesh(const QVector<Ball> &balls, const QVector<Vertex> &vertices, const QVector<Triangle> &triangles, const QVector<Quad> &quads)
 {
-    undoStack.push(new ChangeMeshCommand(this, vertices, triangles, quads));
+    undoStack.push(new ChangeMeshCommand(this, balls, vertices, triangles, quads));
 }
 
 void Document::changeVertices(const QVector<int> &vertexIndices, const QVector<Vertex> &newVertices)

@@ -9,7 +9,7 @@
 #define CURSOR_SIZE 20
 
 View::View(QWidget *parent) : QGLWidget(parent), doc(new Document), selectedBall(-1), oppositeSelectedBall(-1),
-    mouseX(0), mouseY(0), mode(MODE_EDIT_MESH),
+    mouseX(0), mouseY(0), mode(MODE_VIEW_MESH),
 #ifdef USE_SHADER_MATERIALS
     currentMaterial(0),
 #endif
@@ -193,7 +193,7 @@ void View::paintGL()
 #endif
         drawGroundPlane();
     }
-    else if (mode == MODE_EDIT_MESH)
+    else if (mode == MODE_VIEW_MESH)
     {
         drawMesh(false);
         drawGroundPlane();

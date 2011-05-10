@@ -106,8 +106,9 @@ void DeleteBallCommand::redo()
     doc->emitDocumentChanged();
 }
 
-ChangeMeshCommand::ChangeMeshCommand(Document *doc, const QVector<Vertex> &vertices, const QVector<Triangle> &triangles, const QVector<Quad> &quads)
+ChangeMeshCommand::ChangeMeshCommand(Document *doc, const QVector<Ball> &balls, const QVector<Vertex> &vertices, const QVector<Triangle> &triangles, const QVector<Quad> &quads)
     : doc(doc),
+      oldBalls(doc->mesh.balls), newBalls(balls),
       oldVertices(doc->mesh.vertices), newVertices(vertices),
       oldTriangles(doc->mesh.triangles), newTriangles(triangles),
       oldQuads(doc->mesh.quads), newQuads(quads)
@@ -116,6 +117,7 @@ ChangeMeshCommand::ChangeMeshCommand(Document *doc, const QVector<Vertex> &verti
 
 void ChangeMeshCommand::undo()
 {
+    doc->mesh.balls = oldBalls;
     doc->mesh.vertices = oldVertices;
     doc->mesh.triangles = oldTriangles;
     doc->mesh.quads = oldQuads;
@@ -125,6 +127,7 @@ void ChangeMeshCommand::undo()
 
 void ChangeMeshCommand::redo()
 {
+    doc->mesh.balls = newBalls;
     doc->mesh.vertices = newVertices;
     doc->mesh.triangles = newTriangles;
     doc->mesh.quads = newQuads;

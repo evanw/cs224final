@@ -22,6 +22,8 @@ public:
     MeshInfo() : isInitialized(false) {}
     MeshInfo(Mesh &mesh);
 
+    void reset() { isInitialized = false; }
+
     bool operator == (const MeshInfo &other) const;
     bool operator != (const MeshInfo &other) const { return !(*this == other); }
 };

@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QActionGroup *group = new QActionGroup(this);
     group->addAction(ui->actionAddJoints);
     group->addAction(ui->actionScaleJoints);
-    group->addAction(ui->actionEditMesh);
+    group->addAction(ui->actionViewMesh);
     group->addAction(ui->actionSculptMesh);
     group->addAction(ui->actionAnimate);
 
@@ -63,7 +63,7 @@ void MainWindow::modeChanged()
 {
     if (ui->actionAddJoints->isChecked()) ui->view->setMode(MODE_ADD_JOINTS);
     else if (ui->actionScaleJoints->isChecked()) ui->view->setMode(MODE_SCALE_JOINTS);
-    else if (ui->actionEditMesh->isChecked()) ui->view->setMode(MODE_EDIT_MESH);
+    else if (ui->actionViewMesh->isChecked()) ui->view->setMode(MODE_VIEW_MESH);
     else if (ui->actionSculptMesh->isChecked()) ui->view->setMode(MODE_SCULPT_MESH);
     else if (ui->actionAnimate->isChecked()) ui->view->setMode(MODE_ANIMATE_MESH);
 
@@ -206,7 +206,7 @@ void MainWindow::runEverything()
     }
 
     doc.getUndoStack().beginMacro("Run Everything");
-    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.changeMesh(doc.mesh.balls, mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
     updateMode();
 }
@@ -219,7 +219,7 @@ void MainWindow::generateMesh()
     mesh.updateChildIndices();
     MeshConstruction::BMeshInit(mesh);
     doc.getUndoStack().beginMacro("Generate Mesh");
-    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.changeMesh(doc.mesh.balls, mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
     updateMode();
 }
@@ -230,7 +230,7 @@ void MainWindow::subdivideMesh()
     Document &doc = ui->view->getDocument();
     CatmullMesh::subdivide(doc.mesh, mesh);
     doc.getUndoStack().beginMacro("Subdivide Mesh");
-    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.changeMesh(doc.mesh.balls, mesh.vertices, mesh.triangles, mesh.quads);
     doc.mesh.subdivisionLevel += 1;
     doc.getUndoStack().endMacro();
     updateMode();
@@ -243,7 +243,7 @@ void MainWindow::convexHull()
     mesh.vertices = doc.mesh.vertices;
     ConvexHull3D::run(mesh);
     doc.getUndoStack().beginMacro("Convex Hull");
-    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.changeMesh(doc.mesh.balls, mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
     updateMode();
 }
@@ -254,7 +254,7 @@ void MainWindow::evolveMesh()
     Mesh mesh = doc.mesh;
     MeshEvolution::run(mesh);
     doc.getUndoStack().beginMacro("Evolve Mesh");
-    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.changeMesh(doc.mesh.balls, mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
     updateMode();
 }
@@ -265,7 +265,7 @@ void MainWindow::edgeFairing()
     Mesh mesh = doc.mesh;
     EdgeFairing::run(mesh, 5);
     doc.getUndoStack().beginMacro("Edge Fairing");
-    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.changeMesh(doc.mesh.balls, mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
     updateMode();
 }
@@ -276,7 +276,7 @@ void MainWindow::trianglesToQuads()
     Mesh mesh = doc.mesh;
     TrianglesToQuads::run(mesh);
     doc.getUndoStack().beginMacro("Triangles To Quads");
-    doc.changeMesh(mesh.vertices, mesh.triangles, mesh.quads);
+    doc.changeMesh(doc.mesh.balls, mesh.vertices, mesh.triangles, mesh.quads);
     doc.getUndoStack().endMacro();
     updateMode();
 }
@@ -318,11 +318,11 @@ void MainWindow::updateMode()
     if (mesh.balls.isEmpty() || mesh.triangles.count() + mesh.quads.count() > 0)
     {
         // try to keep the currently checked action
-        QAction *checked = ui->actionSculptMesh->isChecked() ? ui->actionSculptMesh : ui->actionAnimate->isChecked() ? ui->actionAnimate : ui->actionEditMesh;
+        QAction *checked = ui->actionSculptMesh->isChecked() ? ui->actionSculptMesh : ui->actionAnimate->isChecked() ? ui->actionAnimate : ui->actionViewMesh;
 
         ui->actionAddJoints->setEnabled(false);
         ui->actionScaleJoints->setEnabled(false);
-        ui->actionEditMesh->setEnabled(true);
+        ui->actionViewMesh->setEnabled(true);
         ui->actionSculptMesh->setEnabled(true);
         ui->actionAnimate->setEnabled(true);
 
@@ -335,7 +335,7 @@ void MainWindow::updateMode()
 
         ui->actionAddJoints->setEnabled(true);
         ui->actionScaleJoints->setEnabled(true);
-        ui->actionEditMesh->setEnabled(false);
+        ui->actionViewMesh->setEnabled(false);
         ui->actionSculptMesh->setEnabled(false);
         ui->actionAnimate->setEnabled(false);
 

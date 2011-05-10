@@ -236,16 +236,14 @@ void Mesh::drawInBetweenBalls() const
 
 void Mesh::drawBones() const
 {
-    // calculate an appropriate radius based on the minimum ball size
-    float radius = FLT_MAX;
-    foreach (const Ball &ball, balls)
-        radius = min(radius, ball.minRadius() / 4);
-
     // draw bones as rotated and scaled cylinders
     foreach (const Ball &ball, balls)
     {
         if (ball.parentIndex == -1) continue;
         const Ball &parent = balls[ball.parentIndex];
+
+        // calculate an appropriate radius based on the minimum ball size
+        float radius = min(ball.minRadius(), parent.minRadius()) / 4;
 
         Vector3 delta = ball.center - parent.center;
         Vector2 angles = delta.toAngles();

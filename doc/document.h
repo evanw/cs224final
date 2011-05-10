@@ -23,7 +23,7 @@ public:
     void moveBall(int index, const Vector3 &delta);
     void scaleBall(int index, const Vector3 &x, const Vector3 &y, const Vector3 &z);
     void deleteBall(int index);
-    void changeMesh(const QVector<Vertex> &vertices, const QVector<Triangle> &triangles, const QVector<Quad> &quads);
+    void changeMesh(const QVector<Ball> &balls, const QVector<Vertex> &vertices, const QVector<Triangle> &triangles, const QVector<Quad> &quads);
     void changeVertices(const QVector<int> &vertexIndices, const QVector<Vertex> &newVertices);
 
     void emitDocumentChanged() { emit documentChanged(); }
