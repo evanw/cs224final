@@ -113,7 +113,7 @@ void JointRotationTool::calculateRelativePositions()
     for (int i = 0; i < baseMesh->balls.size(); ++i) {
         Ball &ball = baseMesh->balls[i];
         if (ball.parentIndex == -1) {
-            relativeTranslations[i] = ball.center;
+            relativeTranslations[i] = Vector3();
         } else {
             Ball &parent = baseMesh->balls[ball.parentIndex];
             if (parent.parentIndex == -1) {
