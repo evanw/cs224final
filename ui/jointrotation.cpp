@@ -1,13 +1,19 @@
 #include "jointrotation.h"
+#include "commands.h"
 #include "view.h"
 #include <QMouseEvent>
 #include <QQuaternion>
-#include <QMatrix4x4>
+
+static Vector3 getRotated(const Vector3 &vec, const QQuaternion &quat)
+{
+    QVector3D qvec(vec.x, vec.y, vec.z);
+    const QVector3D &res = quat.rotatedVector(qvec);
+    return Vector3(res.x(), res.y(), res.z());
+}
 
 JointRotationTool::JointRotationTool(View *view) : Tool(view), baseMesh(NULL)
 {
     updateBaseMesh();
-    baseMesh->updateChildIndices();
     calculateRelativePositions();
 }
 
@@ -37,12 +43,14 @@ void JointRotationTool::updateBaseMesh()
     {
         delete baseMesh;
         baseMesh = view->doc->mesh.copy();
+        baseMesh->updateChildIndices();
 
         // update the local and absolute transforms
         int n = baseMesh->vertices.count();
-        rotations.resize(n);
-        translations.resize(n);
-        absoluteTransforms.resize(n);
+        relativeRotations.resize(n);
+        relativeTranslations.resize(n);
+        absoluteRotations.resize(n);
+        absoluteTranslations.resize(n);
         calculateAbsoluteTransforms();
 
         meshInfo = newInfo;
@@ -55,7 +63,7 @@ bool JointRotationTool::mousePressed(QMouseEvent *event)
 
     view->selectedBall = getSelection(event->x(), event->y());
     if (view->selectedBall != -1) {
-        originalRotation = rotations[view->selectedBall];
+        originalRotation = relativeRotations[view->selectedBall];
 
         oldX = event->x();
         oldY = event->y();
@@ -71,7 +79,7 @@ void JointRotationTool::mouseDragged(QMouseEvent *event)
     updateBaseMesh();
 
     if (view->selectedBall != -1) {
-        QQuaternion &rotation = rotations[view->selectedBall];
+        QQuaternion &rotation = relativeRotations[view->selectedBall];
         rotation *= QQuaternion(1, (event->y() - oldY) * 0.01f, 0, 0);
         rotation.normalize();
 
@@ -86,6 +94,16 @@ void JointRotationTool::mouseDragged(QMouseEvent *event)
 
 void JointRotationTool::mouseReleased(QMouseEvent *)
 {
+    updateBaseMesh();
+
+    for (int i = 0; i < baseMesh->balls.count(); i++)
+    {
+        // MoveBallCommand();
+        // ChangeVerticesCommand();
+    }
+
+    // view->doc->getUndoStack().beginMacro("Rotate Joint");
+    // view->doc->getUndoStack().endMacro();
 }
 
 
@@ -95,13 +113,13 @@ void JointRotationTool::calculateRelativePositions()
     for (int i = 0; i < baseMesh->balls.size(); ++i) {
         Ball &ball = baseMesh->balls[i];
         if (ball.parentIndex == -1) {
-            translations[i] = ball.center;
+            relativeTranslations[i] = ball.center;
         } else {
             Ball &parent = baseMesh->balls[ball.parentIndex];
             if (parent.parentIndex == -1) {
-                translations[i] = parent.center;
+                relativeTranslations[i] = parent.center;
             } else {
-                translations[i] = parent.center - baseMesh->balls[parent.parentIndex].center;
+                relativeTranslations[i] = parent.center - baseMesh->balls[parent.parentIndex].center;
             }
         }
     }
@@ -111,19 +129,18 @@ void JointRotationTool::calculateRelativePositions()
 void JointRotationTool::calculateAbsoluteTransforms()
 {
     foreach (int i, findRoots()) {
-        calcTransform(i, QMatrix4x4());
+        calcTransform(i, QQuaternion(), Vector3());
     }
 }
 
 // recursively calculate absolute rotations for 'ball' and its children
-void JointRotationTool::calcTransform(int i, QMatrix4x4 currTransform)
+void JointRotationTool::calcTransform(int i, const QQuaternion &parentRotation, const Vector3 &parentTranslation)
 {
-    currTransform.translate(translations[i].x, translations[i].y, translations[i].z);
-    currTransform.rotate(rotations[i]);
-    absoluteTransforms[i] = currTransform;
+    absoluteTranslations[i] = parentTranslation + getRotated(relativeTranslations[i], parentRotation);
+    absoluteRotations[i] = parentRotation * relativeRotations[i];
 
     foreach (int j, baseMesh->balls[i].childrenIndices) {
-        calcTransform(j, currTransform);
+        calcTransform(j, absoluteRotations[i], absoluteTranslations[i]);
     }
 }
 
@@ -137,16 +154,13 @@ void JointRotationTool::updateBallCenter(int index)
     {
         Ball &baseParent = baseMesh->balls[ball.parentIndex];
         Vector3 relPos = baseBall.center - baseParent.center;
-        QVector3D qRelPos(relPos.x, relPos.y, relPos.z);
-        QVector3D newCenter = absoluteTransforms[index] * qRelPos;
-        ball.center = Vector3(newCenter.x(), newCenter.y(), newCenter.z());
+        ball.center = absoluteTranslations[index] + getRotated(relPos, absoluteRotations[index]);
     }
     else ball.center = baseBall.center;
 
     foreach (int i, baseBall.childrenIndices)
         updateBallCenter(i);
 }
-
 
 void JointRotationTool::updateVertices()
 {
@@ -155,16 +169,14 @@ void JointRotationTool::updateVertices()
         const Vertex &baseVert = baseMesh->vertices[i];
 
         // calculate affine combination of rotated positions
-        QVector3D pos;
+        vert.pos = Vector3();
         QHashIterator<int, float> it(vert.jointWeights);
         while (it.hasNext()) {
             it.next();
             Ball &joint = baseMesh->balls[it.key()];
             Vector3 relPos = baseVert.pos - (joint.parentIndex == -1 ? joint.center : baseMesh->balls[joint.parentIndex].center);
-            QVector3D qRelPos(relPos.x, relPos.y, relPos.z);
-            pos += it.value() * (absoluteTransforms[it.key()] * qRelPos);
+            vert.pos += it.value() * (absoluteTranslations[it.key()] + getRotated(relPos, absoluteRotations[it.key()]));
         }
-        vert.pos = Vector3(pos.x(), pos.y(), pos.z());
     }
 
     foreach (int i, findRoots())

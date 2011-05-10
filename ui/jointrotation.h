@@ -16,13 +16,14 @@ private:
     void updateVertices();
     void calculateRelativePositions();
     void calculateAbsoluteTransforms();
-    void calcTransform(int index, QMatrix4x4 parentTransform);
+    void calcTransform(int index, const QQuaternion &parentRotation, const Vector3 &parentTranslation);
     void updateBallCenter(int index);
 
     // rotation quaternion and translation vector (relative to parent)
-    QVector<QQuaternion> rotations;
-    QVector<Vector3> translations;
-    QVector<QMatrix4x4> absoluteTransforms;
+    QVector<QQuaternion> relativeRotations;
+    QVector<Vector3> relativeTranslations;
+    QVector<QQuaternion> absoluteRotations;
+    QVector<Vector3> absoluteTranslations;
 
     // Remember info about the mesh so we can tell when it has changed
     MeshInfo meshInfo;
