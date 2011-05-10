@@ -99,9 +99,13 @@ void JointRotationTool::mouseDragged(QMouseEvent *event)
     if (view->selectedBall != -1)
     {
         float deltaAngle = getAngleOnPlane(event->x(), event->y()) - originalAngle;
+        Ball &ball = view->doc->mesh.balls[view->selectedBall];
+        QQuaternion parentRotation = (ball.parentIndex == -1) ? QQuaternion() : absoluteRotations[ball.parentIndex];
+        QQuaternion inverseParentRotation(parentRotation.scalar(), -parentRotation.vector());
 
+        QQuaternion deltaRotation = QQuaternion::fromAxisAndAngle(planeNormal.x, planeNormal.y, planeNormal.z, deltaAngle);
         QQuaternion &rotation = relativeRotations[view->selectedBall];
-        rotation = QQuaternion::fromAxisAndAngle(planeNormal.x, planeNormal.y, planeNormal.z, deltaAngle) * originalRotation;
+        rotation = (inverseParentRotation * deltaRotation * parentRotation) * originalRotation;
         rotation.normalize();
 
         calculateAbsoluteTransforms();
